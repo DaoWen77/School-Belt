@@ -15,6 +15,7 @@ export function Composer({
   uploads,
   onAddFiles,
   onClearUploads,
+  onRetryUpload,
   onOpenVote,
   onOpenTask,
   onOpenMusic,
@@ -33,6 +34,7 @@ export function Composer({
   uploads: UploadRow[];
   onAddFiles: (files: FileList | File[]) => void;
   onClearUploads: () => void;
+  onRetryUpload?: (row: UploadRow) => void;
   onOpenVote: () => void;
   onOpenTask: () => void;
   onOpenMusic: () => void;
@@ -120,6 +122,11 @@ export function Composer({
               <span className={row.status === 'failed' ? 'text-danger' : ''}>
                 {row.status === 'uploading' ? `${row.percent}%` : row.status === 'done' ? '已上传' : `${row.code ?? '失败'}`}
               </span>
+              {row.status === 'failed' && row.file && onRetryUpload ? (
+                <button type="button" className="text-[10px] text-accent underline" onClick={() => onRetryUpload(row)}>
+                  重试
+                </button>
+              ) : null}
             </li>
           ))}
           <li className="text-right">

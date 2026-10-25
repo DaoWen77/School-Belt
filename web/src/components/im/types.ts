@@ -17,4 +17,5 @@ export interface UploadRow {
   status: 'uploading' | 'done' | 'failed';
   code?: string;
   message?: string;
+  file?: File;
 }

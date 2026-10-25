@@ -44,7 +44,7 @@ export function ChatHeader({
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [notifOpen, setNotifOpen] = useState(false);
   const [unread, setUnread] = useState(0);
-  const [notifications, setNotifications] = useState<Array<{ id: string; title?: string; body?: string; channelId?: string; messageId?: string; readAt?: string | null; createdAt?: string }>>([]);
+  const [notifications, setNotifications] = useState<Array<{ id: string; title?: string; body?: string; channelId?: string; messageId?: string; cardId?: string; readAt?: string | null; createdAt?: string }>>([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const [now, setNow] = useState(() => new Date());
 
@@ -101,7 +101,7 @@ export function ChatHeader({
   const openNotification = (item: (typeof notifications)[number]) => {
     void api('/notifications/read', { method: 'POST', body: JSON.stringify({ ids: [item.id] }) }).catch(() => undefined);
     setUnread((value) => Math.max(0, value - 1));
-    if (item.channelId) window.dispatchEvent(new CustomEvent('dj:notification-open', { detail: { channelId: item.channelId, messageId: item.messageId } }));
+    if (item.channelId) window.dispatchEvent(new CustomEvent('dj:notification-open', { detail: { channelId: item.channelId, messageId: item.messageId, cardId: item.cardId } }));
     setNotifOpen(false);
   };
 

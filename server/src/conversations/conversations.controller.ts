@@ -13,11 +13,13 @@ import {
   createDmSchema,
   createGroupSchema,
   renameConversationSchema,
+  transferConversationSchema,
   updateAnnouncementSchema,
   type AddConversationMembersDto,
   type CreateDmDto,
   type CreateGroupDto,
   type RenameConversationDto,
+  type TransferConversationDto,
   type UpdateAnnouncementDto,
 } from './conversations.dto';
 import { CurrentUser } from '../common/decorators';
@@ -96,6 +98,22 @@ export class ConversationsController {
     @ZBody(addConversationMembersSchema) dto: AddConversationMembersDto,
   ) {
     return { conversation: await this.conversations.addMembers(user, id, dto) };
+  }
+
+  @Post(':id/block')
+  @HttpCode(200)
+  async block(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.conversations.blockConversation(user, id);
+  }
+
+  @Post(':id/transfer')
+  @HttpCode(200)
+  async transferOwner(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @ZBody(transferConversationSchema) dto: TransferConversationDto,
+  ) {
+    return { conversation: await this.conversations.transferOwner(user, id, dto) };
   }
 
   /** 本人退出 / moderator 移除成员 */

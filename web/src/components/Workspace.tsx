@@ -112,8 +112,12 @@ export function Workspace() {
   const [botPickerOpen, setBotPickerOpen] = useState(false);
   const [focusMessageId, setFocusMessageId] = useState<string | null>(null);
   const [sudoPrank, setSudoPrank] = useState(false);
+  const [typingPeople, setTypingPeople] = useState<Record<string, string>>({});
+  const [onlineIds, setOnlineIds] = useState<Set<string>>(() => new Set());
 
   const rtRef = useRef<Realtime | null>(null);
+  const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const typingCleanup = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const meRef = useRef<ApiUser | null>(null);
   const messagesRef = useRef<Message[]>([]);
   useEffect(() => {
@@ -374,6 +378,39 @@ export function Workspace() {
     rt.onReady = applyReady;
 
     const unsubscribe: Array<() => void> = [];
+    unsubscribe.push(rt.on('typing:update', (payload) => {
+      const data = payload as { channelId?: string; userId?: string; displayName?: string; handle?: string; state?: string };
+      if (!data.channelId || !data.userId || data.userId === me.id) return;
+      if (data.state === 'start') {
+        setTypingPeople((previous) => ({ ...previous, [data.userId!]: data.displayName || data.handle || '成员' }));
+        const existing = typingCleanup.current.get(data.userId);
+        if (existing) clearTimeout(existing);
+        typingCleanup.current.set(data.userId, setTimeout(() => {
+          setTypingPeople((previous) => {
+            const next = { ...previous };
+            delete next[data.userId!];
+            return next;
+          });
+          typingCleanup.current.delete(data.userId!);
+        }, 2600));
+      } else {
+        setTypingPeople((previous) => {
+          const next = { ...previous };
+          delete next[data.userId!];
+          return next;
+        });
+      }
+    }));
+    unsubscribe.push(rt.on('presence:update', (payload) => {
+      const data = payload as { userId?: string; status?: string };
+      if (!data.userId) return;
+      setOnlineIds((previous) => {
+        const next = new Set(previous);
+        if (data.status === 'online') next.add(data.userId!);
+        else next.delete(data.userId!);
+        return next;
+      });
+    }));
     unsubscribe.push(
       rt.on('message:new', (payload) => {
         const message = (payload as { message?: Message }).message;
@@ -438,6 +475,8 @@ export function Workspace() {
     rt.connect();
     return () => {
       for (const off of unsubscribe) off();
+      for (const timer of typingCleanup.current.values()) clearTimeout(timer);
+      typingCleanup.current.clear();
       rt.disconnect();
       rtRef.current = null;
     };
@@ -1206,6 +1245,41 @@ export function Workspace() {
     }));
   const addableUsers = [...users.filter((user) => !memberUserIds.has(user.id)), ...botAddables];
 
+  useEffect(() => {
+    if (!selection?.id) return;
+    try {
+      setDraft(localStorage.getItem(`dj.draft:${selection.id}`) ?? '');
+    } catch {
+      setDraft('');
+    }
+  }, [selection?.id]);
+
+  useEffect(() => {
+    if (!selection?.id) return;
+    const timer = setTimeout(() => {
+      try {
+        if (draft.trim()) localStorage.setItem(`dj.draft:${selection.id}`, draft);
+        else localStorage.removeItem(`dj.draft:${selection.id}`);
+      } catch {
+        /* ignore quota */
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [draft, selection?.id]);
+
+  useEffect(() => {
+    if (!selection?.id || !rtRef.current) return;
+    if (draft.trim()) {
+      rtRef.current.typing(selection.id, 'start');
+      if (typingTimer.current) clearTimeout(typingTimer.current);
+      typingTimer.current = setTimeout(() => {
+        rtRef.current?.typing(selection.id, 'stop');
+      }, 1400);
+    } else {
+      rtRef.current.typing(selection.id, 'stop');
+    }
+  }, [draft, selection?.id]);
+
   const headerLine = activeChannel
     ? `${activeChannel.visibility === 'private' ? '私密频道' : '公开频道'} │ ${activeChannel.memberCount ?? members.length} 位成员可读 │ 未读 ${activeChannel.unread ?? 0} 条 │ 最后一条 ${messageStamp(activeChannel.lastMessageAt)}`
     : activeConversation?.kind === 'dm'
@@ -1213,6 +1287,22 @@ export function Workspace() {
       : activeConversation
         ? `群聊 │ ${members.length} 人 │ 未读 ${activeConversation.unreadCount ?? 0} 条 │ 最后一条 ${messageStamp(activeConversation.lastMessageAt)}`
         : '选择一个频道或会话';
+
+  useEffect(() => {
+    if (members.length === 0) return;
+    const ids = members.map((member) => member.userId).join(',');
+    void api<{ presence: Array<{ userId: string; online: boolean }> }>(`/presence?ids=${encodeURIComponent(ids)}`)
+      .then((data) => {
+        setOnlineIds(new Set(data.presence.filter((row) => row.online).map((row) => row.userId)));
+      })
+      .catch(() => undefined);
+  }, [members]);
+
+  const typingLabel = Object.values(typingPeople).slice(0, 3).join('、');
+  const presenceLabel = onlineIds.size > 0 ? `在线 ${onlineIds.size}` : '';
+  const enrichedHeaderLine = [headerLine, presenceLabel, typingLabel ? `${typingLabel} 正在输入…` : '']
+    .filter(Boolean)
+    .join(' │ ');
 
   const totalUnread = channels.reduce((sum, channel) => sum + (channel.unread ?? 0), 0) + conversations.reduce((sum, conversation) => sum + (conversation.unreadCount ?? 0), 0);
 
@@ -1423,6 +1513,11 @@ export function Workspace() {
 
   const removeAttachment = (fileId: string) => setPendingAttachments((previous) => previous.filter((item) => item.fileId !== fileId));
   const clearUploads = () => setUploads((previous) => previous.filter((row) => row.status === 'uploading'));
+  const retryUpload = (row: UploadRow) => {
+    if (!row.file) return;
+    setUploads((previous) => previous.filter((item) => item.id !== row.id));
+    void uploadOne(row.file);
+  };
 
   /* 「＋」菜单 → 素材：上传后直接建 material 卡（走现有 /files 与 /cards） */
   const createMaterialFromFiles = useCallback(async (files: File[]) => {
@@ -1447,7 +1542,7 @@ export function Workspace() {
         ]);
         continue;
       }
-      setUploads((previous) => [...previous, { id: rowId, name: file.name, percent: 0, status: 'uploading' }]);
+      setUploads((previous) => [...previous, { id: rowId, name: file.name, percent: 0, status: 'uploading', file }]);
       try {
         const view = await uploadFile(current.id, file, (progress) => {
           setUploads((previous) => previous.map((row) => (row.id === rowId ? { ...row, percent: progress.percent } : row)));
@@ -1601,7 +1696,7 @@ export function Workspace() {
         conversations={conversations}
         selection={selection}
         activeTitle={activeTitle}
-        activeSubtitle={headerLine}
+        activeSubtitle={enrichedHeaderLine}
         conn={conn}
         fatal={fatal}
         booting={booting}
@@ -1640,6 +1735,7 @@ export function Workspace() {
         uploads={uploads}
         onAddFiles={addFiles}
         onClearUploads={clearUploads}
+        onRetryUpload={retryUpload}
         onOpenVote={() => setCardDialog('vote')}
         onOpenTask={() => setCardDialog('task')}
         onOpenMusic={() => setCardDialog('music')}

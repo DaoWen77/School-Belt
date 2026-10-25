@@ -10,7 +10,30 @@ import { SearchIcon } from './icons';
 type Result =
   | { kind: 'channel'; key: string; channelId: string; title: string; subtitle: string }
   | { kind: 'message'; key: string; channelId: string; messageId: string; title: string; subtitle: string }
-  | { kind: 'task'; key: string; channelId: string; title: string; subtitle: string };
+  | { kind: 'task'; key: string; channelId: string; title: string; subtitle: string }
+  | { kind: 'card'; key: string; channelId: string; messageId: string; title: string; subtitle: string };
+
+interface SearchCardHit {
+  id: string;
+  channelId: string;
+  title: string;
+  messageId?: string;
+}
+
+function normalizeCards(data: unknown): SearchCardHit[] {
+  if (!data || typeof data !== 'object') return [];
+  const list = (data as Record<string, unknown>).cards;
+  if (!Array.isArray(list)) return [];
+  return list.flatMap((raw) => {
+    if (!raw || typeof raw !== 'object') return [];
+    const item = raw as Record<string, unknown>;
+    const id = String(item.id ?? '');
+    const channelId = String(item.channelId ?? '');
+    const title = String(item.title ?? '');
+    if (!id || !channelId) return [];
+    return [{ id, channelId, title: title || '未命名卡片', messageId: item.messageId ? String(item.messageId) : undefined }];
+  });
+}
 
 function normalizeMessages(data: unknown): SearchMessageHit[] {
   if (!data || typeof data !== 'object') return [];
@@ -57,6 +80,7 @@ export function CommandPalette({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [query, setQuery] = useState('');
   const [remote, setRemote] = useState<SearchMessageHit[]>([]);
+  const [remoteCards, setRemoteCards] = useState<SearchCardHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<{ code: string; message: string } | null>(null);
   const [active, setActive] = useState(0);
@@ -83,11 +107,15 @@ export function CommandPalette({
     const timer = window.setTimeout(async () => {
       try {
         const data = await api<unknown>(`/search?q=${encodeURIComponent(value)}&limit=8`);
-        if (!cancelled) setRemote(normalizeMessages(data));
+        if (!cancelled) {
+          setRemote(normalizeMessages(data));
+          setRemoteCards(normalizeCards(data));
+        }
       } catch (caught) {
         if (!cancelled) {
           setError(errorOf(caught));
           setRemote([]);
+          setRemoteCards([]);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -159,8 +187,20 @@ export function CommandPalette({
         });
       }
     }
+    if (!goto && value && !value.startsWith('/')) {
+      for (const card of remoteCards) {
+        list.push({
+          kind: 'card',
+          key: `card:${card.id}`,
+          channelId: card.channelId,
+          messageId: card.messageId ?? '',
+          title: card.title,
+          subtitle: `${channelTitle(card.channelId)} · 卡片`,
+        });
+      }
+    }
     return list.slice(0, 20);
-  }, [query, channels, conversations, remote, tasks, names, meId]);
+  }, [query, channels, conversations, remote, remoteCards, tasks, names, meId]);
 
   useEffect(() => {
     setActive((value) => Math.min(value, Math.max(0, results.length - 1)));
@@ -175,6 +215,7 @@ export function CommandPalette({
   const choose = (result: Result | undefined) => {
     if (!result) return;
     if (result.kind === 'message') onJumpMessage(result.channelId, result.messageId);
+    else if (result.kind === 'card' && result.messageId) onJumpMessage(result.channelId, result.messageId);
     else onSelectChannel(result.channelId);
     onClose();
   };
@@ -210,7 +251,7 @@ export function CommandPalette({
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={onKeyDown}
             className="min-w-0 flex-1 bg-transparent text-[14px] text-ink outline-none placeholder:text-ink-2"
-            placeholder="搜索消息 / 频道，或输入 /goto 频道名、/tasks"
+            placeholder="搜索消息 / 卡片 / 频道，或输入 /goto 频道名、/tasks"
             aria-label="命令面板输入"
           />
           <span className="hidden border border-line px-1 font-mono text-[9px] text-ink-2 md:inline">ESC</span>

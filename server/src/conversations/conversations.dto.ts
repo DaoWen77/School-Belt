@@ -38,3 +38,7 @@ export const addConversationMembersSchema = z.object({
   userIds: z.array(z.string().uuid()).min(1).max(50),
 });
 export type AddConversationMembersDto = z.infer<typeof addConversationMembersSchema>;
+
+/** POST /conversations/:id/transfer：{ userId }（仅群主） */
+export const transferConversationSchema = z.object({ userId: z.string().uuid() });
+export type TransferConversationDto = z.infer<typeof transferConversationSchema>;

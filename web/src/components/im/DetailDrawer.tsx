@@ -107,6 +107,48 @@ export function DetailDrawer({
     }
   };
 
+  const setNotifyLevel = async (level: string) => {
+    if (!channel || !me) return;
+    try {
+      await api(`/channels/${channel.id}/members/${me.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ notifyLevel: level }),
+      });
+      window.location.reload();
+    } catch {
+      /* 保持原状 */
+    }
+  };
+
+  const muteMember = async (member: Member) => {
+    if (!channel) return;
+    const minutes = window.prompt('禁言时长（分钟，0 为解除）', '10');
+    if (minutes === null) return;
+    const value = Number(minutes);
+    if (!Number.isFinite(value) || value < 0) return;
+    const mutedUntil = value === 0 ? null : new Date(Date.now() + value * 60_000).toISOString();
+    try {
+      await api(`/channels/${channel.id}/members/${member.userId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ mutedUntil }),
+      });
+    } catch {
+      /* 权限失败保持原状 */
+    }
+  };
+
+  const transferOwner = async (member: Member) => {
+    if (!channel || channel.kind !== 'group') return;
+    if (!window.confirm(`确认将群主转让给「${member.displayName ?? member.handle}」？转让后你仍是群成员。`)) return;
+    try {
+      await api(`/conversations/${channel.id}/transfer`, { method: 'POST', body: JSON.stringify({ userId: member.userId }) });
+      window.dispatchEvent(new CustomEvent('dj:members-changed'));
+      window.location.reload();
+    } catch {
+      /* 权限失败保持原状 */
+    }
+  };
+
   const renameChannel = async () => {
     if (!channel) return;
     const name = window.prompt('新频道名', channel.name);
@@ -168,6 +210,18 @@ export function DetailDrawer({
     }
   };
 
+  const blockConversation = async () => {
+    if (!channel || channel.kind !== 'dm') return;
+    if (!window.confirm('拉黑对方？拉黑后双方都无法继续发送私聊消息。')) return;
+    try {
+      await api(`/conversations/${channel.id}/block`, { method: 'POST' });
+      window.dispatchEvent(new CustomEvent('dj:conversations-changed'));
+      window.location.reload();
+    } catch {
+      /* 保持原状 */
+    }
+  };
+
   const deleteFriend = async () => {
     if (!peer || friendBusy) return;
     if (
@@ -222,6 +276,21 @@ export function DetailDrawer({
                 <span className="text-ink">{channel.visibility === 'private' ? '私密' : '公开'}</span>
               </div>
             ) : null}
+            {channel ? (
+              <div className={row}>
+                <span className={key}>本频道通知</span>
+                <select
+                  className="border border-line bg-paper px-1.5 py-0.5 text-[11px] text-ink"
+                  value={channel.notifyLevel ?? 'all'}
+                  onChange={(event) => void setNotifyLevel(event.target.value)}
+                  aria-label="本频道通知级别"
+                >
+                  <option value="all">全部消息</option>
+                  <option value="mentions">仅提及</option>
+                  <option value="none">静音</option>
+                </select>
+              </div>
+            ) : null}
             {peer ? (
               <div className={row}>
                 <span className={key}>对方</span>
@@ -261,6 +330,14 @@ export function DetailDrawer({
                 className="mt-2.5 w-full border border-danger/50 px-2.5 py-1.5 text-[11px] font-bold text-danger hover:bg-danger/5 disabled:opacity-40"
               >
                 {friendBusy ? '切断中…' : '切断链路 / 删除好友'}
+              </button>
+              <button
+                type="button"
+                onClick={() => void blockConversation()}
+                disabled={friendBusy}
+                className="mt-1.5 w-full border border-line px-2.5 py-1.5 text-[11px] text-ink-2 hover:border-danger hover:text-danger disabled:opacity-40"
+              >
+                拉黑对方
               </button>
             </section>
           ) : null}
@@ -340,6 +417,16 @@ export function DetailDrawer({
                   {channel && ['owner', 'admin', 'moderator'].includes(role ?? '') && member.userId !== me?.id && !member.isBot ? (
                     <button type="button" className="shrink-0 text-[10px] text-ink-2 underline" onClick={() => void changeMemberRole(member)}>
                       {member.role === 'moderator' ? '降为成员' : '设为管理'}
+                    </button>
+                  ) : null}
+                  {channel && ['owner', 'admin', 'moderator'].includes(role ?? '') && member.userId !== me?.id && !member.isBot ? (
+                    <button type="button" className="shrink-0 text-[10px] text-ink-2 underline" onClick={() => void muteMember(member)}>
+                      禁言
+                    </button>
+                  ) : null}
+                  {channel?.kind === 'group' && channel.createdBy === me?.id && member.userId !== me?.id ? (
+                    <button type="button" className="shrink-0 text-[10px] text-ink-2 underline" onClick={() => void transferOwner(member)}>
+                      转让群主
                     </button>
                   ) : null}
                   {canManageGroup && member.userId !== me?.id ? (

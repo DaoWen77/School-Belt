@@ -25,6 +25,7 @@ export const WsServerEvent = {
   REACTION_UPDATED: 'reaction:updated',
   RECEIPT_UPDATE: 'receipt:update',
   PRESENCE_UPDATE: 'presence:update',
+  TYPING_UPDATE: 'typing:update',
   CARD_CREATED: 'card:created',
   CARD_UPDATED: 'card:updated',
   CARD_DELETED: 'card:deleted',

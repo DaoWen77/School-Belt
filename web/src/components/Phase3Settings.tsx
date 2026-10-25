@@ -33,6 +33,8 @@ export function Phase3Settings({ me, isAdmin }: { me: ApiUser | null; isAdmin: b
 
   const [notifyLevel, setNotifyLevel] = useState('all');
   const [dndEnabled, setDndEnabled] = useState(false);
+  const [dndStart, setDndStart] = useState('');
+  const [dndEnd, setDndEnd] = useState('');
   const [settingsMsg, setSettingsMsg] = useState('');
 
   const [devices, setDevices] = useState<DeviceRow[]>([]);
@@ -63,6 +65,8 @@ export function Phase3Settings({ me, isAdmin }: { me: ApiUser | null; isAdmin: b
       const settings = (record.settings ?? record) as Record<string, unknown>;
       if (typeof settings.notifyLevel === 'string') setNotifyLevel(settings.notifyLevel);
       if (typeof settings.dndEnabled === 'boolean') setDndEnabled(settings.dndEnabled);
+      if (typeof settings.dndStart === 'string') setDndStart(settings.dndStart);
+      if (typeof settings.dndEnd === 'string') setDndEnd(settings.dndEnd);
     } catch (caught) {
       fail(caught);
     }
@@ -141,7 +145,7 @@ export function Phase3Settings({ me, isAdmin }: { me: ApiUser | null; isAdmin: b
     setError(null);
     setSettingsMsg('');
     try {
-      await api('/me/settings', { method: 'PATCH', body: JSON.stringify({ notifyLevel, dndEnabled }) });
+      await api('/me/settings', { method: 'PATCH', body: JSON.stringify({ notifyLevel, dndEnabled, dndStart: dndStart || null, dndEnd: dndEnd || null }) });
       setSettingsMsg('通知设置已保存');
     } catch (caught) {
       fail(caught);
@@ -251,6 +255,18 @@ export function Phase3Settings({ me, isAdmin }: { me: ApiUser | null; isAdmin: b
             </select>
           </label>
           <label className="flex items-center gap-2 pb-1.5 text-[11px] text-ink"><input type="checkbox" checked={dndEnabled} onChange={(event) => setDndEnabled(event.target.checked)} />免打扰 DND</label>
+          {dndEnabled ? (
+            <div className="flex items-end gap-2 pb-1.5">
+              <label className="flex-1">
+                <span className={label}>开始</span>
+                <input type="time" className={field} value={dndStart} onChange={(event) => setDndStart(event.target.value)} />
+              </label>
+              <label className="flex-1">
+                <span className={label}>结束</span>
+                <input type="time" className={field} value={dndEnd} onChange={(event) => setDndEnd(event.target.value)} />
+              </label>
+            </div>
+          ) : null}
           <button type="button" disabled={busy} className={button} onClick={() => void saveSettings()}>保存通知设置</button>
           {settingsMsg ? <span className="text-[10px] text-ink-2">{settingsMsg}</span> : null}
         </div>

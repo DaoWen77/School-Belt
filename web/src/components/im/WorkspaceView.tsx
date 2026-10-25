@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { ApiUser, Attachment, BotConfig, Channel, Conversation, Member, Message, Sticker } from '@/lib/types';
+import type { ApiUser, Attachment, BotConfig, Card, Channel, Conversation, Member, Message, Sticker } from '@/lib/types';
+import { api } from '@/lib/api';
 import type { ConnState } from '@/lib/realtime';
 import type { PinItem, Selection, UploadRow } from './types';
+import { OfflineBanner } from './OfflineBanner';
 import { ChatHeader } from './ChatHeader';
 import { Sidebar, type WorkspaceViewKind } from './Sidebar';
 import { MessageList } from './MessageList';
@@ -66,6 +68,7 @@ export interface WorkspaceViewProps {
   uploads: UploadRow[];
   onAddFiles: (files: FileList | File[]) => void;
   onClearUploads: () => void;
+  onRetryUpload: (row: UploadRow) => void;
   onOpenVote: () => void;
   onOpenTask: () => void;
   onOpenMusic: () => void;
@@ -147,6 +150,7 @@ export function WorkspaceView(props: WorkspaceViewProps) {
     uploads,
     onAddFiles,
     onClearUploads,
+    onRetryUpload,
     onOpenVote,
     onOpenTask,
     onOpenMusic,
@@ -233,10 +237,15 @@ export function WorkspaceView(props: WorkspaceViewProps) {
   useEffect(() => {
     const search = () => setSearchOpen(true);
     const notification = (event: Event) => {
-      const detail = (event as CustomEvent<{ channelId?: string; messageId?: string }>).detail;
+      const detail = (event as CustomEvent<{ channelId?: string; messageId?: string; cardId?: string }>).detail;
       if (!detail?.channelId) return;
       openChannelById(detail.channelId);
       if (detail.messageId) window.setTimeout(() => onJumpMessage(detail.channelId as string, detail.messageId as string), 500);
+      else if (detail.cardId) {
+        void api<Card>(`/cards/${detail.cardId}`).then((card) => {
+          if (card.messageId) window.setTimeout(() => onJumpMessage(detail.channelId as string, card.messageId as string), 500);
+        }).catch(() => undefined);
+      }
     };
     window.addEventListener('dj:open-search', search);
     window.addEventListener('dj:notification-open', notification);
@@ -319,6 +328,7 @@ export function WorkspaceView(props: WorkspaceViewProps) {
 
   return (
     <div className="im-app flex h-dvh flex-col bg-paper text-ink">
+      <OfflineBanner />
       <ChatHeader
         title={view === 'moments' ? '朋友圈' : view === 'archive' ? '档案室' : activeTitle}
         subtitle={
@@ -416,6 +426,7 @@ export function WorkspaceView(props: WorkspaceViewProps) {
                 uploads={uploads}
                 onAddFiles={onAddFiles}
                 onClearUploads={onClearUploads}
+                onRetryUpload={onRetryUpload}
                 onOpenVote={onOpenVote}
                 onOpenTask={onOpenTask}
                 onOpenMusic={onOpenMusic}

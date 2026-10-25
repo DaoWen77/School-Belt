@@ -35,6 +35,7 @@ import type {
   AddConversationMembersDto,
   CreateDmDto,
   CreateGroupDto,
+  TransferConversationDto,
   RenameConversationDto,
   UpdateAnnouncementDto,
 } from './conversations.dto';
@@ -307,6 +308,46 @@ export class ConversationsService {
     const updated = await this.prisma.channel.update({
       where: { id: channel.id },
       data: { name },
+      select: CONVERSATION_SELECT,
+    });
+    await this.emitConversation(memberIds, WsServerEvent.CONVERSATION_UPDATED, updated);
+    return this.viewFor(user.id, updated);
+  }
+
+  async blockConversation(user: AuthUser, conversationId: string): Promise<{ blocked: true }> {
+    const { channel, memberIds } = await this.resolve(user, conversationId);
+    if (channel.kind !== 'dm') {
+      throw new AppError(ErrorCode.CONVERSATION_KIND_INVALID, '仅私聊可拉黑');
+    }
+    const friendship = await this.prisma.friendship.findUnique({ where: { dmChannelId: channel.id } });
+    if (!friendship) throw new AppError(ErrorCode.CONVERSATION_NOT_FOUND);
+    await this.prisma.friendship.update({
+      where: { id: friendship.id },
+      data: { status: 'blocked', blockedBy: user.id },
+    });
+    await this.emitConversation(memberIds, WsServerEvent.CONVERSATION_UPDATED, channel);
+    return { blocked: true };
+  }
+
+  async transferOwner(
+    user: AuthUser,
+    conversationId: string,
+    dto: TransferConversationDto,
+  ): Promise<ConversationView> {
+    const { channel, memberIds } = await this.resolve(user, conversationId);
+    if (channel.kind !== 'group') {
+      throw new AppError(ErrorCode.CONVERSATION_KIND_INVALID, '仅群聊可转让群主');
+    }
+    if (channel.createdBy !== user.id) {
+      throw new AppError(ErrorCode.FORBIDDEN, '仅群主可转让群聊');
+    }
+    if (dto.userId === user.id) throw new AppError(ErrorCode.VALIDATION_FAILED, '不能转让给自己');
+    if (!memberIds.includes(dto.userId)) {
+      throw new AppError(ErrorCode.NOT_CHANNEL_MEMBER, '目标用户不在群聊中');
+    }
+    const updated = await this.prisma.channel.update({
+      where: { id: channel.id },
+      data: { createdBy: dto.userId },
       select: CONVERSATION_SELECT,
     });
     await this.emitConversation(memberIds, WsServerEvent.CONVERSATION_UPDATED, updated);

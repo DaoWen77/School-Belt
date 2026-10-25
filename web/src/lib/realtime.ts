@@ -46,6 +46,7 @@ const WS_EVENTS = [
   'conversation:updated',
   'conversation:removed',
   'presence:update',
+  'typing:update',
   'receipt:update',
   'error',
 ] as const;
@@ -183,6 +184,10 @@ export class Realtime {
     }
     this.disposeSocket();
     this.setState('idle');
+  }
+
+  typing(channelId: string, state: 'start' | 'stop'): void {
+    this.socket?.emit('typing', { channelId, state });
   }
 
   join(channelId: string): void {

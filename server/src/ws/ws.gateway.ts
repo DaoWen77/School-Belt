@@ -219,7 +219,13 @@ export class WsGateway
         const data = this.parse(typingSchema, payload);
         await this.channelAccess.assert(data.channelId, user, 'read');
         await this.redis.setTyping(data.channelId, user.id, data.state === 'start');
-        // 契约 §6 未定义 typing 的服务端事件，v1.0 仅记录状态，不广播
+        socket.to(rooms.channel(data.channelId)).emit('typing:update', {
+          channelId: data.channelId,
+          userId: user.id,
+          handle: user.handle,
+          displayName: user.displayName,
+          state: data.state,
+        });
         return { ok: true };
       });
     });
