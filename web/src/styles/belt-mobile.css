@@ -76,7 +76,11 @@
   }
 
   .belt-shell-body {
-    display: block;
+    display: flex;
+    height: calc(100dvh - 3.4rem);
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   .belt-rail {
@@ -125,7 +129,61 @@
 
   .belt-main {
     width: 100%;
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  }
+
+  .belt-main-inner {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+  }
+
+  .belt-main > .belt-main-inner:last-child {
+    min-height: 100%;
+  }
+
+  /* 抽屉内恢复真正的竖向列表（覆盖旧的移动端横向 chips 规则） */
+  .belt-rail-nav {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .belt-nav-group-body {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.1rem;
+  }
+
+  .belt-rail-link {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid transparent;
+    border-left: 1px solid transparent;
+    padding: 0.5rem 0.55rem;
+    font-size: 12px;
+  }
+
+  .belt-rail-link[aria-current='page'] {
+    border-color: transparent;
+    border-left-color: var(--ef-signal, #fffa00);
+    background: rgba(255, 250, 0, 0.06);
+  }
+
+  .belt-nav-add {
+    width: 100%;
+    margin-top: 0.2rem;
+    padding: 0.45rem 0.55rem;
+  }
+
+  .belt-nav-group-head {
+    padding: 0.45rem 0.55rem;
+    font-size: 10px;
   }
 
   .belt-mobile-tabs {
