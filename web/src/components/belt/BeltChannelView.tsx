@@ -52,7 +52,11 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
       .then(async (data) => {
         if (cancelled) return;
         const requested = new URLSearchParams(window.location.search).get('channelId');
-        const first = data.channels.find((item) => item.id === requested) ?? data.channels[0] ?? null;
+        const first =
+          data.channels.find((item) => item.id === requested) ??
+          data.channels.find((item) => item.visibility === 'public' && !item.organizationId) ??
+          data.channels[0] ??
+          null;
         setChannel(first);
         if (!first) return;
         const page = await beltApi<{ messages: BeltMessage[] }>(

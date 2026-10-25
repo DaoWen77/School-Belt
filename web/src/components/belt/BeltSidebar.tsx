@@ -126,14 +126,6 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
         </button>
         {open.channels ? (
           <div className="belt-nav-group-body">
-            <Link
-              className="belt-rail-link"
-              aria-current={activeView === 'channel' && !activeChannelId ? 'page' : undefined}
-              href="/belt/channel"
-            >
-              <span className="belt-rail-index">#</span>
-              <span>公共大厅</span>
-            </Link>
             {publicChannels.map((channel) => (
               <Link
                 key={channel.id}
