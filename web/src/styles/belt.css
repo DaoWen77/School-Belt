@@ -4266,3 +4266,72 @@ button.belt-row[data-active='true'] .belt-row-deck {
     transform: none;
   }
 }
+
+/* ==========================================================================
+   Sprint 7.6 · 侧边栏内联私聊列表 / 同屏聊天
+   ========================================================================== */
+.belt-nav-dm-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.15rem;
+}
+
+.belt-nav-search {
+  margin-bottom: 0.35rem;
+}
+
+.belt-nav-unread {
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #ff4b3e;
+  box-shadow: 0 0 6px rgba(255, 75, 62, 0.7);
+}
+
+.belt-im-only {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.belt-im-only .belt-im-chat {
+  flex: 1;
+  min-height: 0;
+}
+
+.belt-im-empty-page {
+  display: grid;
+  flex: 1;
+  min-height: 24rem;
+  place-content: center;
+  gap: 0.4rem;
+  border: 1px dashed var(--ef-rule);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 10px, rgba(255, 255, 255, 0.02) 10px 11px);
+  padding: 2rem;
+  text-align: center;
+}
+
+.belt-im-empty-page h3 {
+  font-family: var(--ef-font-display);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 900;
+}
+
+.belt-im-empty-page p {
+  color: var(--ef-ink-2);
+  font-size: 14px;
+}
+
+.belt-nav-drawer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--ef-rule);
+  padding-bottom: 0.7rem;
+  margin-bottom: 0.6rem;
+}

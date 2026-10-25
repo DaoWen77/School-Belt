@@ -175,7 +175,7 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
             user={user}
             activeView={view}
             activeChannelId={typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('channelId') : null}
-            activeConversationId={typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('conversationId') : null}
+            activeConversationId={chatId ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('conversationId') : null)}
             refreshKey={refreshKey}
           />
 
