@@ -35,6 +35,8 @@ export function BeltRTCView() {
   const [status, setStatus] = useState('等待授权…');
   const [streamReady, setStreamReady] = useState(false);
   const [levels, setLevels] = useState<number[]>(() => Array.from({ length: 34 }, () => 0.04));
+  const [iceState, setIceState] = useState<string>('new');
+  const [iceErrorOpen, setIceErrorOpen] = useState(false);
 
   const localStream = useRef<MediaStream | null>(null);
   const cameraStream = useRef<MediaStream | null>(null);
@@ -194,8 +196,16 @@ export function BeltRTCView() {
     });
     socket.current = s;
 
+    const turnUrl = process.env.NEXT_PUBLIC_TURN_URL || 'turn:openrelay.metered.ca:80';
+    const turnUser = process.env.NEXT_PUBLIC_TURN_USERNAME || 'openrelayproject';
+    const turnCredential = process.env.NEXT_PUBLIC_TURN_CREDENTIAL || 'openrelayproject';
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      // 局域网 host candidate 优先；STUN 打洞次之；公共 TURN 只做兜底。
+      iceServers: [
+        { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+        { urls: turnUrl, username: turnUser, credential: turnCredential },
+      ],
+      iceCandidatePoolSize: 4,
     });
     peer.current = pc;
     const remote = new MediaStream();
@@ -219,6 +229,37 @@ export function BeltRTCView() {
 
     pc.onicecandidate = (event) => {
       if (event.candidate) s.emit('rtc:ice', { callId: callId.current, candidate: event.candidate });
+    };
+
+    let iceTimer: ReturnType<typeof setTimeout> | null = null;
+    pc.oniceconnectionstatechange = () => {
+      const state = pc.iceConnectionState;
+      if (state === 'connected' || state === 'completed') {
+        if (iceTimer) {
+          clearTimeout(iceTimer);
+          iceTimer = null;
+        }
+        setIceState('connected');
+      } else if (state === 'failed') {
+        if (iceTimer) {
+          clearTimeout(iceTimer);
+          iceTimer = null;
+        }
+        setIceState('failed');
+      } else if (state === 'checking') {
+        setIceState('checking');
+        if (!iceTimer) {
+          iceTimer = setTimeout(() => {
+            setIceState((current) => (current === 'connected' || current === 'completed' ? current : 'failed'));
+          }, 12_000);
+        }
+      } else if (state === 'disconnected') {
+        setIceState('checking');
+      }
+    };
+
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === 'failed') setIceState('failed');
     };
 
     pc.onnegotiationneeded = async () => {
@@ -378,7 +419,12 @@ export function BeltRTCView() {
           <div><b>O.M.V</b><small>帝江号 · 环带中继</small></div>
         </div>
         <p className="rtc2-call-tag">INTERNAL CALL</p>
-        <p className="rtc2-header-meta">{status}</p>
+        <div className="rtc2-head-right">
+          <span className={`rtc2-ice rtc2-ice-${iceState}`}>
+            {iceState === 'connected' ? '● [P2P LINK ESTABLISHED]' : iceState === 'failed' ? '● [P2P LINK FAILED]' : '○ [P2P NEGOTIATING]'}
+          </span>
+          <p className="rtc2-header-meta">{status}</p>
+        </div>
       </header>
 
       <div className="rtc2-stage">
@@ -456,6 +502,24 @@ export function BeltRTCView() {
           <small>END</small>
         </button>
       </footer>
+
+      {iceState === 'failed' && !iceErrorOpen ? (
+        <button type="button" className="rtc2-ice-error" role="alert" onClick={() => setIceErrorOpen(true)}>
+          <b>[ERROR] P2P 物理穿透失败</b>
+          <span>原因：网络环境过于严苛（如校园网屏蔽），请尝试切换至手机热点重试。</span>
+          <small>点击查看诊断 / RETRY</small>
+        </button>
+      ) : null}
+
+      {iceErrorOpen ? (
+        <div className="rtc2-ice-modal" role="dialog" aria-modal="true" aria-label="P2P 连接失败">
+          <p>[ERROR] P2P 物理穿透失败。原因：网络环境过于严苛（如校园网屏蔽），请尝试切换至手机热点重试。</p>
+          <div>
+            <button type="button" onClick={() => setIceErrorOpen(false)}>返回</button>
+            <button type="button" onClick={() => window.location.reload()}>RETRY</button>
+          </div>
+        </div>
+      ) : null}
 
       {ended ? <div className="rtc2-ended">LINK TERMINATED</div> : null}
     </div>

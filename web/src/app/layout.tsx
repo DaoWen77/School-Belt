@@ -13,6 +13,7 @@ import '../styles/belt.css';
 import '../styles/rtc.css';
 import '../styles/rtc-media.css';
 import '../styles/rtc-entry.css';
+import '../styles/rtc-ice.css';
 import '../styles/drawer.css';
 import '../styles/archive.css';
 
