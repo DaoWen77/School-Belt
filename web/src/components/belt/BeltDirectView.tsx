@@ -68,7 +68,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
     } catch {
       /* 本地演示优先 */
     }
-    router.push(`/belt/rtc/conference?callId=dm-${selected.id}&mode=${mode}`);
+    router.push(`/belt/rtc?callId=dm-${selected.id}&mode=${mode}`);
   };
 
   if (!conversationId) {
@@ -201,7 +201,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
     } catch {
       /* 本地演示优先 */
     }
-    router.push(`/belt/rtc/conference?callId=dm-${selected.id}&mode=${mode}`);
+    router.push(`/belt/rtc?callId=dm-${selected.id}&mode=${mode}`);
   };
 
   if (!conversationId) {

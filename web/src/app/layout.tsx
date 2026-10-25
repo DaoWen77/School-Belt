@@ -12,7 +12,6 @@ import '../styles/identity.css';
 import '../styles/belt.css';
 import '../styles/rtc.css';
 import '../styles/rtc-media.css';
-import '../styles/rtc-conference.css';
 import '../styles/rtc-entry.css';
 import '../styles/drawer.css';
 import '../styles/archive.css';

@@ -243,7 +243,7 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
     } catch {
       /* 卡片消息失败不阻塞本地会议演示 */
     }
-    router.push(`/belt/rtc/conference?callId=channel-${channel.id}&mode=${mode}`);
+    router.push(`/belt/rtc?callId=channel-${channel.id}&mode=${mode}`);
   };
 
   if (loading) {
