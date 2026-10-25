@@ -3701,3 +3701,568 @@ button.belt-row[data-active='true'] .belt-row-deck {
   border-bottom: 1px solid var(--ef-rule);
   padding-bottom: 0.35rem;
 }
+
+/* ==========================================================================
+   Sprint 7.5 · 私聊标准 IM 布局
+   ========================================================================== */
+.belt-im {
+  display: grid;
+  grid-template-columns: 19rem minmax(0, 1fr);
+  gap: 0.7rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.belt-im-list,
+.belt-im-chat {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+}
+
+.belt-im-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ef-rule);
+  padding: 0.65rem 0.7rem;
+}
+
+.belt-im-list-head b {
+  font-family: var(--ef-font-display);
+  font-size: 1.1rem;
+}
+
+.belt-im-new {
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 1px solid var(--ef-signal);
+  background: transparent;
+  color: var(--ef-signal);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.belt-im-request {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border-bottom: 1px solid var(--ef-rule);
+  padding: 0.5rem;
+}
+
+.belt-im-incoming {
+  border-bottom: 1px solid var(--ef-rule);
+  background: color-mix(in srgb, var(--ef-danger) 8%, transparent);
+  padding: 0.45rem 0.5rem;
+}
+
+.belt-im-incoming > p {
+  color: #ff8a80;
+  font-family: var(--ef-font-mono);
+  font-size: 13px;
+  margin-bottom: 0.3rem;
+}
+
+.belt-im-incoming-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0;
+}
+
+.belt-im-incoming-row > span {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--ef-ink-2);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.belt-im-conversations {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.35rem;
+}
+
+.belt-im-conv {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-left: 2px solid transparent;
+  padding: 0.5rem 0.45rem;
+  color: var(--ef-ink);
+  text-decoration: none;
+}
+
+.belt-im-conv:hover {
+  background: color-mix(in srgb, var(--ef-signal) 6%, transparent);
+}
+
+.belt-im-conv.is-active {
+  border-left-color: var(--ef-signal);
+  background: color-mix(in srgb, var(--ef-signal) 10%, transparent);
+}
+
+.belt-im-conv-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.belt-im-conv-main b,
+.belt-im-conv-main small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.belt-im-conv-main b {
+  font-size: 15px;
+}
+
+.belt-im-conv-main small {
+  color: var(--ef-ink-2);
+  font-size: 13px;
+}
+
+.belt-im-conv-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+}
+
+.belt-im-conv-meta small {
+  color: var(--ef-ink-3);
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+}
+
+.belt-im-conv-meta i {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.belt-im-conv-meta i.is-on {
+  background: var(--ef-signal);
+  box-shadow: 0 0 6px var(--ef-signal);
+}
+
+.belt-im-chat {
+  overflow: hidden;
+}
+
+.belt-im-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--ef-rule);
+  padding: 0.55rem 0.7rem;
+}
+
+.belt-im-back {
+  display: none;
+  color: var(--ef-signal);
+  font-size: 1.2rem;
+  text-decoration: none;
+}
+
+.belt-im-chat-title {
+  min-width: 0;
+  flex: 1;
+}
+
+.belt-im-chat-title b,
+.belt-im-chat-title small {
+  display: block;
+}
+
+.belt-im-chat-title b {
+  font-size: 15px;
+}
+
+.belt-im-chat-title small {
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+}
+
+.belt-im-chat-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.belt-im-messages {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.3rem;
+  overflow-y: auto;
+  padding: 0.7rem;
+}
+
+.belt-im-day {
+  align-self: center;
+  color: var(--ef-ink-3);
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+  padding: 0.2rem 0 0.4rem;
+}
+
+.belt-im-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  max-width: 82%;
+}
+
+.belt-im-row.is-mine {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.belt-im-row.is-continuation {
+  margin-top: -0.1rem;
+}
+
+.belt-im-avatar-spacer {
+  width: 2rem;
+  flex: 0 0 2rem;
+}
+
+.belt-im-bubble {
+  position: relative;
+  border: 1px solid var(--ef-rule);
+  border-left: 2px solid var(--ef-ink-3);
+  background: #1b1f19;
+  padding: 0.45rem 0.6rem 0.3rem;
+}
+
+.belt-im-bubble.is-mine {
+  border-color: var(--ef-signal);
+  border-right: 2px solid var(--ef-signal);
+  background: color-mix(in srgb, var(--ef-signal) 8%, #151811);
+}
+
+.belt-im-bubble p {
+  color: var(--ef-ink);
+  font-family: var(--ef-font-text);
+  font-size: 15px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.belt-im-bubble time {
+  display: block;
+  margin-top: 0.15rem;
+  color: #c3cab6;
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+  text-align: right;
+}
+
+.belt-im-more {
+  position: absolute;
+  top: 0.1rem;
+  left: -1.4rem;
+  border: 0;
+  background: transparent;
+  color: var(--ef-ink-3);
+  cursor: pointer;
+  font-size: 1rem;
+  opacity: 0;
+}
+
+.belt-im-bubble.is-mine:hover .belt-im-more {
+  opacity: 1;
+}
+
+.belt-im-recall {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 5;
+  border: 1px solid var(--ef-danger);
+  background: var(--ef-panel);
+  color: #ff8a80;
+  cursor: pointer;
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+  padding: 0.2rem 0.4rem;
+}
+
+.belt-im-composer {
+  display: flex;
+  gap: 0.45rem;
+  border-top: 1px solid var(--ef-rule);
+  padding: 0.55rem 0.65rem;
+}
+
+.belt-im-composer .belt-input {
+  flex: 1;
+}
+
+.belt-im-empty {
+  display: grid;
+  flex: 1;
+  place-content: center;
+  gap: 0.3rem;
+  text-align: center;
+}
+
+.belt-im-empty h3 {
+  font-family: var(--ef-font-display);
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.belt-im-empty p {
+  color: var(--ef-ink-2);
+  font-size: 14px;
+}
+
+@media (max-width: 820px) {
+  .belt-im {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .belt-im-list,
+  .belt-im-chat {
+    min-height: calc(100dvh - 16rem);
+  }
+
+  .belt-im.is-chat-route .belt-im-list {
+    display: none;
+  }
+
+  .belt-im.is-chat-route .belt-im-chat {
+    min-height: calc(100dvh - 14rem);
+  }
+
+  .belt-im.is-chat-route .belt-im-back {
+    display: block;
+  }
+
+  .belt-im:not(.is-chat-route) .belt-im-chat {
+    display: none;
+  }
+
+  .belt-im-chat-actions .belt-button,
+  .belt-im-chat-actions .belt-danger-link {
+    font-size: 12px !important;
+    padding: 0.3rem 0.45rem;
+  }
+
+  .belt-im-row {
+    max-width: 92%;
+  }
+}
+
+/* ==========================================================================
+   Sprint 7.5 · 干员日常：ZZZ 绳网瀑布流
+   ========================================================================== */
+.belt-masonry-page {
+  position: relative;
+  min-width: 0;
+  padding-bottom: 5rem;
+}
+
+.belt-masonry-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 1rem 0 0.6rem;
+}
+
+.belt-masonry {
+  columns: 1;
+  column-gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .belt-masonry {
+    columns: 2;
+  }
+}
+
+@media (min-width: 1100px) {
+  .belt-masonry {
+    columns: 3;
+  }
+}
+
+.belt-neon-card {
+  --neon: #00ffff;
+  display: inline-block;
+  width: 100%;
+  margin: 0 0 1rem;
+  break-inside: avoid;
+  border: 3px solid var(--neon);
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--neon) 9%, transparent), transparent 45%),
+    repeating-linear-gradient(0deg, transparent 0 8px, rgba(255, 255, 255, 0.02) 8px 9px),
+    #10140f;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7), 0 0 18px color-mix(in srgb, var(--neon) 34%, transparent);
+  padding: 0.75rem;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.belt-neon-card:hover {
+  transform: scale(1.045) rotate(-0.6deg);
+  box-shadow: 0 0 0 1px #000, 0 0 28px color-mix(in srgb, var(--neon) 60%, transparent);
+}
+
+.belt-neon-card.is-cyan { --neon: #00ffff; }
+.belt-neon-card.is-pink { --neon: #ff2e88; }
+.belt-neon-card.is-orange { --neon: #ff9a1f; }
+.belt-neon-card.is-green { --neon: #8dff2e; }
+.belt-neon-card.is-violet { --neon: #b26bff; }
+
+/* 错落：不同卡片内边距/标题字号不同，形成高低差 */
+.belt-neon-card:nth-child(5n + 1) { padding: 1rem; }
+.belt-neon-card:nth-child(5n + 1) .belt-neon-title { font-size: clamp(1.9rem, 4vw, 2.8rem); }
+.belt-neon-card:nth-child(5n + 2) { padding: 0.65rem; }
+.belt-neon-card:nth-child(5n + 2) .belt-neon-title { font-size: 1.35rem; }
+.belt-neon-card:nth-child(5n + 3) .belt-neon-title { font-size: 1.8rem; }
+.belt-neon-card:nth-child(5n + 4) .belt-neon-body { font-size: 16px; }
+.belt-neon-card:nth-child(5n) { margin-top: 0.6rem; }
+
+.belt-neon-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.belt-neon-code {
+  border-radius: 999px;
+  background: var(--neon);
+  color: #050604;
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 0.15rem 0.55rem;
+  letter-spacing: 0.05em;
+}
+
+.belt-neon-tag {
+  color: var(--neon);
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  margin-left: auto;
+}
+
+.belt-neon-title {
+  display: block;
+  margin: 0.1rem 0 0.4rem;
+  color: #f4f5ea;
+  font-family: var(--ef-font-display);
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+  text-decoration: none;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 color-mix(in srgb, var(--neon) 42%, transparent);
+}
+
+.belt-neon-title:hover {
+  color: var(--neon);
+}
+
+.belt-neon-body {
+  margin: 0.25rem 0 0.55rem;
+  color: #cfd3c4;
+  font-family: var(--ef-font-text);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.belt-neon-stickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.55rem;
+}
+
+.belt-neon-sticker {
+  border: 1px solid #050604;
+  background: #f4f5ea;
+  color: #050604;
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  transform: rotate(-2deg);
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--neon) 70%, #000);
+}
+
+.belt-neon-sticker:nth-child(2n) {
+  transform: rotate(2deg);
+}
+
+.belt-neon-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-top: 1px dashed color-mix(in srgb, var(--neon) 45%, transparent);
+  padding-top: 0.5rem;
+}
+
+.belt-neon-author {
+  min-width: 0;
+  flex: 1;
+}
+
+.belt-neon-author b,
+.belt-neon-author small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.belt-neon-author b {
+  font-size: 14px;
+}
+
+.belt-neon-author small {
+  color: #aab2a1;
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+}
+
+.belt-neon-actions {
+  display: flex;
+  gap: 0.5rem;
+  color: #cfd3c4;
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+}
+
+.belt-neon-card .belt-avatar {
+  border-color: var(--neon);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--neon) 45%, transparent);
+}
+
+@media (max-width: 640px) {
+  .belt-neon-card:hover {
+    transform: none;
+  }
+}

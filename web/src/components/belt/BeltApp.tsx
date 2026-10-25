@@ -54,7 +54,7 @@ function clockOf(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-export function BeltApp({ view, postId }: { view: BeltView; postId?: string }) {
+export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: string; chatId?: string }) {
   const router = useRouter();
   const [user, setUser] = useState<BeltUser | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -197,7 +197,7 @@ export function BeltApp({ view, postId }: { view: BeltView; postId?: string }) {
               {view === 'channel' ? (
                 <BeltChannelView user={user} />
               ) : view === 'direct' ? (
-                <BeltDirectView user={user} />
+                <BeltDirectView user={user} conversationId={chatId} />
               ) : view === 'daily' ? (
                 <BeltDailyView user={user} />
               ) : view === 'profile' ? (

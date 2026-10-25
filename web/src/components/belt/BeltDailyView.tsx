@@ -10,10 +10,14 @@ import { BeltAvatar } from './BeltAvatar';
 import { BeltPostComposer } from './BeltPostComposer';
 import { BeltLightbox } from './BeltLightbox';
 
-function clockOf(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '--:--';
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+const NEON = ['cyan', 'pink', 'orange', 'green', 'violet'] as const;
+
+function codeOf(id: string): string {
+  let hash = 0;
+  for (let index = 0; index < id.length; index += 1) {
+    hash = (hash * 31 + id.charCodeAt(index)) >>> 0;
+  }
+  return `#${String(1000 + (hash % 9000))}`;
 }
 
 function tagOf(post: BeltPost): string {
@@ -24,14 +28,13 @@ function tagOf(post: BeltPost): string {
 
 /**
  * 03 干员日常 / INTER-KNOT
- * ZZZ 风格的横向滑轨 + 错位卡片 + 霓虹贴纸；FAB 是唯一主入口。
+ * ZZZ 绳网式垂直瀑布流：多列错落、霓虹粗边框、涂鸦标题、药丸编号。
  */
 export function BeltDailyView({ user }: { user: BeltUser }) {
   const [posts, setPosts] = useState<BeltPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
-  const [active, setActive] = useState(0);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -56,112 +59,109 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
 
   return (
     <>
-    <div className="belt-daily mt-4">
-      <div className="belt-daily-ticker" aria-hidden="true">
-        <span>INTER-KNOT / 绳网 </span>
-        <span>今日干员信号 </span>
-        <span>SCROLL →</span>
-        <span>INTER-KNOT / 绳网 </span>
-        <span>今日干员信号 </span>
-      </div>
-
-      <header className="belt-daily-hero">
-        <div>
-          <p className="belt-page-kicker">INTER-KNOT // 绳网终端 · BELT-07</p>
-          <h1>
-            干员<span>日常</span>
-          </h1>
-          <p className="belt-daily-sub">躺在床上刷信号。左右滑，别掉线。</p>
+      <div className="belt-masonry-page mt-4">
+        <div className="belt-daily-ticker" aria-hidden="true">
+          <span>INTER-KNOT / 绳网 </span>
+          <span>今日干员信号 </span>
+          <span>SCROLL ↓</span>
+          <span>INTER-KNOT / 绳网 </span>
+          <span>今日干员信号 </span>
         </div>
-        <div className="belt-daily-hero-stamp">
-          <b>{posts.length}</b>
-          <span>SIGNALS</span>
+
+        <header className="belt-daily-hero">
+          <div>
+            <p className="belt-page-kicker">INTER-KNOT // 绳网终端 · BELT-07</p>
+            <h1>
+              干员<span>日常</span>
+            </h1>
+            <p className="belt-daily-sub">躺在床上刷信号。往下滑，别掉线。</p>
+          </div>
+          <div className="belt-daily-hero-stamp">
+            <b>{posts.length}</b>
+            <span>SIGNALS</span>
+          </div>
+        </header>
+
+        {error ? (
+          <p className="belt-error" role="alert">
+            <code>DAILY_ERROR</code> {error}
+          </p>
+        ) : null}
+
+        <div className="belt-masonry-head">
+          <span className="belt-page-kicker">TODAY&apos;S FEED / 瀑布流</span>
+          <span className="belt-hint">MASONRY · {posts.length} 条信号</span>
         </div>
-      </header>
 
-      {error ? (
-        <p className="belt-error" role="alert">
-          <code>DAILY_ERROR</code> {error}
-        </p>
-      ) : null}
-
-      <div className="belt-daily-rail-head">
-        <span className="belt-page-kicker">TODAY&apos;S FEED</span>
-        <span className="belt-daily-dots">
-          {posts.slice(0, 8).map((post, index) => (
-            <b key={post.id} className={index === active ? 'is-on' : ''} />
-          ))}
-        </span>
-        <span className="belt-hint">SWIPE / 水平滑动</span>
-      </div>
-
-      <div
-        className="belt-daily-rail"
-        onScroll={(event) => {
-          const target = event.currentTarget;
-          const card = target.querySelector<HTMLElement>('.belt-daily-card');
-          if (!card) return;
-          setActive(Math.round(target.scrollLeft / (card.offsetWidth + 14)));
-        }}
-      >
-        {loading ? <div className="belt-daily-loading">正在接入绳网…</div> : null}
+        {loading ? <div className="belt-empty">正在接入绳网…</div> : null}
         {!loading && posts.length === 0 ? (
           <div className="belt-daily-empty">
             <span>NO LOG</span>
             <p>今天还没有干员发信号。右下角按钮，写第一条。</p>
           </div>
         ) : null}
-        {posts.map((post, index) => (
-          <article
-            key={post.id}
-            className={`belt-daily-card belt-daily-card-${index % 4}`}
-            style={{ ['--daily-index' as string]: String(index) }}
-          >
-            <div className="belt-daily-card-top">
-              <span className="belt-daily-index">{String(index + 1).padStart(2, '0')}</span>
-              <span className="belt-daily-tag">{tagOf(post)}</span>
-              <time>{clockOf(post.publishedAt)}</time>
-            </div>
-            <div className="belt-daily-author">
-              <BeltAvatar fileId={post.author.avatarFileId} name={post.author.displayName} size="lg" neon />
-              <div>
-                <b>{post.author.displayName}</b>
-                <span>@{post.author.handle}</span>
-                <IdentityBadges values={post.author.prefixes} />
-              </div>
-            </div>
-            {post.coverUrl ? (
-              <button type="button" className="belt-daily-cover" onClick={() => setLightbox(post.coverUrl)}>
-                <img src={post.coverUrl} alt="" loading="lazy" />
-              </button>
-            ) : null}
-            <Link href={`/belt/posts/${post.id}`} className="belt-daily-title">
-              {post.title || '未命名日常信号'}
-            </Link>
-            <p className="belt-daily-deck">{post.body.replace(/\s+/g, ' ').slice(0, 180)}</p>
-            <div className="belt-daily-stickers">
-              {post.author.prefixes.slice(0, 2).map((prefix) => (
-                <span key={prefix} className="belt-daily-sticker">
-                  {prefix}
-                </span>
-              ))}
-              <span className="belt-daily-sticker is-hot">#{post.board.toUpperCase()}</span>
-            </div>
-            <div className="belt-daily-card-foot">
-              <span>{post.likeCount} 认同</span>
-              <span>{post.commentCount} 回波</span>
-              <Link href={`/belt/posts/${post.id}`}>进入信号 →</Link>
-            </div>
-          </article>
-        ))}
+
+        <div className="belt-masonry">
+          {posts.map((post, index) => {
+            const neon = NEON[index % NEON.length];
+            return (
+              <article key={post.id} className={`belt-neon-card is-${neon}`}>
+                <div className="belt-neon-card-top">
+                  <span className="belt-neon-code">{codeOf(post.id)}</span>
+                  <span className="belt-neon-tag">{tagOf(post)}</span>
+                </div>
+
+                <Link href={`/belt/posts/${post.id}`} className="belt-neon-title">
+                  {post.title || '未命名日常信号'}
+                </Link>
+
+                <p className="belt-neon-body">{post.body.replace(/\s+/g, ' ').slice(0, 220)}</p>
+
+                <div className="belt-neon-stickers">
+                  {post.author.prefixes.slice(0, 2).map((prefix) => (
+                    <span key={prefix} className="belt-neon-sticker">
+                      {prefix}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="belt-neon-foot">
+                  <BeltAvatar fileId={post.author.avatarFileId} name={post.author.displayName} size="sm" />
+                  <span className="belt-neon-author">
+                    <b>{post.author.displayName}</b>
+                    <small>@{post.author.handle}</small>
+                  </span>
+                  <span className="belt-neon-actions">
+                    <span title="认同">♥ {post.likeCount}</span>
+                    <span title="回波">💬 {post.commentCount}</span>
+                  </span>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="belt-daily-bottom">
+          <span className="belt-daily-quote">&quot;别把今天活成昨天的缓存。&quot;</span>
+          <span className="belt-page-kicker">SCROLL ↓</span>
+        </div>
       </div>
 
-      <div className="belt-daily-bottom">
-        <span className="belt-daily-quote">&quot;别把今天活成昨天的缓存。&quot;</span>
-        <span className="belt-page-kicker">SCROLL / 滑动查看更多</span>
-      </div>
+      {mounted
+        ? createPortal(
+            <button
+              type="button"
+              className="belt-daily-fab"
+              aria-label="发布干员日常"
+              onClick={() => setComposerOpen(true)}
+            >
+              <span>＋</span>
+              <b>NEW<br />SIGNAL</b>
+            </button>,
+            document.body,
+          )
+        : null}
 
-      {lightbox ? <BeltLightbox src={lightbox} kind="image" onClose={() => setLightbox(null)} /> : null}
       <BeltPostComposer
         board="daily"
         open={composerOpen}
@@ -169,21 +169,7 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
         onClose={() => setComposerOpen(false)}
         onPosted={() => void load()}
       />
-    </div>
-    {mounted
-      ? createPortal(
-          <button
-            type="button"
-            className="belt-daily-fab"
-            aria-label="发布干员日常"
-            onClick={() => setComposerOpen(true)}
-          >
-            <span>＋</span>
-            <b>NEW<br />SIGNAL</b>
-          </button>,
-          document.body,
-        )
-      : null}
+      {lightbox ? <BeltLightbox src={lightbox} kind="image" onClose={() => setLightbox(null)} /> : null}
     </>
   );
 }

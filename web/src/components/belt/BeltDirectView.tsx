@@ -1,12 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { beltApi, connectBeltSocket, type BeltUser } from '@/lib/beltApi';
-import type {
-  BeltDmConversation,
-  BeltFriendView,
-  BeltFriends,
-} from '@/lib/beltTypes';
+import type { BeltDmConversation, BeltFriendView, BeltFriends } from '@/lib/beltTypes';
 import type { Message } from '@/lib/types';
 import { randomUuid } from '@/lib/uuid';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
@@ -18,7 +15,16 @@ function clockOf(iso: string): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-export function BeltDirectView({ user }: { user: BeltUser }) {
+function dayOf(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * 环带私聊：桌面端左列表 / 右聊天；移动端由 /belt/direct 与 /belt/direct/:id 两个路由分流。
+ */
+export function BeltDirectView({ user, conversationId }: { user: BeltUser; conversationId?: string }) {
   const [friends, setFriends] = useState<BeltFriends | null>(null);
   const [conversations, setConversations] = useState<BeltDmConversation[]>([]);
   const [selected, setSelected] = useState<BeltDmConversation | null>(null);
@@ -26,6 +32,7 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
   const [draft, setDraft] = useState('');
   const [handle, setHandle] = useState('');
   const [note, setNote] = useState('');
+  const [requestOpen, setRequestOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,17 +43,6 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
 
   selectedRef.current = selected;
 
-  const open = async (conversation: BeltDmConversation) => {
-    setSelected(conversation);
-    setError(null);
-    try {
-      const data = await beltApi<{ messages: Message[] }>(`/belt/conversations/${conversation.id}/messages`);
-      setMessages(data.messages ?? []);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : '私聊读取失败');
-    }
-  };
-
   const load = async () => {
     try {
       const [friendData, dmData] = await Promise.all([
@@ -54,9 +50,16 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
         beltApi<{ conversations: BeltDmConversation[] }>('/belt/conversations'),
       ]);
       setFriends(friendData);
-      setConversations(dmData.conversations ?? []);
-      if (selectedRef.current) {
-        const still = (dmData.conversations ?? []).find((row) => row.id === selectedRef.current?.id);
+      const list = dmData.conversations ?? [];
+      setConversations(list);
+      if (conversationId) {
+        const target = list.find((row) => row.id === conversationId);
+        if (target) {
+          setSelected(target);
+          void open(target);
+        }
+      } else if (selectedRef.current) {
+        const still = list.find((row) => row.id === selectedRef.current?.id);
         if (!still) {
           setSelected(null);
           setMessages([]);
@@ -68,19 +71,19 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
   };
 
   useEffect(() => {
-    const wanted = new URLSearchParams(window.location.search).get('conversationId');
-    void load().then(() => {
-      if (!wanted) return;
-      setTimeout(() => {
-        setConversations((current) => {
-          const found = current.find((row) => row.id === wanted);
-          if (found) void open(found);
-          return current;
-        });
-      }, 0);
-    });
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!conversationId) return;
+    const target = conversations.find((row) => row.id === conversationId);
+    if (target && selected?.id !== target.id) {
+      setSelected(target);
+      void open(target);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, conversations.length]);
 
   useEffect(() => {
     socket.current = connectBeltSocket(
@@ -91,9 +94,7 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
         if (!data?.channelId || !data.message) return;
         if (selectedRef.current?.id !== data.channelId) return;
         setMessages((previous) =>
-          previous.some((message) => message.id === data.message!.id)
-            ? previous
-            : [...previous, data.message!],
+          previous.some((message) => message.id === data.message!.id) ? previous : [...previous, data.message!],
         );
       },
       () => void load(),
@@ -109,6 +110,18 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
     bottom.current?.scrollIntoView({ block: 'end' });
   }, [messages.length]);
 
+  const open = async (conversation: BeltDmConversation) => {
+    setSelected(conversation);
+    setError(null);
+    setMenuId(null);
+    try {
+      const data = await beltApi<{ messages: Message[] }>(`/belt/conversations/${conversation.id}/messages`);
+      setMessages(data.messages ?? []);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '私聊读取失败');
+    }
+  };
+
   const request = async () => {
     const normalized = handle.replace(/^@/, '').trim().toLowerCase();
     if (!normalized || busy) return;
@@ -120,9 +133,10 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
         method: 'POST',
         body: JSON.stringify({ handle: normalized, ...(note.trim() ? { note: note.trim() } : {}) }),
       });
-      setNotice(`已向 @${normalized} 发出链路申请。对方同意后才会生成私聊。`);
+      setNotice(`已向 @${normalized} 发出链路申请。`);
       setHandle('');
       setNote('');
+      setRequestOpen(false);
       await load();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '申请失败');
@@ -175,7 +189,6 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
     if (!selected || busy) return;
     if (!window.confirm('清空这段私聊记录？只对你的账号隐藏，对方仍可看到。')) return;
     setBusy(true);
-    setError(null);
     try {
       await beltApi(`/belt/conversations/${selected.id}/messages`, { method: 'DELETE' });
       setMessages([]);
@@ -192,7 +205,6 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
     const copy = action === 'block' ? '拉黑后不再接收对方消息，也不能再发送。' : '删除好友后这段私聊链路会关闭。';
     if (!window.confirm(copy)) return;
     setBusy(true);
-    setError(null);
     try {
       if (action === 'block') {
         await beltApi(`/belt/friendships/${selected.friendshipId}`, {
@@ -227,194 +239,181 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
     }
   };
 
-  const peers = new Map(conversations.map((conversation) => [conversation.id, conversation.peer]));
-  const currentPeer = selected ? peers.get(selected.id) ?? selected.peer : null;
+  const currentPeer = selected?.peer ?? null;
+  const incoming = friends?.incoming ?? [];
 
   return (
-    <div className="belt-direct mt-4">
+    <div className={`belt-im${conversationId ? ' is-chat-route' : ''}`}>
       {error ? (
         <p className="belt-error" role="alert">
           <code>LINK_ERROR</code> {error}
         </p>
       ) : null}
-      {notice ? <p className="belt-panel belt-hint">{notice}</p> : null}
+      {notice ? <p className="belt-hint">{notice}</p> : null}
 
-      <section className="belt-panel">
-        <div className="belt-panel-head">
-          <h2>建立链路 / FRIEND REQUEST</h2>
-          <span className="belt-hint">同意后才会生成私聊</span>
-        </div>
-        <div className="belt-form-row">
-          <label className="belt-field">
-            <span>精确 handle</span>
-            <input className="belt-input" value={handle} onChange={(event) => setHandle(event.target.value)} placeholder="外环呼号（可带 @）" aria-label="好友 handle" autoCapitalize="none" />
-          </label>
-          <label className="belt-field">
-            <span>附言</span>
-            <input className="belt-input" value={note} maxLength={200} onChange={(event) => setNote(event.target.value)} placeholder="链路目的（可选）" aria-label="好友申请附言" />
-          </label>
-          <button type="button" className="belt-button is-signal" disabled={busy || !handle.trim()} onClick={() => void request()}>
-            发送申请
+      {/* 左：会话列表 */}
+      <aside className="belt-im-list">
+        <div className="belt-im-list-head">
+          <div>
+            <p className="belt-page-kicker">DIRECT LINKS</p>
+            <b>私聊链路</b>
+          </div>
+          <button type="button" className="belt-im-new" aria-label="发起好友申请" onClick={() => setRequestOpen((value) => !value)}>
+            +
           </button>
         </div>
-        {friends?.incoming.length ? (
-          <div className="mt-3">
-            <p className="belt-page-kicker">INCOMING / 待处理</p>
-            <ul className="belt-ledger">
-              {friends.incoming.map((row) => (
-                <li key={row.id} className="belt-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
-                  <div>
-                    <div className="belt-row-meta">
-                      <IdentityBadges values={row.peer.prefixes} />
-                      <span>{row.peer.displayName}</span>
-                      <span>@{row.peer.handle}</span>
-                      <span className="belt-stamp">{row.surface}</span>
-                    </div>
-                    {row.requestNote ? <p className="belt-row-deck">「{row.requestNote}」</p> : null}
-                  </div>
-                  <div className="belt-row-side">
-                    <button type="button" className="belt-button is-signal" disabled={busy} onClick={() => void respond(row, 'accept')}>
-                      同意
-                    </button>
-                    <button type="button" className="belt-button" disabled={busy} onClick={() => void respond(row, 'reject')}>
-                      拒绝
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+
+        {requestOpen ? (
+          <div className="belt-im-request">
+            <input className="belt-input" value={handle} onChange={(event) => setHandle(event.target.value)} placeholder="@handle" aria-label="好友 handle" />
+            <input className="belt-input" value={note} maxLength={200} onChange={(event) => setNote(event.target.value)} placeholder="附言（可选）" aria-label="好友申请附言" />
+            <button type="button" className="belt-button is-signal" disabled={busy || !handle.trim()} onClick={() => void request()}>
+              发送申请
+            </button>
           </div>
         ) : null}
-      </section>
 
-      <div className="belt-direct-grid mt-3">
-        <section className="belt-panel">
-          <div className="belt-panel-head">
-            <h2>私聊 / DIRECT</h2>
-            <span className="belt-hint">{conversations.length}</span>
-          </div>
-          {conversations.length === 0 ? <div className="belt-empty">还没有已建立的私聊。先发送好友申请。</div> : null}
-          <div className="belt-ledger">
-            {conversations.map((conversation) => (
-              <button
-                key={conversation.id}
-                type="button"
-                className="belt-row w-full text-left"
-                data-active={selected?.id === conversation.id}
-                onClick={() => void open(conversation)}
-              >
-                <div className="flex min-w-0 items-center gap-2">
-                  <BeltAvatar fileId={conversation.peer.avatarFileId} name={conversation.peer.displayName} size="sm" />
-                  <div className="min-w-0">
-                  <div className="belt-row-title">{conversation.peer.displayName}</div>
-                  <div className="belt-row-meta">
-                    <IdentityBadges values={conversation.peer.prefixes} />
-                    <span>@{conversation.peer.handle}</span>
-                    <span className="belt-stamp">{conversation.surface === 'bridge' ? 'BRIDGE' : 'BELT'}</span>
-                  </div>
-                  <p className="belt-row-deck">{conversation.lastMessagePreview ?? '链路已建立，等待第一条信号。'}</p>
-                  </div>
-                </div>
-                <div className="belt-row-side">
-                  <span>{conversation.lastMessageAt ? clockOf(conversation.lastMessageAt) : '—'}</span>
-                </div>
-              </button>
+        {incoming.length > 0 ? (
+          <div className="belt-im-incoming">
+            <p>{incoming.length} 条待处理申请</p>
+            {incoming.map((row) => (
+              <div key={row.id} className="belt-im-incoming-row">
+                <BeltAvatar fileId={row.peer.avatarFileId} name={row.peer.displayName} size="sm" />
+                <span>@{row.peer.handle}</span>
+                <button type="button" className="belt-button is-signal" disabled={busy} onClick={() => void respond(row, 'accept')}>同意</button>
+                <button type="button" className="belt-button" disabled={busy} onClick={() => void respond(row, 'reject')}>拒绝</button>
+              </div>
             ))}
           </div>
-        </section>
+        ) : null}
 
-        <section className="belt-panel belt-direct-chat">
-          {selected ? (
-            <>
-              <div className="belt-panel-head">
-                <h2>{currentPeer ? `@${currentPeer.handle}` : 'PRIVATE LINK'}</h2>
-                <div className="belt-row-side">
-                  <span className="belt-stamp is-signal">{selected.surface === 'bridge' ? 'BRIDGE' : 'BELT'}</span>
-                  <button type="button" className="belt-button" disabled={busy} onClick={() => void clearChat()}>
-                    清空记录
-                  </button>
-                  <button type="button" className="belt-button" disabled={busy} onClick={() => void manageFriend('block')}>
-                    拉黑
-                  </button>
-                  <button type="button" className="belt-danger-link" disabled={busy} onClick={() => void manageFriend('remove')}>
-                    删除好友
-                  </button>
-                </div>
+        <div className="belt-im-conversations">
+          {conversations.length === 0 ? <p className="belt-hint">还没有私聊。点右上角 + 发起好友申请。</p> : null}
+          {conversations.map((conversation) => {
+            const active = selected?.id === conversation.id;
+            const inner = (
+              <>
+                <BeltAvatar fileId={conversation.peer.avatarFileId} name={conversation.peer.displayName} />
+                <span className="belt-im-conv-main">
+                  <b>{conversation.peer.displayName}</b>
+                  <small>{conversation.lastMessagePreview ?? '链路已建立，等待第一条信号。'}</small>
+                </span>
+                <span className="belt-im-conv-meta">
+                  <small>{conversation.lastMessageAt ? clockOf(conversation.lastMessageAt) : ''}</small>
+                  <i className={active ? 'is-on' : ''} />
+                </span>
+              </>
+            );
+            return (
+              <Link
+                key={conversation.id}
+                href={`/belt/direct/${conversation.id}`}
+                className={`belt-im-conv${active ? ' is-active' : ''}`}
+                onClick={(event) => {
+                  if (typeof window !== 'undefined' && window.matchMedia('(min-width: 821px)').matches) {
+                    event.preventDefault();
+                    void open(conversation);
+                  }
+                }}
+              >
+                {inner}
+              </Link>
+            );
+          })}
+        </div>
+      </aside>
+
+      {/* 右：聊天窗口 */}
+      <section className="belt-im-chat">
+        {selected ? (
+          <>
+            <header className="belt-im-chat-head">
+              <Link href="/belt/direct" className="belt-im-back" aria-label="返回会话列表">←</Link>
+              <BeltAvatar fileId={currentPeer?.avatarFileId} name={currentPeer?.displayName ?? '对方'} size="sm" />
+              <div className="belt-im-chat-title">
+                <b>{currentPeer?.displayName ?? '私聊链路'}</b>
+                <small>@{currentPeer?.handle ?? ''} · {selected.surface === 'bridge' ? 'BRIDGE' : 'BELT'}</small>
               </div>
-              <div className="belt-direct-messages">
-                {messages.length === 0 ? <div className="belt-empty">链路已建立。发第一条私密信号。</div> : null}
-                {messages.map((message) => {
-                  const mine = message.senderId === user.id;
-                  const peer = currentPeer;
-                  return (
+              <div className="belt-im-chat-actions">
+                <button type="button" className="belt-button" disabled={busy} onClick={() => void clearChat()}>清空</button>
+                <button type="button" className="belt-button" disabled={busy} onClick={() => void manageFriend('block')}>拉黑</button>
+                <button type="button" className="belt-danger-link" disabled={busy} onClick={() => void manageFriend('remove')}>删好友</button>
+              </div>
+            </header>
+
+            <div className="belt-im-messages">
+              {messages.length === 0 ? <p className="belt-hint">链路已建立，发第一条私密信号。</p> : null}
+              {messages.map((message, index) => {
+                const mine = message.senderId === user.id;
+                const previous = index > 0 ? messages[index - 1] : null;
+                const continuation =
+                  Boolean(previous) &&
+                  previous!.senderId === message.senderId &&
+                  new Date(message.createdAt).getTime() - new Date(previous!.createdAt).getTime() < 5 * 60_000;
+                const showDay = !previous || dayOf(previous.createdAt) !== dayOf(message.createdAt);
+                return (
+                  <div key={message.id}>
+                    {showDay ? <div className="belt-im-day">{dayOf(message.createdAt)}</div> : null}
                     <div
-                      key={message.id}
-                      className={`belt-direct-message${mine ? ' is-mine' : ''}`}
-                      data-mine={mine}
+                      className={`belt-im-row${mine ? ' is-mine' : ''}${continuation ? ' is-continuation' : ''}`}
                       onContextMenu={(event) => {
                         if (!mine) return;
                         event.preventDefault();
                         setMenuId(message.id);
                       }}
                     >
-                      <BeltAvatar
-                        fileId={mine ? user.avatarFileId : peer?.avatarFileId}
-                        name={mine ? user.displayName : peer?.displayName ?? '对方'}
-                        size="sm"
-                        neon={!mine}
-                      />
-                      <div className="min-w-0">
-                        <div className="belt-message-author">
-                          <b>{mine ? user.displayName : peer?.displayName ?? '对方'}</b>
-                          <span>{clockOf(message.createdAt)}</span>
-                          {mine ? (
-                            <button type="button" className="belt-message-more" aria-label="消息操作" onClick={() => setMenuId((current) => (current === message.id ? null : message.id))}>
-                              ⋯
-                            </button>
-                          ) : null}
-                        </div>
+                      {!mine ? (
+                        continuation ? <span className="belt-im-avatar-spacer" /> : (
+                          <BeltAvatar fileId={currentPeer?.avatarFileId} name={currentPeer?.displayName ?? '对方'} size="sm" />
+                        )
+                      ) : null}
+                      <div className={`belt-im-bubble${mine ? ' is-mine' : ''}`}>
                         {message.card ? (
                           <a className="belt-share-card" href={message.card.data?.url ?? `/belt/posts/${message.card.data?.postId ?? ''}`}>
                             <span className="belt-share-card-kicker">NEWS SHARE · {message.card.data?.sourceName ?? '环带电文'}</span>
                             <strong>{message.card.title}</strong>
                             <em>阅读全文 →</em>
                           </a>
+                        ) : (
+                          <p>{message.body}</p>
+                        )}
+                        <time>{clockOf(message.createdAt)}</time>
+                        {mine ? (
+                          <button type="button" className="belt-im-more" aria-label="消息操作" onClick={() => setMenuId((current) => (current === message.id ? null : message.id))}>
+                            ⋯
+                          </button>
                         ) : null}
-                        {message.body ? <p className="belt-message-body">{message.body}</p> : null}
                         {menuId === message.id && mine ? (
-                          <div className="belt-message-menu" role="menu">
-                            <button type="button" onClick={() => void recall(message)}>撤回 / DELETE</button>
-                          </div>
+                          <button type="button" className="belt-im-recall" onClick={() => void recall(message)}>撤回</button>
                         ) : null}
                       </div>
                     </div>
-                  );
-                })}
-                <div ref={bottom} />
-              </div>
-              <form className="belt-composer mt-2" onSubmit={send}>
-                <input
-                  className="belt-input"
-                  value={draft}
-                  maxLength={4000}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder="发送私密信号…"
-                  aria-label="私聊消息"
-                />
-                <button type="submit" className="belt-button is-signal" disabled={busy || !draft.trim()}>
-                  发送
-                </button>
-              </form>
-            </>
-          ) : (
-            <div className="belt-empty">
-              选择一条私聊链路
-              <br />
-              或从悬赏委托发起跨环带联络。
+                  </div>
+                );
+              })}
+              <div ref={bottom} />
             </div>
-          )}
-        </section>
-      </div>
+
+            <form className="belt-im-composer" onSubmit={send}>
+              <input
+                className="belt-input"
+                value={draft}
+                maxLength={4000}
+                onChange={(event) => setDraft(event.target.value)}
+                placeholder="输入信号..."
+                aria-label="私聊消息"
+              />
+              <button type="submit" className="belt-button is-signal" disabled={busy || !draft.trim()}>发送</button>
+            </form>
+          </>
+        ) : (
+          <div className="belt-im-empty">
+            <p className="belt-page-kicker">SELECT A LINK</p>
+            <h3>选择一条私聊链路</h3>
+            <p>从左侧选择对话，或点击 + 发起好友申请。</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
