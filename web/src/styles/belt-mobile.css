@@ -132,12 +132,12 @@
     min-height: 0;
     flex: 1 1 auto;
     overflow-y: auto;
-    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
-    scroll-padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   }
 
   .belt-main-inner {
-    padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+    padding-bottom: 0;
   }
 
   .belt-main > .belt-main-inner:last-child {

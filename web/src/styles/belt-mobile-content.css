@@ -1,0 +1,35 @@
+
+/* 移动端底部导航避让：频道输入框 / 日常末卡 */
+@media (max-width: 767px) {
+  .belt-channel {
+    height: calc(100dvh - 10.5rem);
+    min-height: 26rem;
+    margin-bottom: 0;
+  }
+
+  .belt-channel-composer {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: color-mix(in srgb, var(--ef-panel) 94%, transparent);
+    padding-bottom: 0.75rem;
+    backdrop-filter: blur(10px);
+  }
+
+  .belt-channel-composer .belt-button {
+    min-height: 2.75rem;
+    padding-inline: 0.9rem;
+  }
+
+  .belt-masonry {
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  }
+
+  .belt-masonry > .belt-neon-card:last-child {
+    margin-bottom: 1.25rem;
+  }
+
+  .belt-daily-fab {
+    bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  }
+}

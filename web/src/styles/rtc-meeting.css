@@ -1,0 +1,156 @@
+
+/* 多人会议化布局与放大比例 */
+.rtc2-stage {
+  grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr);
+}
+
+.rtc2-left {
+  gap: clamp(1rem, 2.4vh, 1.8rem);
+}
+
+.rtc2-avatars {
+  display: grid;
+  grid-template-columns: repeat(2, 4.6rem);
+  gap: 0.65rem;
+}
+
+.rtc2-avatars.is-grid {
+  grid-template-columns: repeat(2, 4.4rem);
+}
+
+.rtc2-avatars.is-scroll {
+  grid-template-columns: repeat(3, 3.9rem);
+  max-height: 15rem;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.rtc2-avatar {
+  position: relative;
+  width: 4.6rem;
+}
+
+.rtc2-avatar > span {
+  width: 4.6rem;
+  height: 4.6rem;
+  min-width: 4rem;
+  min-height: 4rem;
+  flex: 0 0 auto;
+  font-size: 1.35rem;
+}
+
+.rtc2-avatars.is-grid .rtc2-avatar,
+.rtc2-avatars.is-grid .rtc2-avatar > span {
+  width: 4.4rem;
+  height: 4.4rem;
+  min-width: 4rem;
+  min-height: 4rem;
+}
+
+.rtc2-avatars.is-scroll .rtc2-avatar,
+.rtc2-avatars.is-scroll .rtc2-avatar > span {
+  width: 3.9rem;
+  height: 3.9rem;
+}
+
+.rtc2-avatars.is-scroll .rtc2-avatar > span {
+  font-size: 1rem;
+}
+
+.rtc2-avatar.is-active > span {
+  border-color: #fffa00;
+  box-shadow: 0 0 0 1px rgba(255, 250, 0, 0.5), 0 0 28px rgba(255, 250, 0, 0.22);
+  color: #fffa00;
+}
+
+.rtc2-avatar-live {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  border: 1px solid #fffa00;
+  background: #0a0b07;
+  color: #fffa00;
+  font-size: 6px;
+  letter-spacing: 0.1em;
+  padding: 0.05rem 0.18rem;
+}
+
+.rtc2-identity h1,
+.rtc2-speaker-name {
+  font-size: clamp(4.2rem, 9.5vw, 8.4rem);
+  font-weight: 200;
+  letter-spacing: 0.06em;
+  line-height: 0.92;
+  animation: rtc-name-flash 420ms ease-out;
+}
+
+@keyframes rtc-name-flash {
+  0% { opacity: 0.15; filter: blur(2px); transform: translateY(4px); }
+  45% { opacity: 1; filter: blur(0); transform: translateY(0); }
+  70% { opacity: 0.55; }
+  100% { opacity: 1; }
+}
+
+.rtc2-frame {
+  width: min(100%, 64rem);
+  height: min(100%, 38rem);
+}
+
+.rtc2-wave {
+  height: 68%;
+}
+
+.rtc2-controls {
+  gap: clamp(1.2rem, 3vw, 2.4rem);
+  padding: 1rem 1rem calc(1.2rem + env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, rgba(4, 5, 4, 0.72));
+  backdrop-filter: blur(10px);
+}
+
+.rtc2-control {
+  width: 5.6rem;
+  min-height: 4.6rem;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.65rem 0.5rem;
+}
+
+.rtc2-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.rtc2-control small {
+  font-size: 9px;
+}
+
+@media (max-width: 900px) {
+  .rtc2-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .rtc2-avatars {
+    grid-template-columns: repeat(4, 3.6rem);
+  }
+
+  .rtc2-avatar,
+  .rtc2-avatar > span {
+    width: 3.6rem;
+    height: 3.6rem;
+  }
+
+  .rtc2-identity h1,
+  .rtc2-speaker-name {
+    font-size: clamp(3.4rem, 15vw, 5rem);
+  }
+
+  .rtc2-frame {
+    height: 44vh;
+  }
+
+  .rtc2-control {
+    width: 4.2rem;
+    min-height: 4rem;
+  }
+}

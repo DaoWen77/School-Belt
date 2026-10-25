@@ -8,10 +8,18 @@ import { beltSession } from '@/lib/beltSession';
 
 type CallMode = 'audio' | 'video';
 
-const PARTICIPANTS = [
-  { id: 'FIONA', initials: 'FN', active: true },
-  { id: 'R-07', initials: '07', active: false },
-  { id: 'OBS', initials: 'OB', active: false },
+export interface RtcPerson {
+  id: string;
+  name: string;
+  initials: string;
+  role: string;
+}
+
+const ROSTER: RtcPerson[] = [
+  { id: 'fiona', name: 'FIONA', initials: 'FN', role: 'CALLER' },
+  { id: 'relay', name: 'R-07', initials: '07', role: 'RELAY' },
+  { id: 'observer', name: 'OBSERVER', initials: 'OB', role: 'OBSERVER' },
+  { id: 'lin', name: 'LIN', initials: 'LN', role: 'MEMBER' },
 ];
 
 function formatTime(ms: number): string {
@@ -35,6 +43,8 @@ export function BeltRTCView() {
   const [status, setStatus] = useState('等待授权…');
   const [streamReady, setStreamReady] = useState(false);
   const [levels, setLevels] = useState<number[]>(() => Array.from({ length: 34 }, () => 0.04));
+  const [people, setPeople] = useState<RtcPerson[]>(ROSTER.slice(0, 2));
+  const [activeId, setActiveId] = useState('fiona');
   const [iceState, setIceState] = useState<string>('new');
   const [iceErrorOpen, setIceErrorOpen] = useState(false);
 
@@ -116,9 +126,25 @@ export function BeltRTCView() {
   }, []);
 
   useEffect(() => {
+    const demo = Number(new URLSearchParams(window.location.search).get('demo') || '2');
+    const count = demo >= 4 ? 4 : demo >= 3 ? 3 : 2;
+    setPeople(ROSTER.slice(0, count));
+    setActiveId(ROSTER[0].id);
+  }, []);
+
+  useEffect(() => {
     const timer = setInterval(() => setElapsed((value) => value + 100), 100);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (people.length < 2) return;
+    const timer = setInterval(() => {
+      const next = people[Math.floor(Math.random() * people.length)];
+      setActiveId((current) => (Math.random() < 0.4 ? current : next.id));
+    }, 1100);
+    return () => clearInterval(timer);
+  }, [people]);
 
   // 真实波形 + 频谱：无声音时几乎归零
   useEffect(() => {
@@ -429,23 +455,29 @@ export function BeltRTCView() {
 
       <div className="rtc2-stage">
         <aside className="rtc2-left">
-          <div className="rtc2-avatars">
-            {PARTICIPANTS.map((person) => (
-              <div key={person.id} className={`rtc2-avatar${person.active ? ' is-active' : ''}`}>
-                <span>{person.initials}</span>
-                <small>{person.id}</small>
-              </div>
-            ))}
+          <div className={`rtc2-avatars is-${people.length > 4 ? 'scroll' : people.length > 2 ? 'grid' : 'duo'}`}>
+            {people.map((person) => {
+              const speaking = person.id === activeId;
+              return (
+                <div key={person.id} className={`rtc2-avatar${speaking ? ' is-active' : ''}`}>
+                  <span>{person.initials}</span>
+                  <small>{person.name}</small>
+                  {speaking ? <i className="rtc2-avatar-live">LIVE</i> : null}
+                </div>
+              );
+            })}
           </div>
           <div className="rtc2-identity">
-            <p className="rtc2-eyebrow">COMMUNICATION LINK</p>
-            <h1>FIONA</h1>
+            <p className="rtc2-eyebrow">COMMUNICATION LINK · {people.length} PARTIES</p>
+            <h1 key={activeId} className="rtc2-speaker-name">
+              {people.find((person) => person.id === activeId)?.name ?? '—'}
+            </h1>
             <p className="rtc2-band">M10 FM MK H</p>
             <p className="rtc2-timer">{formatTime(elapsed)}</p>
           </div>
           <div className="rtc2-meta">
-            <span>SIGNAL <b>98%</b></span>
-            <span>LATENCY <b>014 MS</b></span>
+            <span>ROOM <b>{people.map((person) => person.name).join(' / ')}</b></span>
+            <span>ACTIVE <b>{people.find((person) => person.id === activeId)?.name ?? '—'}</b></span>
             <span>CODEC <b>OPUS 48K</b></span>
           </div>
         </aside>
