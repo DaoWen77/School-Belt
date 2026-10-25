@@ -177,6 +177,12 @@ enum OrgMemberStatus {
   banned
 }
 
+enum OrgJoinType {
+  open
+  apply
+  invite
+}
+
 // ───────────────────────────── 文明环带 Phase C：内容 ─────────────────────────────
 enum PostSource {
   user
@@ -291,6 +297,8 @@ model Organization {
   name         String         @db.Citext
   slug         String         @unique @db.Citext
   summary      String         @db.VarChar(400)
+  isPublic     Boolean        @default(true) @map("is_public")
+  joinType     OrgJoinType    @default(apply) @map("join_type")
   status       OrgStatus      @default(pending)
   /**
    * 组织所属面：内部组织 / 环带外部组织；私密频道继承该面

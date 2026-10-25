@@ -34,7 +34,9 @@ export interface OrgChannelView {
   id: string;
   name: string;
   topic: string | null;
+  visibility: 'public' | 'private';
   memberCount: number;
+  archived: boolean;
   createdAt: string;
 }
 
@@ -44,6 +46,8 @@ export interface OrganizationView {
   summary: string;
   status: 'pending' | 'active' | 'rejected' | 'suspended' | 'dissolved';
   surface: 'internal' | 'belt' | 'bridge';
+  isPublic: boolean;
+  joinType: 'open' | 'apply' | 'invite';
   ownerId: string;
   ownerHandle: string | null;
   ownerDisplayName: string | null;
@@ -157,7 +161,7 @@ export class OrganizationsService {
     >;
   }> {
     const rows = await this.prisma.organization.findMany({
-      where: { status: 'active', surface: user.sessionSurface },
+      where: { status: 'active', surface: user.sessionSurface, isPublic: true },
       orderBy: [{ createdAt: 'desc' }],
       select: {
         id: true,
@@ -165,6 +169,8 @@ export class OrganizationsService {
         summary: true,
         status: true,
         surface: true,
+        isPublic: true,
+        joinType: true,
         createdAt: true,
         _count: { select: { members: { where: { status: 'active' } } } },
         members: { where: { userId: user.id }, select: { role: true, status: true } },
@@ -177,6 +183,8 @@ export class OrganizationsService {
         summary: row.summary,
         status: row.status,
         surface: row.surface,
+        isPublic: row.isPublic,
+        joinType: row.joinType,
         memberCount: row._count.members,
         myRole: (row.members[0]?.role as OrganizationView['myRole']) ?? null,
         myStatus: (row.members[0]?.status as OrganizationView['myStatus']) ?? null,
@@ -213,6 +221,8 @@ export class OrganizationsService {
       summary: org.summary,
       status: org.status,
       surface: org.surface,
+      isPublic: org.isPublic,
+      joinType: org.joinType,
       ownerId: org.ownerId,
       ownerHandle: org.owner.handle,
       ownerDisplayName: org.owner.displayName,
@@ -267,6 +277,8 @@ export class OrganizationsService {
         data: {
           name: dto.name,
           slug: `org-${randomUUID().slice(0, 8)}`,
+          isPublic: dto.isPublic ?? true,
+          joinType: dto.joinType ?? 'apply',
           summary: dto.summary,
           status: 'pending',
           surface: user.sessionSurface,
@@ -308,6 +320,11 @@ export class OrganizationsService {
     if (existing?.status === 'banned') {
       throw new AppError(ErrorCode.FORBIDDEN, '你已被该组织封禁');
     }
+    if (org.joinType === 'invite') {
+      throw new AppError(ErrorCode.FORBIDDEN, '该组织仅限邀请加入');
+    }
+    const immediate = org.joinType === 'open';
+    const now = new Date();
 
     await this.prisma.organizationMember.upsert({
       where: { organizationId_userId: { organizationId, userId: user.id } },
@@ -315,20 +332,34 @@ export class OrganizationsService {
         organizationId,
         userId: user.id,
         role: 'member',
-        status: 'pending',
+        status: immediate ? 'active' : 'pending',
         requestNote: dto.note ?? null,
+        joinedAt: immediate ? now : null,
       },
       update: {
         role: 'member',
-        status: 'pending',
+        status: immediate ? 'active' : 'pending',
+        joinedAt: immediate ? now : null,
         requestNote: dto.note ?? null,
-        requestedAt: new Date(),
-        reviewedAt: null,
+        requestedAt: now,
+        reviewedAt: immediate ? now : null,
         reviewedBy: null,
-        joinedAt: null,
         leftAt: null,
       },
     });
+
+    if (immediate) {
+      const channels = await this.prisma.channel.findMany({
+        where: { organizationId, archivedAt: null },
+        select: { id: true },
+      });
+      if (channels.length > 0) {
+        await this.prisma.channelMember.createMany({
+          data: channels.map((channel) => ({ channelId: channel.id, userId: user.id, role: 'member' })),
+          skipDuplicates: true,
+        });
+      }
+    }
     await this.audit.record({
       actorId: user.id,
       action: AuditAction.ORG_JOIN_REQUEST,
@@ -685,7 +716,16 @@ export class OrganizationsService {
     organizationId: string,
     channelId: string,
   ): Promise<{ archived: true }> {
-    await this.assertOrgAdmin(user, organizationId);
+    const org = await this.orgOrThrow(organizationId);
+    const member = await this.prisma.organizationMember.findUnique({
+      where: { organizationId_userId: { organizationId, userId: user.id } },
+    });
+    const isOrgAdmin = Boolean(
+      member?.status === 'active' && (member.role === 'owner' || member.role === 'admin'),
+    );
+    if (org.ownerId !== user.id && !isOrgAdmin) {
+      throw new AppError(ErrorCode.FORBIDDEN, '仅组织 Owner/管理员可删除私有频道');
+    }
     const channel = await this.prisma.channel.findFirst({
       where: { id: channelId, organizationId, archivedAt: null },
       select: { id: true },
@@ -797,6 +837,7 @@ export class OrganizationsService {
         id: true,
         name: true,
         topic: true,
+        visibility: true,
         createdAt: true,
         _count: { select: { members: true } },
       },
@@ -805,14 +846,16 @@ export class OrganizationsService {
   }
 
   private channelView(
-    row: { id: string; name: string; topic: string | null; createdAt: Date },
+    row: { id: string; name: string; topic: string | null; visibility: 'public' | 'private'; createdAt: Date },
     memberCount: number,
   ): OrgChannelView {
     return {
       id: row.id,
       name: row.name,
       topic: row.topic,
+      visibility: row.visibility,
       memberCount,
+      archived: false,
       createdAt: row.createdAt.toISOString(),
     };
   }

@@ -11,6 +11,8 @@ export const createOrganizationSchema = z.object({
     .refine((value) => !/[\[\]]/.test(value), '组织名不能包含方括号')
     .refine((value) => !reservedOrgName.test(value), '组织名包含保留词'),
   summary: z.string().trim().min(1, '请填写组织简介').max(400, '组织简介最多 400 字'),
+  isPublic: z.boolean().optional().default(true),
+  joinType: z.enum(['open', 'apply', 'invite']).optional().default('apply'),
 });
 export type CreateOrganizationDto = z.infer<typeof createOrganizationSchema>;
 

@@ -16,6 +16,7 @@ interface Props {
   activeChannelId?: string | null;
   activeConversationId?: string | null;
   refreshKey?: number;
+  mobileOpen?: boolean;
 }
 
 const SYSTEM_LINKS = [
@@ -30,7 +31,7 @@ const SYSTEM_LINKS = [
  * 环带 Discord 式融合侧栏：
  * 频道（含组织私有） / 私聊 / 系统页面，三组可折叠，点击直接切主视图。
  */
-export function BeltSidebar({ user, activeView, activeChannelId, activeConversationId, refreshKey = 0 }: Props) {
+export function BeltSidebar({ user, activeView, activeChannelId, activeConversationId, refreshKey = 0, mobileOpen = false }: Props) {
   const [channels, setChannels] = useState<OrgChannel[]>([]);
   const [conversations, setConversations] = useState<BeltDmConversation[]>([]);
   const [friends, setFriends] = useState<BeltFriendView[]>([]);
@@ -185,7 +186,7 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
   };
 
   return (
-    <aside className="belt-rail">
+    <aside className={`belt-rail${mobileOpen ? ' is-open' : ''}`}>
       <div className="belt-rail-label">
         <span>O.M.V / 外环导航</span>
       </div>
@@ -209,7 +210,7 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
                 aria-current={activeChannelId === channel.id ? 'page' : undefined}
                 href={`/belt/channel?channelId=${channel.id}`}
               >
-                <span className="belt-rail-index">#</span>
+                <span className="belt-rail-index">{channel.visibility === 'private' ? '🔒' : '#'}</span>
                 <span className="truncate">{channel.name}</span>
               </Link>
             ))}
@@ -223,7 +224,7 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
                     aria-current={activeChannelId === channel.id ? 'page' : undefined}
                     href={`/belt/channel?channelId=${channel.id}`}
                   >
-                    <span className="belt-rail-index">·</span>
+                    <span className="belt-rail-index">{channel.visibility === 'private' ? '🔒' : '#'}</span>
                     <span className="truncate">{channel.name}</span>
                   </Link>
                 ))}

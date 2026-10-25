@@ -10,6 +10,7 @@ interface OrgChannel {
   id: string;
   name: string;
   topic: string | null;
+  visibility?: 'public' | 'private';
   memberCount: number;
   archived: boolean;
 }
@@ -31,6 +32,8 @@ interface OrgView {
   name: string;
   summary: string;
   status: string;
+  isPublic?: boolean;
+  joinType?: 'open' | 'apply' | 'invite';
   ownerId: string;
   myRole: 'owner' | 'admin' | 'member' | null;
   myStatus: string | null;
@@ -56,6 +59,8 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
 
   const [name, setName] = useState('');
   const [summary, setSummary] = useState('');
+  const [orgPublic, setOrgPublic] = useState(true);
+  const [orgJoinType, setOrgJoinType] = useState<'open' | 'apply' | 'invite'>('apply');
   const [channelName, setChannelName] = useState<Record<string, string>>({});
   const [channelTopic, setChannelTopic] = useState<Record<string, string>>({});
 
@@ -83,7 +88,7 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
     try {
       await beltApi('/belt/organizations', {
         method: 'POST',
-        body: JSON.stringify({ name: name.trim(), summary: summary.trim() }),
+        body: JSON.stringify({ name: name.trim(), summary: summary.trim(), isPublic: orgPublic, joinType: orgJoinType }),
       });
       setName('');
       setSummary('');
@@ -140,6 +145,23 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
   };
 
   if (loading) return <div className="belt-panel belt-empty mt-4">正在同步组织台账…</div>;
+
+  const deleteChannel = async (orgId: string, channelId: string, channelName: string) => {
+    if (busy) return;
+    if (!window.confirm(`确认删除频道「${channelName}」？此操作会归档频道，成员将不再看到它。`)) return;
+    setBusy(`delete:${channelId}`);
+    setError(null);
+    try {
+      await beltApi(`/belt/organizations/${orgId}/channels/${channelId}`, { method: 'DELETE' });
+      setNotice(`频道「${channelName}」已删除。`);
+      window.dispatchEvent(new CustomEvent('belt:refresh'));
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '删除频道失败');
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
     <div className="belt-organizations mt-4">
@@ -204,6 +226,8 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
             <div className="belt-row-meta mt-2">
               <span>{org.memberCount} members</span>
               <span>{org.status}</span>
+              <span>{org.isPublic === false ? 'HIDDEN / 不公开' : 'LISTED / 发现可见'}</span>
+              <span>{org.joinType === 'open' ? 'OPEN / 直接加入' : org.joinType === 'invite' ? 'INVITE / 仅邀请' : 'APPLY / 审批加入'}</span>
               <span>{org.channels?.length ?? 0} channels</span>
             </div>
 
@@ -233,12 +257,26 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
                 {org.channels.map((channel) => (
                   <li key={channel.id} className="belt-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
                     <div>
-                      <div className="belt-row-title"># {channel.name}</div>
+                      <div className="belt-row-title">
+                        {channel.visibility === 'private' ? '🔒' : '#'} {channel.name}
+                      </div>
                       <div className="belt-row-meta">{channel.topic ?? 'PRIVATE CHANNEL'} · {channel.memberCount} members</div>
                     </div>
-                    <Link className="belt-header-link" href={`/belt/channel?channelId=${channel.id}`}>
-                      进入 →
-                    </Link>
+                    <div className="belt-row-side">
+                      <Link className="belt-header-link" href={`/belt/channel?channelId=${channel.id}`}>
+                        进入 →
+                      </Link>
+                      {isAdmin ? (
+                        <button
+                          type="button"
+                          className="belt-danger-link"
+                          disabled={Boolean(busy)}
+                          onClick={() => void deleteChannel(org.id, channel.id, channel.name)}
+                        >
+                          {busy === `delete:${channel.id}` ? '删除中…' : '删除'}
+                        </button>
+                      ) : null}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -312,6 +350,23 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
               <label className="belt-field">
                 <span>简介</span>
                 <input className="belt-input" value={summary} onChange={(event) => setSummary(event.target.value)} maxLength={400} placeholder="组织简介" aria-label="组织简介" />
+              </label>
+            </div>
+            <div className="belt-form-row">
+              <label className="belt-field">
+                <span>公开性</span>
+                <select className="belt-input" value={orgPublic ? 'public' : 'private'} onChange={(event) => setOrgPublic(event.target.value === 'public')}>
+                  <option value="public">公开 · 出现在发现列表</option>
+                  <option value="private">不公开 · 仅管理员拉人</option>
+                </select>
+              </label>
+              <label className="belt-field">
+                <span>加入方式</span>
+                <select className="belt-input" value={orgJoinType} onChange={(event) => setOrgJoinType(event.target.value as 'open' | 'apply' | 'invite')}>
+                  <option value="open">开放 · 直接加入</option>
+                  <option value="apply">审批 · 申请加入</option>
+                  <option value="invite">邀请 · 仅限邀请</option>
+                </select>
               </label>
             </div>
             <p className="belt-hint">当前身份 @{user.handle} · 申请通过后自动创建「[组织名] 议事厅」私有频道。</p>

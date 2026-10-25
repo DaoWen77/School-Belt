@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
 import { OrganizationsService } from './organizations.service';
 import {
   createOrgChannelSchema,
@@ -113,6 +113,15 @@ export class BeltOrganizationsController {
     @ZBody(createOrgChannelSchema) dto: CreateOrgChannelDto,
   ) {
     return { channel: await this.organizations.createChannel(user, uuid(id), dto) };
+  }
+
+  @Delete(':id/channels/:channelId')
+  async archiveChannel(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Param('channelId') channelId: string,
+  ) {
+    return this.organizations.archiveChannel(user, uuid(id), uuid(channelId));
   }
 
   private async assertMine(user: AuthUser, organizationId: string): Promise<void> {

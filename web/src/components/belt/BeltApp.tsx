@@ -16,6 +16,7 @@ import { BeltOrganizationsView } from './BeltOrganizationsView';
 import { BeltDailyView } from './BeltDailyView';
 import { BeltSidebar } from './BeltSidebar';
 import { BeltInbox } from './BeltInbox';
+import { BeltMobileTabs } from './BeltMobileTabs';
 
 export type BeltView =
   | 'channel'
@@ -58,6 +59,7 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
   const router = useRouter();
   const [user, setUser] = useState<BeltUser | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [mobileNav, setMobileNav] = useState(false);
   const [booting, setBooting] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [clock, setClock] = useState(() => clockOf(new Date()));
@@ -147,6 +149,7 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
     <div className="belt-root">
       <div className="belt-shell">
         <header className="belt-header">
+          <button type="button" className="belt-mobile-menu" aria-label="打开导航" onClick={() => setMobileNav(true)}>≡</button>
           <Link href="/belt/channel" className="belt-wordmark" aria-label="文明环带首页">
             <strong>CIVILIZATION BELT</strong>
             <small>文明环带 / 外环中继 07</small>
@@ -172,12 +175,17 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
 
         <div className="belt-shell-body">
           <BeltSidebar
+            mobileOpen={mobileNav}
             user={user}
             activeView={view}
             activeChannelId={typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('channelId') : null}
             activeConversationId={chatId ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('conversationId') : null)}
             refreshKey={refreshKey}
           />
+
+          {mobileNav ? (
+            <button type="button" className="belt-mobile-backdrop" aria-label="关闭导航" onClick={() => setMobileNav(false)} />
+          ) : null}
 
           <main className="belt-main" key={view}>
             <div className="belt-main-inner motion-view">
@@ -217,6 +225,7 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
             </div>
           </main>
         </div>
+        <BeltMobileTabs activeView={view} />
       </div>
     </div>
   );
