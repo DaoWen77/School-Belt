@@ -259,6 +259,14 @@ export class ChannelsService {
       where: { id: channelId, kind: 'channel', archivedAt: null },
     });
     if (!channel) throw new AppError(ErrorCode.CHANNEL_NOT_FOUND);
+    if (channel.organizationId) {
+      const member = await this.prisma.organizationMember.findUnique({
+        where: { organizationId_userId: { organizationId: channel.organizationId, userId: user.id } },
+      });
+      if (!member || member.status !== 'active' || (member.role !== 'owner' && member.role !== 'admin')) {
+        throw new AppError(ErrorCode.FORBIDDEN, '仅组织 Owner/管理员可归档该私有频道');
+      }
+    }
     await this.prisma.channel.update({
       where: { id: channel.id },
       data: { archivedAt: new Date() },

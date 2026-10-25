@@ -11,6 +11,7 @@ import type { AuthUser } from '../common/types/context';
 import type {
   CreateOrganizationDto,
   CreateOrgChannelDto,
+  InviteOrganizationMemberDto,
   JoinOrganizationDto,
   ReviewMemberDto,
   ReviewOrganizationDto,
@@ -311,6 +312,59 @@ export class OrganizationsService {
       meta: { name: org.name },
     });
     return this.get(user, org.id);
+  }
+
+  async invite(
+    user: AuthUser,
+    organizationId: string,
+    dto: InviteOrganizationMemberDto,
+  ): Promise<OrganizationView> {
+    await this.assertOrgAdmin(user, organizationId);
+    const org = await this.orgOrThrow(organizationId);
+    if (org.status !== 'active') {
+      throw new AppError(ErrorCode.ORGANIZATION_CONFLICT, '组织不在册，不能邀请成员');
+    }
+    const handle = dto.handle.replace(/^@/, '').trim();
+    const target = await this.prisma.user.findUnique({ where: { handle } });
+    if (!target) throw new AppError(ErrorCode.ORGANIZATION_CONFLICT, '目标用户不存在');
+    if (target.id === user.id) throw new AppError(ErrorCode.ORGANIZATION_CONFLICT, '不能邀请自己');
+    const existing = await this.prisma.organizationMember.findUnique({
+      where: { organizationId_userId: { organizationId, userId: target.id } },
+    });
+    if (existing?.status === 'active' || existing?.status === 'pending' || existing?.status === 'invited') {
+      throw new AppError(ErrorCode.ORGANIZATION_CONFLICT, '该用户已在组织中或已有待处理邀请');
+    }
+    await this.prisma.organizationMember.upsert({
+      where: { organizationId_userId: { organizationId, userId: target.id } },
+      create: {
+        organizationId,
+        userId: target.id,
+        role: 'member',
+        status: 'invited',
+        requestNote: dto.note ?? null,
+        invitedBy: user.id,
+        requestedAt: new Date(),
+      },
+      update: {
+        role: 'member',
+        status: 'invited',
+        requestNote: dto.note ?? null,
+        invitedBy: user.id,
+        requestedAt: new Date(),
+        reviewedAt: null,
+        reviewedBy: null,
+        joinedAt: null,
+        leftAt: null,
+      },
+    });
+    await this.audit.record({
+      actorId: user.id,
+      action: AuditAction.ORG_MEMBER_INVITE,
+      targetKind: 'organization',
+      targetId: organizationId,
+      meta: { userId: target.id, handle: target.handle },
+    });
+    return this.get(user, organizationId);
   }
 
   async join(user: AuthUser, organizationId: string, dto: JoinOrganizationDto): Promise<OrganizationView> {

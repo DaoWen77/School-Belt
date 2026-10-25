@@ -10,12 +10,14 @@ import {
 import { OrganizationsService } from './organizations.service';
 import {
   createOrganizationSchema,
+  inviteOrganizationMemberSchema,
   createOrgChannelSchema,
   joinOrganizationSchema,
   reviewMemberSchema,
   reviewOrganizationSchema,
   transferOrganizationSchema,
   type CreateOrganizationDto,
+  type InviteOrganizationMemberDto,
   type CreateOrgChannelDto,
   type JoinOrganizationDto,
   type ReviewMemberDto,
@@ -122,6 +124,16 @@ export class OrganizationsController {
   @Get(':id/channels')
   async channels(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.organizations.listChannels(user, uuid(id));
+  }
+
+  @Post(':id/invite')
+  @HttpCode(200)
+  async inviteMember(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @ZBody(inviteOrganizationMemberSchema) dto: InviteOrganizationMemberDto,
+  ) {
+    return { organization: await this.organizations.invite(user, uuid(id), dto) };
   }
 
   @Post(':id/channels')

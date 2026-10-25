@@ -27,6 +27,7 @@ export const AuditAction = {
   ORG_REVIEW: 'organization.review',
   ORG_JOIN_REQUEST: 'organization.join.request',
   ORG_JOIN_REVIEW: 'organization.join.review',
+  ORG_MEMBER_INVITE: 'organization.member.invite',
   ORG_LEAVE: 'organization.leave',
   ORG_TRANSFER: 'organization.transfer',
   ORG_DISSOLVE: 'organization.dissolve',

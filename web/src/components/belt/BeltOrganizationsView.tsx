@@ -63,6 +63,7 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
   const [orgJoinType, setOrgJoinType] = useState<'open' | 'apply' | 'invite'>('apply');
   const [channelName, setChannelName] = useState<Record<string, string>>({});
   const [channelTopic, setChannelTopic] = useState<Record<string, string>>({});
+  const [inviteHandle, setInviteHandle] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     try {
@@ -146,6 +147,42 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
 
   if (loading) return <div className="belt-panel belt-empty mt-4">正在同步组织台账…</div>;
 
+  const inviteMember = async (orgId: string) => {
+    const handle = inviteHandle[orgId]?.replace(/^@/, '').trim();
+    if (!handle || busy) return;
+    setBusy(`invite:${orgId}`);
+    setError(null);
+    setNotice(null);
+    try {
+      await beltApi(`/belt/organizations/${orgId}/invite`, {
+        method: 'POST',
+        body: JSON.stringify({ handle }),
+      });
+      setInviteHandle((previous) => ({ ...previous, [orgId]: '' }));
+      setNotice(`已向 @${handle} 发出组织邀请。`);
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '邀请失败');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const acceptInvite = async (orgId: string) => {
+    if (busy) return;
+    setBusy(`join:${orgId}`);
+    setError(null);
+    try {
+      await beltApi(`/belt/organizations/${orgId}/join`, { method: 'POST', body: JSON.stringify({}) });
+      setNotice('已接受组织邀请。');
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '接受邀请失败');
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const deleteChannel = async (orgId: string, channelId: string, channelName: string) => {
     if (busy) return;
     if (!window.confirm(`确认删除频道「${channelName}」？此操作会归档频道，成员将不再看到它。`)) return;
@@ -191,7 +228,14 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
             <span className="belt-stamp">JOIN PENDING</span>
           </div>
           <p className="belt-row-title">{data.pendingJoin.name}</p>
-          <p className="belt-hint mt-1">组织管理员审批后会加入频道。</p>
+          <p className="belt-hint mt-1">
+            {data.pendingJoin.myStatus === 'invited' ? '你收到了组织邀请，接受后即可加入频道。' : '组织管理员审批后会加入频道。'}
+          </p>
+          {data.pendingJoin.myStatus === 'invited' ? (
+            <button type="button" className="belt-button is-signal mt-2" disabled={Boolean(busy)} onClick={() => void acceptInvite(data.pendingJoin!.id)}>
+              {busy === `join:${data.pendingJoin.id}` ? '加入中…' : '接受邀请'}
+            </button>
+          ) : null}
         </section>
       ) : null}
 
@@ -286,6 +330,26 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
 
             {isAdmin ? (
               <div className="belt-org-manage">
+                <div className="belt-org-manage-block">
+                  <p className="belt-page-kicker">INVITE MEMBER / 邀请成员</p>
+                  <div className="belt-form-row">
+                    <input
+                      className="belt-input"
+                      value={inviteHandle[org.id] ?? ''}
+                      onChange={(event) => setInviteHandle((previous) => ({ ...previous, [org.id]: event.target.value }))}
+                      placeholder="@handle"
+                      aria-label="邀请成员 handle"
+                    />
+                    <button
+                      type="button"
+                      className="belt-button is-signal"
+                      disabled={Boolean(busy) || !(inviteHandle[org.id] ?? '').trim()}
+                      onClick={() => void inviteMember(org.id)}
+                    >
+                      {busy === `invite:${org.id}` ? '邀请中…' : '发出邀请'}
+                    </button>
+                  </div>
+                </div>
                 <div className="belt-org-manage-block">
                   <p className="belt-page-kicker">JOIN REQUESTS / 加入审批</p>
                   {org.pendingRequests?.length ? (

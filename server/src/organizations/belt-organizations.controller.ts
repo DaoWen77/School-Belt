@@ -3,11 +3,13 @@ import { OrganizationsService } from './organizations.service';
 import {
   createOrgChannelSchema,
   createOrganizationSchema,
+  inviteOrganizationMemberSchema,
   joinOrganizationSchema,
   reviewMemberSchema,
   reviewOrganizationSchema,
   type CreateOrgChannelDto,
   type CreateOrganizationDto,
+  type InviteOrganizationMemberDto,
   type JoinOrganizationDto,
   type ReviewMemberDto,
   type ReviewOrganizationDto,
@@ -103,6 +105,16 @@ export class BeltOrganizationsController {
   @Get(':id/channels')
   async channels(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.organizations.listChannels(user, uuid(id));
+  }
+
+  @Post(':id/invite')
+  @HttpCode(200)
+  async inviteMember(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @ZBody(inviteOrganizationMemberSchema) dto: InviteOrganizationMemberDto,
+  ) {
+    return { organization: await this.organizations.invite(user, uuid(id), dto) };
   }
 
   @Post(':id/channels')

@@ -55,3 +55,9 @@ export const transferOrganizationSchema = z.object({
   userId: z.string().uuid(),
 });
 export type TransferOrganizationDto = z.infer<typeof transferOrganizationSchema>;
+
+export const inviteOrganizationMemberSchema = z.object({
+  handle: z.string().trim().min(1).max(64),
+  note: z.string().trim().max(200).optional(),
+});
+export type InviteOrganizationMemberDto = z.infer<typeof inviteOrganizationMemberSchema>;
