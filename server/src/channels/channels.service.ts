@@ -255,8 +255,12 @@ export class ChannelsService {
   /** DELETE /channels/:id：软归档（owner/admin） */
   async archive(user: AuthUser, channelId: string): Promise<{ id: string; archivedAt: string }> {
     assertCheck(canCreateChannel(toViewer(user)));
-    const channel = await this.prisma.channel.update({
-      where: { id: channelId },
+    const channel = await this.prisma.channel.findFirst({
+      where: { id: channelId, kind: 'channel', archivedAt: null },
+    });
+    if (!channel) throw new AppError(ErrorCode.CHANNEL_NOT_FOUND);
+    await this.prisma.channel.update({
+      where: { id: channel.id },
       data: { archivedAt: new Date() },
     });
     this.realtime.broadcast('channel:updated', {

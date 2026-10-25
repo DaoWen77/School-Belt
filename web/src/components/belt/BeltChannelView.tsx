@@ -10,6 +10,7 @@ import { IdentityBadges } from '@/components/im/IdentityBadges';
 import { BeltAvatar } from './BeltAvatar';
 import { BeltLightbox } from './BeltLightbox';
 import { BeltRTCInviteModal, type RtcInviteMember } from './BeltRTCInviteModal';
+import { notifyRtcDisabled } from '@/lib/rtcDisabled';
 
 function clockOf(iso: string): string {
   const date = new Date(iso);
@@ -248,27 +249,8 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
 
   const openInvite = async (mode: 'audio' | 'video') => {
     if (!channel) return;
-    setInvite({ open: true, mode, members: [], selected: [], loading: true });
-    try {
-      const data = await beltApi<{ members: RtcInviteMember[] }>(`/belt/channels/${channel.id}/members`);
-      const directMembers = data.members ?? [];
-      const byId = new Map<string, RtcInviteMember>(directMembers.map((member) => [member.userId, member]));
-      if (byId.size < 2) {
-        const history = await beltApi<{ messages: BeltMessage[] }>(`/belt/channels/${channel.id}/messages?limit=50`);
-        for (const message of history.messages ?? []) {
-          if (message.senderId === user.id || !message.sender) continue;
-          byId.set(message.senderId, {
-            userId: message.senderId,
-            handle: message.sender.handle ?? message.senderId.slice(0, 8),
-            displayName: message.sender.displayName ?? '成员',
-            avatarFileId: message.sender.avatarFileId ?? null,
-          });
-        }
-      }
-      setInvite((current) => ({ ...current, members: [...byId.values()], loading: false }));
-    } catch {
-      setInvite((current) => ({ ...current, members: [], loading: false }));
-    }
+    notifyRtcDisabled();
+    return;
   };
 
   const startCall = async () => {
@@ -398,7 +380,7 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
                       return <p className="belt-message-body">📡 极光通讯邀请已发送给指定成员</p>;
                     }
                     return (
-                      <a className="belt-call-card" href={`/belt/rtc?callId=${callId}&mode=${mode || 'audio'}`}>
+                      <a className="belt-call-card" href={`/belt/rtc?callId=${callId}&mode=${mode || 'audio'}`} onClick={(event) => { event.preventDefault(); notifyRtcDisabled(); }}>
                         <span>📡 AURORA CALL · 极光通讯</span>
                         <strong>{message.sender.displayName} 邀请你加入通讯</strong>
                         <em>点击加入 →</em>
@@ -541,14 +523,7 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
         <button
           type="button"
           className="belt-incoming-call"
-          onClick={() => {
-            if (channel) {
-              sessionStorage.setItem('belt.rtc.roster', JSON.stringify([
-                { id: user.id, name: user.displayName, initials: user.displayName.slice(0, 2), role: 'INVITEE', avatarFileId: user.avatarFileId ?? null, status: 'connected', self: true },
-              ]));
-            }
-            router.push(`/belt/rtc?callId=${incoming.callId}&mode=${incoming.mode}`);
-          }}
+          onClick={() => notifyRtcDisabled()}
         >
           <b>来电 · {incoming.caller} 邀请你加入极光通讯</b>
           <span>点击接通</span>

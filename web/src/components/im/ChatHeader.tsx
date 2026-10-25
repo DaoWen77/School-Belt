@@ -9,6 +9,7 @@ import { InfoIcon, LogoutIcon, MenuIcon, SearchIcon, SettingsIcon } from './icon
 import { Avatar } from './Avatar';
 import { IdentityBadges } from './IdentityBadges';
 import { api } from '@/lib/api';
+import { notifyRtcDisabled } from '@/lib/rtcDisabled';
 
 const CONN_TEXT: Record<ConnState, string> = {
   idle: '未连接',
@@ -209,7 +210,7 @@ export function ChatHeader({
 
       <button
         type="button"
-        onClick={() => router.push('/rtc?mode=audio')}
+        onClick={() => notifyRtcDisabled()}
         className="hidden items-center gap-1 border border-chrome-fg/25 px-2 py-1 text-[11px] font-semibold text-chrome-fg/85 hover:border-accent hover:text-accent sm:flex"
         aria-label="语音通话"
       >
@@ -217,7 +218,7 @@ export function ChatHeader({
       </button>
       <button
         type="button"
-        onClick={() => router.push('/rtc?mode=video')}
+        onClick={() => notifyRtcDisabled()}
         className="hidden items-center gap-1 border border-chrome-fg/25 px-2 py-1 text-[11px] font-semibold text-chrome-fg/85 hover:border-accent hover:text-accent sm:flex"
         aria-label="视频通话"
       >

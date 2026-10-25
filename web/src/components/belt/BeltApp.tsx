@@ -103,6 +103,10 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
     };
   }, [path, router]);
 
+  useEffect(() => {
+    setMobileNav(false);
+  }, [view, chatId]);
+
   const meta = useMemo(() => PAGE_META[view], [view]);
 
   const logout = () => {

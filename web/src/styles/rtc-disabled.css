@@ -1,0 +1,31 @@
+
+.rtc-disabled-page {
+  display: grid;
+  min-height: 100dvh;
+  place-content: center;
+  gap: 0.7rem;
+  background: #070806;
+  color: #e8eae0;
+  padding: 2rem;
+  text-align: center;
+}
+
+.rtc-disabled-page h1 {
+  font-family: var(--ef-font-display, 'Saira', sans-serif);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+}
+
+.rtc-disabled-page p {
+  color: rgba(232, 234, 224, 0.55);
+  font-family: var(--ef-font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.rtc-disabled-page a {
+  justify-self: center;
+  margin-top: 0.8rem;
+  text-decoration: none;
+}

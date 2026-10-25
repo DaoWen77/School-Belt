@@ -1,5 +1,5 @@
-import { BeltRTCView } from '@/components/belt/BeltRTCView';
+import { RTCUnavailable } from '@/components/belt/RTCUnavailable';
 
 export default function InternalRtcPage() {
-  return <BeltRTCView />;
+  return <RTCUnavailable />;
 }

@@ -8,6 +8,7 @@ import type { BeltDmConversation } from '@/lib/beltTypes';
 import type { Message } from '@/lib/types';
 import { randomUuid } from '@/lib/uuid';
 import { BeltAvatar } from './BeltAvatar';
+import { notifyRtcDisabled } from '@/lib/rtcDisabled';
 
 function clockOf(iso: string): string {
   const date = new Date(iso);
@@ -177,26 +178,8 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
     }
   };
 
-  const startCall = async (mode: 'audio' | 'video') => {
-    if (!selected) return;
-    const callId = `dm-${selected.id.slice(0, 8)}-${Date.now().toString(36)}`;
-    const roster = [
-      { id: user.id, name: user.displayName, initials: user.displayName.slice(0, 2), role: 'CALLER', avatarFileId: user.avatarFileId ?? null, status: 'connected', self: true },
-      { id: selected.peer.id, name: selected.peer.displayName, initials: selected.peer.displayName.slice(0, 2), role: 'CALLEE', avatarFileId: selected.peer.avatarFileId ?? null, status: 'calling', self: false },
-    ];
-    sessionStorage.setItem('belt.rtc.roster', JSON.stringify(roster));
-    try {
-      await beltApi(`/belt/conversations/${selected.id}/messages`, {
-        method: 'POST',
-        body: JSON.stringify({
-          body: `AURORA_CALL:${callId}:${mode}:${encodeURIComponent(user.displayName)}:${selected.peer.id}`,
-          clientMsgId: randomUuid(),
-        }),
-      });
-    } catch {
-      /* 卡片失败不阻塞直呼 */
-    }
-    router.push(`/belt/rtc?callId=${callId}&mode=${mode}`);
+  const startCall = async (_mode?: 'audio' | 'video') => {
+    notifyRtcDisabled();
   };
 
   if (!conversationId) {
@@ -281,7 +264,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
                         (() => {
                           const [, callId, mode, caller] = message.body.split(':');
                           return (
-                            <a className="belt-call-card" href={`/belt/rtc?callId=${callId}&mode=${mode || 'audio'}`}>
+                            <a className="belt-call-card" href={`/belt/rtc?callId=${callId}&mode=${mode || 'audio'}`} onClick={(event) => { event.preventDefault(); notifyRtcDisabled(); }}>
                               <span>📡 AURORA CALL · 极光通讯</span>
                               <strong>{decodeURIComponent(caller || '对方')} 邀请你加入通讯</strong>
                               <em>点击加入 →</em>

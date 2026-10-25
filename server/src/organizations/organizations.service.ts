@@ -213,6 +213,14 @@ export class OrganizationsService {
     const mine = org.members.find((member) => member.user.id === user.id) ?? null;
     const isActive = mine?.status === 'active';
     const isAdmin = isActive && (mine.role === 'owner' || mine.role === 'admin');
+    const canViewHidden =
+      isActive ||
+      isAdmin ||
+      user.globalRole === 'owner' ||
+      (mine ? ['pending', 'invited', 'left', 'rejected', 'banned'].includes(mine.status) : false);
+    if (!org.isPublic && !canViewHidden) {
+      throw new AppError(ErrorCode.ORGANIZATION_NOT_FOUND);
+    }
     const canSeePrivate = isActive;
 
     const base: OrganizationView = {
@@ -314,16 +322,19 @@ export class OrganizationsService {
     const existing = await this.prisma.organizationMember.findUnique({
       where: { organizationId_userId: { organizationId, userId: user.id } },
     });
-    if (existing?.status === 'active' || existing?.status === 'pending' || existing?.status === 'invited') {
+    if (!org.isPublic && existing?.status !== 'invited') {
+      throw new AppError(ErrorCode.FORBIDDEN, '未公开组织仅限管理员邀请加入');
+    }
+    if (existing?.status === 'active' || existing?.status === 'pending') {
       throw new AppError(ErrorCode.ORGANIZATION_CONFLICT, '你已在该组织中或已有待处理申请');
     }
     if (existing?.status === 'banned') {
       throw new AppError(ErrorCode.FORBIDDEN, '你已被该组织封禁');
     }
-    if (org.joinType === 'invite') {
+    if (org.joinType === 'invite' && existing?.status !== 'invited') {
       throw new AppError(ErrorCode.FORBIDDEN, '该组织仅限邀请加入');
     }
-    const immediate = org.joinType === 'open';
+    const immediate = org.joinType === 'open' || existing?.status === 'invited';
     const now = new Date();
 
     await this.prisma.organizationMember.upsert({

@@ -30,6 +30,12 @@ export function installRtcNamespace(
   const rtc = root.of('/rtc') as Namespace;
 
   (rtc as unknown as MiddlewareHost).use(async (socket, next) => {
+    if (!rtcEnabled) {
+      const failure = new Error('RTC_DISABLED') as Error & { data?: Record<string, unknown> };
+      failure.data = { code: 'RTC_DISABLED', rtcSignalingEnabled: false };
+      next(failure);
+      return;
+    }
     try {
       const token = extractSocketToken(socket.handshake.auth);
       const user = await wsAuth.authenticate(token, { allowBelt: true });
