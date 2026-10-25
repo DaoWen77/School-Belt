@@ -331,12 +331,14 @@ export function BeltRTCView() {
           iceTimer = null;
         }
         setIceState('connected');
+        setLinkState('CONNECTED');
       } else if (state === 'failed') {
         if (iceTimer) {
           clearTimeout(iceTimer);
           iceTimer = null;
         }
         setIceState('failed');
+        setLinkState('FAILED');
       } else if (state === 'checking') {
         setIceState('checking');
         setLinkState('CONNECTING');
@@ -350,7 +352,7 @@ export function BeltRTCView() {
           }, 30_000);
         }
       } else if (state === 'disconnected') {
-        setIceState('checking');
+        setLinkState('DISCONNECTED');
       }
     };
 
