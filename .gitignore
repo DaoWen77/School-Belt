@@ -27,3 +27,7 @@ reports/tmp/
 nul
 .DS_Store
 Thumbs.db
+
+# 本地备份（bundle / tar），不入库
+backups/*.bundle
+backups/*.tar.gz
