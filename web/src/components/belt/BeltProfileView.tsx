@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { beltApi, beltFileUrl, uploadBeltAvatar, type BeltUser } from '@/lib/beltApi';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
@@ -97,54 +98,89 @@ export function BeltProfileView({ user }: { user: BeltUser }) {
       ) : null}
       {notice ? <p className="belt-panel belt-hint">{notice}</p> : null}
 
-      <section className="belt-panel">
-        <div className="belt-panel-head">
-          <h2>个人中心 / PROFILE</h2>
-          <span className="belt-stamp">EXTERNAL IDENTITY</span>
-        </div>
-
-        <div className="belt-profile-grid">
-          <div className="belt-profile-avatar">
+      <section className="belt-profile-card">
+        <div className="belt-profile-left">
+          <div className="belt-profile-portrait">
             {avatarUrl ? (
               <img src={avatarUrl} alt={displayName || user.handle} />
             ) : (
               <span className="belt-profile-placeholder">{displayName.slice(0, 1) || '?'}</span>
             )}
-            <button type="button" className="belt-button" disabled={uploading} onClick={() => fileRef.current?.click()}>
-              {uploading ? '上传中…' : '更换头像'}
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                event.target.value = '';
-                if (file) void upload(file);
-              }}
-            />
+          </div>
+          <button type="button" className="belt-button" disabled={uploading} onClick={() => fileRef.current?.click()}>
+            {uploading ? '上传中…' : '更换头像'}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = '';
+              if (file) void upload(file);
+            }}
+          />
+        </div>
+
+        <div className="belt-profile-right">
+          <p className="belt-page-kicker">OPERATOR DOSSIER / 干员档案</p>
+          <h1 className="belt-profile-name">{displayName || user.handle}</h1>
+          <div className="belt-profile-badges">
+            <IdentityBadges values={user.prefixes ?? []} scan />
+            <span className="belt-stamp">{user.accountOrigin === 'belt' ? 'EXTERNAL' : 'INTERNAL'}</span>
+            <span className="belt-handle">@{user.handle}</span>
           </div>
 
-          <div className="belt-profile-fields">
+          <label className="belt-field belt-profile-status">
+            <span>状态前缀 / STATUS</span>
+            <input className="belt-input" value={statusPrefix} maxLength={24} onChange={(event) => setStatusPrefix(event.target.value)} placeholder="例如：战术规划中" />
+          </label>
+
+          <div className="belt-profile-save">
             <label className="belt-field">
               <span>昵称 / DISPLAY NAME</span>
               <input className="belt-input" value={displayName} maxLength={40} onChange={(event) => setDisplayName(event.target.value)} />
             </label>
-            <label className="belt-field">
-              <span>状态前缀 / STATUS（可选）</span>
-              <input className="belt-input" value={statusPrefix} maxLength={24} onChange={(event) => setStatusPrefix(event.target.value)} placeholder="例如：战术规划中" />
-            </label>
-            <div className="belt-profile-id">
-              <span>@{user.handle}</span>
-              <span>{user.accountOrigin === 'belt' ? 'EXTERNAL' : 'INTERNAL'}</span>
-              <IdentityBadges values={user.prefixes ?? []} scan />
-            </div>
             <button type="button" className="belt-button is-signal signal-publish" disabled={busy || !displayName.trim()} onClick={() => void save()}>
               {busy ? '写入中…' : '保存资料'}
             </button>
           </div>
+
+          {stats ? (
+            <div className="belt-profile-hud">
+              <div><b>{stats.posts}</b><span>POSTS / 发帖</span></div>
+              <div><b>{stats.likesReceived}</b><span>LIKES / 认同</span></div>
+              <div><b>{stats.commentsReceived}</b><span>ECHOES / 回波</span></div>
+            </div>
+          ) : null}
         </div>
+      </section>
+
+      <section className="belt-profile-org">
+        <div className="belt-panel-head">
+          <h2>组织状态 / ORGANIZATION</h2>
+          <Link href="/belt/organizations" className="belt-hint">组织中心 →</Link>
+        </div>
+        {organizations.length === 0 ? (
+          <Link href="/belt/organizations" className="belt-profile-org-cta">
+            <span>+</span>
+            <b>申请建立组织</b>
+            <small>创建你的干员小队 · 私有频道 · 成员审批</small>
+          </Link>
+        ) : (
+          <div className="belt-profile-org-list">
+            {organizations.map((org) => (
+              <div key={org.id} className="belt-profile-org-chip">
+                <span className="belt-profile-org-sigil">{org.name.slice(0, 1)}</span>
+                <div>
+                  <b>{org.name}</b>
+                  <small>{org.myRole === 'owner' ? '组织 Owner' : org.myRole === 'admin' ? '管理员' : '成员'} · {org.status}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="belt-panel mt-3">
@@ -154,11 +190,6 @@ export function BeltProfileView({ user }: { user: BeltUser }) {
         </div>
         {stats ? (
           <>
-            <div className="belt-profile-stats">
-              <span><b>{stats.posts}</b> 发帖</span>
-              <span><b>{stats.likesReceived}</b> 认同</span>
-              <span><b>{stats.commentsReceived}</b> 回波</span>
-            </div>
             <ul className="belt-ledger">
               {stats.recent.map((row) => (
                 <li key={row.id} className="belt-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
@@ -173,31 +204,6 @@ export function BeltProfileView({ user }: { user: BeltUser }) {
           </>
         ) : (
           <p className="belt-hint">还没有活跃记录。</p>
-        )}
-      </section>
-
-      <section className="belt-panel mt-3">
-        <div className="belt-panel-head">
-          <h2>组织状态 / ORGANIZATIONS</h2>
-          <span className="belt-hint">{organizations.length}</span>
-        </div>
-        {organizations.length === 0 ? (
-          <div className="belt-empty">尚未加入组织。前往「组织中心」发起申请。</div>
-        ) : (
-          <ul className="belt-ledger">
-            {organizations.map((org) => (
-              <li key={org.id} className="belt-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
-                <div>
-                  <div className="belt-row-title">{org.name}</div>
-                  <div className="belt-row-meta">
-                    <span>{org.myRole === 'owner' ? '组织 Owner' : org.myRole === 'admin' ? '管理员' : '成员'}</span>
-                    <span>{org.status}</span>
-                  </div>
-                </div>
-                <span className="belt-stamp">ACTIVE</span>
-              </li>
-            ))}
-          </ul>
         )}
       </section>
     </div>

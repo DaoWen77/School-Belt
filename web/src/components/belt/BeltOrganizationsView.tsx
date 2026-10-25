@@ -52,6 +52,7 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [applyOpen, setApplyOpen] = useState(false);
 
   const [name, setName] = useState('');
   const [summary, setSummary] = useState('');
@@ -172,6 +173,25 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
         </section>
       ) : null}
 
+      <div className="belt-org-head">
+        <div>
+          <p className="belt-page-kicker">ORGANIZATION CENTER</p>
+          <h2>组织中心</h2>
+        </div>
+        {!data?.pendingApplication ? (
+          <button type="button" className="belt-button is-signal" onClick={() => setApplyOpen(true)}>
+            + 发起申请
+          </button>
+        ) : null}
+      </div>
+
+      <section className="belt-org-section">
+        <div className="belt-panel-head">
+          <h2>我的组织</h2>
+          <span className="belt-hint">{data?.organizations.length ?? 0}</span>
+        </div>
+      </section>
+
       {data?.organizations.map((org) => {
         const isAdmin = org.myRole === 'owner' || org.myRole === 'admin';
         return (
@@ -270,28 +290,39 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
         );
       })}
 
-      {!data?.pendingApplication ? (
-        <section className="belt-panel">
-          <div className="belt-panel-head">
-            <h2>发起组织申请 / APPLY</h2>
-            <span className="belt-stamp">OWNER REVIEW</span>
-          </div>
-          <p className="belt-hint mb-2">组织申请会进入全站 Owner 审批流。每个 Owner 只能拥有一个在册组织，但可以加入多个组织。</p>
-          <div className="belt-form-row">
-            <label className="belt-field">
-              <span>组织名</span>
-              <input className="belt-input" value={name} onChange={(event) => setName(event.target.value)} maxLength={24} placeholder="2–24 字" aria-label="组织名" />
-            </label>
-            <label className="belt-field">
-              <span>简介</span>
-              <input className="belt-input" value={summary} onChange={(event) => setSummary(event.target.value)} maxLength={400} placeholder="组织简介" aria-label="组织简介" />
-            </label>
-            <button type="button" className="belt-button is-signal signal-publish" disabled={Boolean(busy) || !name.trim() || !summary.trim()} onClick={() => void apply()}>
-              {busy === 'apply' ? '提交中…' : '提交申请'}
-            </button>
-          </div>
-          <p className="belt-hint mt-2">当前身份 @{user.handle} · 申请通过后自动创建「[组织名] 议事厅」私有频道。</p>
-        </section>
+      <section className="belt-org-section mt-3">
+        <div className="belt-panel-head">
+          <h2>发现组织</h2>
+          <span className="belt-hint">申请后可加入</span>
+        </div>
+        <p className="belt-hint">当前没有公开招新的组织。你也可以发起申请，建立自己的组织。</p>
+      </section>
+
+      {applyOpen ? (
+        <div className="belt-modal-backdrop" role="presentation" onClick={() => setApplyOpen(false)}>
+          <section className="belt-modal" role="dialog" aria-modal="true" aria-label="发起组织申请" onClick={(event) => event.stopPropagation()}>
+            <p className="belt-page-kicker">NEW ORGANIZATION / 发起申请</p>
+            <h2>建立你的组织</h2>
+            <p className="belt-hint">组织申请会进入全站 Owner 审批流。每个 Owner 只能拥有一个在册组织，但可以加入多个组织。</p>
+            <div className="belt-form-row">
+              <label className="belt-field">
+                <span>组织名</span>
+                <input className="belt-input" value={name} onChange={(event) => setName(event.target.value)} maxLength={24} placeholder="2–24 字" aria-label="组织名" />
+              </label>
+              <label className="belt-field">
+                <span>简介</span>
+                <input className="belt-input" value={summary} onChange={(event) => setSummary(event.target.value)} maxLength={400} placeholder="组织简介" aria-label="组织简介" />
+              </label>
+            </div>
+            <p className="belt-hint">当前身份 @{user.handle} · 申请通过后自动创建「[组织名] 议事厅」私有频道。</p>
+            <div className="belt-form-row">
+              <button type="button" className="belt-button is-signal signal-publish" disabled={Boolean(busy) || !name.trim() || !summary.trim()} onClick={() => void apply()}>
+                {busy === 'apply' ? '提交中…' : '提交申请'}
+              </button>
+              <button type="button" className="belt-button" onClick={() => setApplyOpen(false)}>取消</button>
+            </div>
+          </section>
+        </div>
       ) : null}
     </div>
   );

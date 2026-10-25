@@ -34,6 +34,8 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
   const [channels, setChannels] = useState<OrgChannel[]>([]);
   const [conversations, setConversations] = useState<BeltDmConversation[]>([]);
   const [friends, setFriends] = useState<BeltFriendView[]>([]);
+  const [incoming, setIncoming] = useState<BeltFriendView[]>([]);
+  const [requestsOpen, setRequestsOpen] = useState(false);
   const [open, setOpen] = useState({ channels: true, direct: true, system: true });
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
@@ -56,9 +58,10 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
       beltApi<{ channels: BeltChannel[] }>('/belt/channels').catch(() => ({ channels: [] })),
       beltApi<{ organizations: Array<{ id: string; name: string; channels?: BeltChannel[] }> }>('/belt/organizations/mine').catch(() => ({ organizations: [] })),
       beltApi<{ conversations: BeltDmConversation[] }>('/belt/conversations').catch(() => ({ conversations: [] })),
-      beltApi<{ friends: BeltFriendView[] }>('/belt/friendships').catch(() => ({ friends: [] })),
+      beltApi<{ friends: BeltFriendView[]; incoming?: BeltFriendView[] }>('/belt/friendships').catch(() => ({ friends: [], incoming: [] })),
     ]).then(([channelData, orgData, dmData, friendData]) => {
       if (cancelled) return;
+      setIncoming(friendData.incoming ?? []);
       const orgChannels: OrgChannel[] = [];
       for (const org of orgData.organizations ?? []) {
         for (const channel of org.channels ?? []) {
@@ -103,6 +106,23 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
       window.dispatchEvent(new CustomEvent('belt:refresh'));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '创建频道失败');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const answerRequest = async (friendshipId: string, action: 'accept' | 'reject') => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await beltApi(`/belt/friendships/${friendshipId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ action }),
+      });
+      setIncoming((previous) => previous.filter((row) => row.id !== friendshipId));
+      window.dispatchEvent(new CustomEvent('belt:refresh'));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '好友申请处理失败');
     } finally {
       setBusy(false);
     }
@@ -202,11 +222,21 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
           onClick={() => setOpen((value) => ({ ...value, direct: !value.direct }))}
         >
           <span>{open.direct ? '▾' : '▸'} 私聊链路</span>
-          <b>{conversations.length}</b>
+          <span className="belt-nav-head-actions">
+            <Link className="belt-nav-plus" href="/belt/direct" aria-label="好友与申请" onClick={(event) => event.stopPropagation()}>
+              +
+            </Link>
+            <b>{conversations.length}</b>
+          </span>
         </button>
         {open.direct ? (
           <div className="belt-nav-group-body">
-            {conversations.length === 0 ? <p className="belt-nav-empty">还没有私聊。先去好友申请。</p> : null}
+            {incoming.length > 0 ? (
+              <button type="button" className="belt-nav-pending" onClick={() => setRequestsOpen(true)}>
+                [!] 待处理申请 <b>{incoming.length}</b>
+              </button>
+            ) : null}
+            {conversations.length === 0 ? <p className="belt-nav-empty">还没有私聊。点右上角 + 发起好友申请。</p> : null}
             {conversations.map((conversation) => (
               <Link
                 key={conversation.id}
@@ -218,12 +248,33 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
                 <span className="truncate">{conversation.peer.displayName}</span>
               </Link>
             ))}
-            <Link className="belt-nav-add" href="/belt/direct">
-              ＋ 好友与申请 {friends.length > 0 ? `(${friends.length})` : ''}
-            </Link>
           </div>
         ) : null}
       </div>
+
+      {requestsOpen ? (
+        <div className="belt-nav-drawer-backdrop" role="presentation" onClick={() => setRequestsOpen(false)}>
+          <section className="belt-nav-drawer" role="dialog" aria-modal="true" aria-label="好友申请" onClick={(event) => event.stopPropagation()}>
+            <div className="belt-nav-drawer-head">
+              <b>待处理好友申请</b>
+              <button type="button" className="belt-button" onClick={() => setRequestsOpen(false)}>关闭</button>
+            </div>
+            {incoming.length === 0 ? <p className="belt-hint">暂无待处理申请。</p> : null}
+            {incoming.map((row) => (
+              <div key={row.id} className="belt-nav-drawer-row">
+                <div>
+                  <b>{row.peer.displayName}</b>
+                  <small>@{row.peer.handle}{row.requestNote ? ` · ${row.requestNote}` : ''}</small>
+                </div>
+                <span>
+                  <button type="button" className="belt-button is-signal" disabled={busy} onClick={() => void answerRequest(row.id, 'accept')}>同意</button>
+                  <button type="button" className="belt-button" disabled={busy} onClick={() => void answerRequest(row.id, 'reject')}>拒绝</button>
+                </span>
+              </div>
+            ))}
+          </section>
+        </div>
+      ) : null}
 
       <div className="belt-nav-group">
         <button

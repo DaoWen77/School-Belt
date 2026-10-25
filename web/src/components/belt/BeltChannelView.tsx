@@ -31,6 +31,8 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
   const [error, setError] = useState<string | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ src: string; kind: 'image' | 'video'; title: string } | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [hintOpen, setHintOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const bottom = useRef<HTMLDivElement | null>(null);
   const socket = useRef<ReturnType<typeof connectBeltSocket>>(null);
@@ -242,6 +244,9 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
           <span style={{ color: state === 'online' ? 'var(--ef-signal)' : 'var(--ef-ink-2)' }}>
             {state === 'online' ? 'LIVE' : state === 'connecting' ? 'LINKING' : 'OFFLINE'}
           </span>
+          <button type="button" className="belt-channel-info-btn" aria-label="频道详情" onClick={() => setInfoOpen(true)}>
+            ⓘ
+          </button>
         </span>
       </div>
 
@@ -253,12 +258,17 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
             这里还没有信号。发第一条，把频段点亮。
           </div>
         ) : null}
-        {messages.map((message) => {
+        {messages.map((message, index) => {
           const mine = message.senderId === user.id;
+          const previous = index > 0 ? messages[index - 1] : null;
+          const continuation =
+            Boolean(previous) &&
+            previous!.senderId === message.senderId &&
+            new Date(message.createdAt).getTime() - new Date(previous!.createdAt).getTime() < 5 * 60_000;
           return (
             <article
               key={message.id}
-              className={`belt-message${mine ? ' is-mine' : ''}`}
+              className={`belt-message${mine ? ' is-mine' : ''}${continuation ? ' is-continuation' : ''}`}
               onContextMenu={(event) => {
                 if (!mine) return;
                 event.preventDefault();
@@ -393,15 +403,38 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
             value={draft}
             maxLength={4000}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="向公共频段发射信号…"
+            placeholder="输入信号..."
             aria-label="环带频道消息"
           />
           <button type="submit" className="belt-button is-signal" disabled={sending || uploading || (!draft.trim() && attachments.length === 0)}>
             {sending ? '发射中…' : 'TRANSMIT'}
           </button>
         </form>
-        <p className="belt-hint mt-1">长按/右键自己的信号可撤回 · 支持图片与短视频附件</p>
+        <div className="belt-composer-hint mt-1">
+          <button type="button" aria-label="输入提示" onClick={() => setHintOpen((value) => !value)}>
+            ?
+          </button>
+          <span>输入提示</span>
+          {hintOpen ? <div className="belt-composer-hint-pop">长按 / 右键自己的消息可撤回 · 支持图片与短视频 · Enter 发送</div> : null}
+        </div>
       </div>
+      {infoOpen ? (
+        <div className="belt-drawer-backdrop" role="presentation" onClick={() => setInfoOpen(false)}>
+          <aside className="belt-drawer" role="dialog" aria-modal="true" aria-label="频道详情" onClick={(event) => event.stopPropagation()}>
+            <div className="belt-drawer-head">
+              <b>#{channel.name}</b>
+              <button type="button" className="belt-button" onClick={() => setInfoOpen(false)}>关闭</button>
+            </div>
+            <p className="belt-page-kicker">CHANNEL DETAILS</p>
+            <p className="belt-hint">{channel.topic ?? 'PUBLIC BAND'}</p>
+            <ul className="belt-ledger mt-2">
+              <li className="belt-row"><span>类型</span><b>{channel.visibility === 'private' ? '私有组织频道' : '公开频道'}</b></li>
+              <li className="belt-row"><span>消息数</span><b>{messages.length}</b></li>
+              <li className="belt-row"><span>链路</span><b>{state === 'online' ? 'LIVE' : 'OFFLINE'}</b></li>
+            </ul>
+          </aside>
+        </div>
+      ) : null}
       {preview ? (
         <BeltLightbox src={preview.src} kind={preview.kind} title={preview.title} onClose={() => setPreview(null)} />
       ) : null}

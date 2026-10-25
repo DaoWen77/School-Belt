@@ -175,11 +175,21 @@ export function BeltTelegraphView({ user }: { user: BeltUser }) {
                 {post.pinnedAt ? <span className="belt-stamp">PINNED</span> : null}
               </div>
 
-              {post.coverUrl ? (
-                <Link href={`/belt/posts/${post.id}`} className="belt-bento-cover">
-                  <img src={post.coverUrl} alt="" loading="lazy" />
-                </Link>
-              ) : null}
+              <Link href={`/belt/posts/${post.id}`} className="belt-bento-cover">
+                <img
+                  src={post.coverUrl ?? `https://picsum.photos/400/300?random=${encodeURIComponent(post.id.slice(0, 8))}`}
+                  alt=""
+                  loading="lazy"
+                  onError={(event) => {
+                    const img = event.currentTarget;
+                    if (!img.dataset.fallback) {
+                      img.dataset.fallback = '1';
+                      img.src = `https://picsum.photos/400/300?random=${encodeURIComponent(post.id.slice(0, 8))}`;
+                    }
+                  }}
+                />
+                <span className="belt-bento-cover-grid" aria-hidden="true" />
+              </Link>
               <Link href={`/belt/posts/${post.id}`} className="belt-bento-link">
                 <h2 className="belt-bento-title">{post.title || '未命名信号'}</h2>
                 <p className="belt-bento-deck">{post.body.replace(/\s+/g, ' ').slice(0, official ? 260 : 150)}</p>

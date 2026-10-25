@@ -3032,3 +3032,672 @@ button.belt-row[data-active='true'] .belt-row-deck {
     padding: 0.8rem;
   }
 }
+
+/* ==========================================================================
+   Sprint 7.4 · 全局阅读体验升级（字号 / 行高 / 对比度）
+   深色底 + 小字是阅读疲劳主因：正文 15-16px，辅助信息 ≥13px，等宽数字再大一号。
+   ========================================================================== */
+.belt-root,
+.belt-entry,
+.belt-denial {
+  --ef-ink-2: #b9c0ae;   /* 次要文字提亮：原来 #9aa093 对比不足 */
+  --ef-ink-3: #8d948a;
+  font-size: 16px;
+}
+
+.belt-root .belt-panel,
+.belt-root .belt-panel-head h2,
+.belt-root .belt-main,
+.belt-root .belt-page-head p,
+.belt-root .belt-button,
+.belt-root .belt-input,
+.belt-root .belt-textarea,
+.belt-root .belt-select,
+.belt-root .belt-rail-link,
+.belt-root .belt-rail-label,
+.belt-root .belt-page-kicker,
+.belt-root .belt-hint,
+.belt-root .belt-stamp,
+.belt-root .belt-row-title,
+.belt-root .belt-row-deck,
+.belt-root .belt-row-meta,
+.belt-root .belt-message-body,
+.belt-root .belt-message-author,
+.belt-root .belt-message time,
+.belt-root .belt-empty,
+.belt-root .belt-error,
+.belt-root .belt-ledger,
+.belt-root .belt-bento-title,
+.belt-root .belt-bento-deck,
+.belt-root .belt-bento-foot,
+.belt-root .belt-bento-meta,
+.belt-root .belt-channel-head,
+.belt-root .belt-daily-card,
+.belt-root .belt-direct-message,
+.belt-root .belt-profile-card,
+.belt-root .belt-row,
+.belt-root .belt-sheet-option,
+.belt-root .belt-sheet-row {
+  font-size: revert-layer;
+}
+
+/* 正文：消息 / 帖子 / 输入框 */
+.belt-root .belt-message-body,
+.belt-root .belt-article-body,
+.belt-root .belt-direct-message .belt-message-body,
+.belt-root .belt-row-deck,
+.belt-root .belt-bento-deck {
+  font-size: 15px !important;
+  line-height: 1.7 !important;
+  color: #e8e8e0;
+}
+
+.belt-root .belt-input,
+.belt-root .belt-textarea,
+.belt-root .belt-select {
+  font-size: 15px !important;
+  line-height: 1.55;
+  padding: 0.6rem 0.7rem;
+}
+
+.belt-root .belt-button {
+  font-size: 13px !important;
+  padding: 0.5rem 0.8rem;
+}
+
+/* 辅助信息：时间 / 来源 / 状态 / 元数据，统一 ≥13px */
+.belt-root .belt-hint,
+.belt-root .belt-row-meta,
+.belt-root .belt-bento-meta,
+.belt-root .belt-bento-foot,
+.belt-root .belt-message-author span,
+.belt-root .belt-message time,
+.belt-root .belt-page-kicker,
+.belt-root .belt-stamp,
+.belt-root .belt-rail-meta,
+.belt-root .belt-rail-label,
+.belt-root .belt-sheet-option small,
+.belt-root .belt-sheet-row small,
+.belt-root .belt-sheet-sub {
+  font-size: 13px !important;
+  line-height: 1.55;
+}
+
+/* 时间戳：等宽字体再大一号 + 提亮 */
+.belt-root .belt-message time,
+.belt-root .belt-direct-message time,
+.belt-root .belt-message-author > span:last-child {
+  font-family: var(--ef-font-mono);
+  font-size: 13px !important;
+  color: #c3cab6 !important;
+  letter-spacing: 0.02em;
+}
+
+/* 标题 / 昵称 */
+.belt-root .belt-row-title,
+.belt-root .belt-panel-head h2 {
+  font-size: 15px !important;
+  line-height: 1.4;
+}
+
+.belt-root .belt-bento-title {
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem) !important;
+  line-height: 1.2;
+}
+
+.belt-root .belt-bento-deck {
+  max-height: 5.1em;
+  -webkit-line-clamp: 3;
+}
+
+/* 侧边栏导航 */
+.belt-root .belt-rail-link {
+  font-size: 14px !important;
+  padding: 0.45rem 0.55rem;
+}
+
+.belt-root .belt-nav-group-head {
+  font-size: 13px !important;
+}
+
+/* 空态 / 错误 */
+.belt-root .belt-empty,
+.belt-root .belt-error {
+  font-size: 14px !important;
+  line-height: 1.7;
+}
+
+/* 新闻分享卡：内边距 + 悬停高亮 */
+.belt-root .belt-share-card {
+  padding: 0.7rem 0.8rem;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.belt-root .belt-share-card:hover,
+.belt-root .belt-share-card:focus-visible {
+  border-color: var(--ef-signal);
+  border-left-color: var(--ef-signal);
+  box-shadow: 0 0 0 1px var(--ef-signal), 0 0 18px rgba(255, 250, 0, 0.18);
+}
+
+.belt-root .belt-share-card:hover em,
+.belt-root .belt-share-card:focus-visible em {
+  background: var(--ef-signal);
+  color: #0d100b;
+  padding: 0.05rem 0.3rem;
+}
+
+/* 连续消息合并（组内后续消息隐藏头像/昵称、缩紧间距） */
+.belt-root .belt-message.is-continuation {
+  padding-top: 0.1rem;
+  padding-bottom: 0.1rem;
+}
+
+.belt-root .belt-message.is-continuation .belt-avatar,
+.belt-root .belt-message.is-continuation time,
+.belt-root .belt-message.is-continuation .belt-message-author {
+  visibility: hidden;
+  height: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+.belt-root .belt-message.is-continuation {
+  grid-template-columns: 2rem 3.2rem minmax(0, 1fr);
+  row-gap: 0;
+}
+
+/* 输入框提示气泡 */
+.belt-composer-hint {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--ef-ink-2);
+  font-size: 13px;
+}
+
+.belt-composer-hint > button {
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 1px solid var(--ef-rule);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ef-ink-2);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.belt-composer-hint > button:hover,
+.belt-composer-hint > button:focus-visible {
+  border-color: var(--ef-signal);
+  color: var(--ef-signal);
+}
+
+.belt-composer-hint-pop {
+  position: absolute;
+  z-index: 30;
+  bottom: calc(100% + 0.35rem);
+  left: 0;
+  width: max-content;
+  max-width: 18rem;
+  border: 1px solid var(--ef-signal);
+  background: var(--ef-panel);
+  color: var(--ef-ink);
+  padding: 0.4rem 0.55rem;
+  font-size: 13px;
+  line-height: 1.55;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* 频道信息抽屉 */
+.belt-drawer-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.belt-drawer {
+  width: min(24rem, 92vw);
+  height: 100%;
+  overflow-y: auto;
+  border-left: 1px solid var(--ef-signal);
+  background: var(--ef-panel);
+  padding: 1rem;
+}
+
+.belt-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ef-rule);
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.7rem;
+}
+
+.belt-drawer-head b {
+  font-family: var(--ef-font-display);
+  font-size: 1.1rem;
+}
+
+.belt-channel-info-btn {
+  display: inline-grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  place-items: center;
+  border: 1px solid var(--ef-rule);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ef-ink-2);
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 0.35rem;
+}
+
+.belt-channel-info-btn:hover {
+  border-color: var(--ef-signal);
+  color: var(--ef-signal);
+}
+
+/* 侧栏：极简 + / 待处理申请 / 抽屉 */
+.belt-nav-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.belt-nav-plus {
+  display: inline-grid;
+  width: 1.1rem;
+  height: 1.1rem;
+  place-items: center;
+  border: 1px solid var(--ef-rule);
+  color: var(--ef-ink-2);
+  font-size: 13px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.belt-nav-plus:hover {
+  border-color: var(--ef-signal);
+  color: var(--ef-signal);
+}
+
+.belt-nav-pending {
+  width: 100%;
+  border: 1px solid var(--ef-danger);
+  background: color-mix(in srgb, var(--ef-danger) 14%, transparent);
+  color: #ff8a80;
+  cursor: pointer;
+  font-family: var(--ef-font-mono);
+  font-size: 13px;
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+}
+
+.belt-nav-pending b {
+  color: #fff;
+  margin-left: 0.3rem;
+}
+
+.belt-nav-drawer-backdrop {
+  position: fixed;
+  z-index: 140;
+  inset: 0;
+  display: flex;
+  justify-content: flex-start;
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.belt-nav-drawer {
+  width: min(23rem, 92vw);
+  height: 100%;
+  overflow-y: auto;
+  border-right: 1px solid var(--ef-signal);
+  background: var(--ef-panel);
+  padding: 1rem;
+}
+
+.belt-nav-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ef-rule);
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.6rem;
+  font-size: 15px;
+}
+
+.belt-nav-drawer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--ef-rule);
+  padding: 0.6rem 0;
+}
+
+.belt-nav-drawer-row b,
+.belt-nav-drawer-row small {
+  display: block;
+  font-size: 14px;
+}
+
+.belt-nav-drawer-row small {
+  color: var(--ef-ink-2);
+  font-size: 13px;
+}
+
+/* 个人中心：左右分栏干员档案 */
+.belt-profile-card {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  gap: 1.4rem;
+  border: 1px solid var(--ef-rule);
+  background:
+    linear-gradient(135deg, rgba(255, 250, 0, 0.06), transparent 42%),
+    var(--ef-panel);
+  padding: 1.2rem;
+}
+
+.belt-profile-left {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+}
+
+.belt-profile-portrait {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid var(--ef-signal);
+  box-shadow: 0 0 0 1px #0d100b, 0 0 22px rgba(255, 250, 0, 0.35);
+  background: var(--ef-chip);
+}
+
+.belt-profile-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.belt-profile-portrait .belt-profile-placeholder {
+  color: var(--ef-signal);
+  font-family: var(--ef-font-display);
+  font-size: 4rem;
+  font-weight: 900;
+}
+
+.belt-profile-right {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.belt-profile-name {
+  margin: 0;
+  font-family: var(--ef-font-display);
+  font-size: clamp(1.9rem, 4.5vw, 3rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.belt-profile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.belt-handle {
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 14px;
+}
+
+.belt-profile-status {
+  max-width: 22rem;
+}
+
+.belt-profile-save {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  max-width: 30rem;
+}
+
+.belt-profile-save .belt-field {
+  flex: 1;
+}
+
+.belt-profile-hud {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.belt-profile-hud > div {
+  border: 1px solid var(--ef-rule);
+  border-left: 3px solid var(--ef-signal);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.5rem 0.6rem;
+}
+
+.belt-profile-hud b {
+  display: block;
+  font-family: var(--ef-font-mono);
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ef-signal);
+}
+
+.belt-profile-hud span {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.belt-profile-org {
+  margin-top: 0.8rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  padding: 0.9rem;
+}
+
+.belt-profile-org-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px dashed var(--ef-signal);
+  background: color-mix(in srgb, var(--ef-signal) 7%, transparent);
+  color: var(--ef-ink);
+  padding: 0.8rem;
+  text-decoration: none;
+  transition: background 120ms ease;
+}
+
+.belt-profile-org-cta:hover {
+  background: color-mix(in srgb, var(--ef-signal) 14%, transparent);
+}
+
+.belt-profile-org-cta > span {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  border: 1px solid var(--ef-signal);
+  color: var(--ef-signal);
+  font-size: 1.4rem;
+}
+
+.belt-profile-org-cta b {
+  display: block;
+  font-family: var(--ef-font-display);
+  font-size: 1.1rem;
+}
+
+.belt-profile-org-cta small {
+  color: var(--ef-ink-2);
+  font-size: 13px;
+}
+
+.belt-profile-org-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.belt-profile-org-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--ef-rule);
+  background: rgba(0, 0, 0, 0.24);
+  padding: 0.45rem 0.6rem;
+}
+
+.belt-profile-org-sigil {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid var(--ef-signal);
+  color: var(--ef-signal);
+  font-family: var(--ef-font-display);
+  font-weight: 900;
+}
+
+.belt-profile-org-chip b,
+.belt-profile-org-chip small {
+  display: block;
+  font-size: 14px;
+}
+
+.belt-profile-org-chip small {
+  color: var(--ef-ink-2);
+  font-size: 12px;
+}
+
+.belt-org-apply-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.8rem;
+  border: 1px dashed var(--ef-signal);
+  background: transparent;
+  color: var(--ef-signal);
+  cursor: pointer;
+  font-family: var(--ef-font-mono);
+  font-size: 14px;
+  padding: 0.7rem;
+}
+
+.belt-org-apply-btn:hover {
+  background: color-mix(in srgb, var(--ef-signal) 10%, transparent);
+}
+
+@media (max-width: 720px) {
+  .belt-profile-card {
+    grid-template-columns: 1fr;
+  }
+
+  .belt-profile-left {
+    align-items: flex-start;
+    max-width: 10rem;
+  }
+
+  .belt-profile-hud b {
+    font-size: 1.3rem;
+  }
+
+  .belt-profile-save {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* 新闻塔封面：外链图 + 无图兜底 + 赛博网格叠层 */
+.belt-bento-cover {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--ef-rule);
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(255, 250, 0, 0.08) 1px, transparent 1px) 0 0 / 100% 12px,
+    linear-gradient(90deg, rgba(0, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 12px 100%,
+    #0b0e0a;
+}
+
+.belt-bento-cover img {
+  display: block;
+  width: 100%;
+  height: 9rem;
+  object-fit: cover;
+  filter: saturate(0.85) contrast(1.08);
+  opacity: 0.92;
+}
+
+.belt-bento-card.is-feature .belt-bento-cover img {
+  height: 13rem;
+}
+
+.belt-bento-cover-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(0, 0, 0, 0.16) 3px 4px);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+.belt-bento-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 250, 0, 0.18);
+  pointer-events: none;
+}
+
+/* 组织中心分区 */
+.belt-org-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.8rem;
+  border-bottom: 2px solid var(--ef-signal);
+  padding-bottom: 0.6rem;
+}
+
+.belt-org-head h2 {
+  margin: 0.1rem 0 0;
+  font-family: var(--ef-font-display);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.belt-org-section {
+  margin-top: 1rem;
+  border-left: 3px solid var(--ef-rule);
+  padding-left: 0.65rem;
+}
+
+.belt-org-section .belt-panel-head {
+  border-bottom: 1px solid var(--ef-rule);
+  padding-bottom: 0.35rem;
+}
