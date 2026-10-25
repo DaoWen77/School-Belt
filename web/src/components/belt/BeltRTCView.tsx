@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { io, type Socket } from 'socket.io-client';
+import { resolveWsBase, WS_PATH } from '@/lib/api';
+import { beltSession } from '@/lib/beltSession';
 
 type CallMode = 'audio' | 'video';
 
@@ -19,31 +22,113 @@ function formatTime(ms: number): string {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
 }
 
-/** 极简沉浸式 RTC：景深背景 + 半透明玻璃面板，无仪表盘刻度。 */
+/** 真实 WebRTC：本地媒体 + Web Audio 分析 + `/rtc` 信令；无对端时仍可本地自检。 */
 export function BeltRTCView() {
   const router = useRouter();
   const [mode, setMode] = useState<CallMode>('audio');
   const [muted, setMuted] = useState(false);
+  const [cameraOn, setCameraOn] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const [elapsed, setElapsed] = useState(6500);
+  const [hasRemote, setHasRemote] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [ended, setEnded] = useState(false);
+  const [status, setStatus] = useState('等待授权…');
+  const [streamReady, setStreamReady] = useState(false);
+  const [levels, setLevels] = useState<number[]>(() => Array.from({ length: 34 }, () => 0.04));
+
+  const localStream = useRef<MediaStream | null>(null);
+  const cameraStream = useRef<MediaStream | null>(null);
+  const screenStream = useRef<MediaStream | null>(null);
+  const remoteStream = useRef<MediaStream | null>(null);
+  const audioContext = useRef<AudioContext | null>(null);
+  const analyser = useRef<AnalyserNode | null>(null);
+  const sourceNode = useRef<MediaStreamAudioSourceNode | null>(null);
+  const peer = useRef<RTCPeerConnection | null>(null);
+  const socket = useRef<Socket | null>(null);
   const waveRef = useRef<HTMLCanvasElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const feedRef = useRef<HTMLCanvasElement | null>(null);
+  const localVideo = useRef<HTMLVideoElement | null>(null);
+  const remoteVideo = useRef<HTMLVideoElement | null>(null);
+  const raf = useRef<number>(0);
+  const callId = useRef<string>('');
+
+  useEffect(() => {
+    callId.current =
+      new URLSearchParams(window.location.search).get('callId') ||
+      `belt-${Date.now().toString(36)}`;
+    let cancelled = false;
+
+    const start = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        if (cancelled) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        localStream.current = stream;
+        setStatus('本地链路已建立');
+        if (localVideo.current) {
+          localVideo.current.srcObject = stream;
+          void localVideo.current.play().catch(() => undefined);
+        }
+
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        const ctx = new AudioCtx();
+        audioContext.current = ctx;
+        const node = ctx.createAnalyser();
+        node.fftSize = 1024;
+        node.smoothingTimeConstant = 0.72;
+        analyser.current = node;
+        sourceNode.current = ctx.createMediaStreamSource(stream);
+        sourceNode.current.connect(node);
+        setStreamReady(true);
+      } catch {
+        // 摄像头被拒/无设备时退化为纯音频
+        try {
+          const audioOnly = await navigator.mediaDevices.getUserMedia({ audio: true });
+          if (cancelled) {
+            audioOnly.getTracks().forEach((track) => track.stop());
+            return;
+          }
+          localStream.current = audioOnly;
+          setStatus('仅音频链路（摄像头不可用）');
+          const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          const ctx = new AudioCtx();
+          audioContext.current = ctx;
+          const node = ctx.createAnalyser();
+          node.fftSize = 1024;
+          node.smoothingTimeConstant = 0.72;
+          analyser.current = node;
+          sourceNode.current = ctx.createMediaStreamSource(audioOnly);
+          sourceNode.current.connect(node);
+          setStreamReady(true);
+        } catch {
+          setStatus('无法获取麦克风权限');
+        }
+      }
+    };
+
+    void start();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setElapsed((value) => value + 100), 100);
     return () => clearInterval(timer);
   }, []);
 
+  // 真实波形 + 频谱：无声音时几乎归零
   useEffect(() => {
-    if (mode !== 'audio') return;
     const canvas = waveRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    let frame = 0;
-    const draw = (time: number) => {
+    const timeData = new Uint8Array(1024);
+    const freqData = new Uint8Array(512);
+
+    const draw = () => {
+      const analyserNode = analyser.current;
       const dpr = window.devicePixelRatio || 1;
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
@@ -54,71 +139,231 @@ export function BeltRTCView() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
       const mid = height / 2;
-      const bars = 64;
+      const bars = 72;
+
+      if (!analyserNode) {
+        ctx.strokeStyle = 'rgba(236,238,228,0.18)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, mid);
+        ctx.lineTo(width, mid);
+        ctx.stroke();
+        raf.current = requestAnimationFrame(draw);
+        return;
+      }
+
+      analyserNode.getByteTimeDomainData(timeData);
+      analyserNode.getByteFrequencyData(freqData);
+
+      let sum = 0;
+      for (let i = 0; i < freqData.length; i += 1) sum += freqData[i];
+      const loudness = sum / freqData.length / 255;
+      setLevels((previous) =>
+        previous.map((value, index) => {
+          const target = Math.max(0.02, Math.min(1, loudness * 2.4 + Math.abs(Math.sin(index * 0.7 + Date.now() / 380)) * loudness * 0.5));
+          return value * 0.6 + target * 0.4;
+        }),
+      );
+
       const gap = width / bars;
       for (let index = 0; index < bars; index += 1) {
+        const sampleA = timeData[Math.floor((index / bars) * timeData.length)];
+        const sampleB = timeData[Math.floor(((index + 1) / bars) * timeData.length)];
+        const amplitude = Math.abs(sampleA - 128) / 128;
+        const amplitudeB = Math.abs(sampleB - 128) / 128;
         const envelope = Math.sin((index / (bars - 1)) * Math.PI);
-        const amplitude =
-          (0.08 + Math.abs(Math.sin(time / 700 + index * 0.28) * Math.cos(time / 1100 + index * 0.11)) * 0.92) *
-          envelope;
-        const barHeight = Math.max(1, amplitude * height * 0.34);
-        ctx.fillStyle = `rgba(236, 238, 228, ${0.12 + envelope * 0.42})`;
-        ctx.fillRect(index * gap + gap * 0.34, mid - barHeight, Math.max(1, gap * 0.2), barHeight * 2);
+        const barHeight = Math.max(0.7, Math.max(amplitude, amplitudeB * 0.8) * height * 0.42 * envelope);
+        ctx.fillStyle = `rgba(236, 238, 228, ${0.08 + Math.max(amplitude, amplitudeB) * 0.5})`;
+        ctx.fillRect(index * gap + gap * 0.35, mid - barHeight, Math.max(1, gap * 0.2), barHeight * 2);
       }
-      frame = requestAnimationFrame(draw);
+      raf.current = requestAnimationFrame(draw);
     };
-    frame = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(frame);
-  }, [mode]);
+    raf.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf.current);
+  }, []);
 
+  // 信令 + WebRTC
   useEffect(() => {
-    if (mode !== 'video') return;
-    const feed = feedRef.current;
-    const video = videoRef.current;
-    if (!feed || !video) return;
-    feed.width = 1280;
-    feed.height = 720;
-    const ctx = feed.getContext('2d');
-    if (!ctx) return;
-    let frame = 0;
-    const draw = (time: number) => {
-      const w = feed.width;
-      const h = feed.height;
-      const grad = ctx.createLinearGradient(0, 0, w, h);
-      grad.addColorStop(0, '#141712');
-      grad.addColorStop(0.55, '#0b0e0a');
-      grad.addColorStop(1, '#191d16');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, w, h);
-      const glow = ctx.createRadialGradient(w * 0.6, h * 0.42, 20, w * 0.6, h * 0.42, 360);
-      glow.addColorStop(0, 'rgba(220, 224, 200, 0.16)');
-      glow.addColorStop(1, 'transparent');
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, w, h);
-      ctx.fillStyle = 'rgba(232, 234, 220, 0.05)';
-      ctx.fillRect(w * 0.18 + Math.sin(time / 2200) * 8, h * 0.3, 2, h * 0.5);
-      ctx.fillRect(w * 0.82 + Math.cos(time / 2600) * 6, h * 0.22, 1, h * 0.58);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
-      ctx.beginPath();
-      ctx.ellipse(w / 2, h * 0.58, w * 0.2, h * 0.34, 0, 0, Math.PI * 2);
-      ctx.fill();
-      frame = requestAnimationFrame(draw);
+    if (!streamReady) return;
+    const token = beltSession.getAccess();
+    if (!token) return;
+    const s = io(`${resolveWsBase()}/rtc`, {
+      path: WS_PATH,
+      auth: { token },
+      transports: ['websocket'],
+    });
+    socket.current = s;
+
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+    });
+    peer.current = pc;
+    const remote = new MediaStream();
+    remoteStream.current = remote;
+
+    localStream.current?.getTracks().forEach((track) => {
+      pc.addTrack(track, localStream.current!);
+    });
+
+    pc.ontrack = (event) => {
+      event.streams[0]?.getTracks().forEach((track) => {
+        if (!remote.getTracks().some((existing) => existing.id === track.id)) remote.addTrack(track);
+      });
+      if (remoteVideo.current) {
+        remoteVideo.current.srcObject = remote;
+        void remoteVideo.current.play().catch(() => undefined);
+      }
+      setHasRemote(true);
+      setStatus('对端媒体已接入');
     };
-    frame = requestAnimationFrame(draw);
-    const stream = feed.captureStream(30);
-    video.srcObject = stream;
-    void video.play().catch(() => undefined);
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate) s.emit('rtc:ice', { callId: callId.current, candidate: event.candidate });
+    };
+
+    pc.onnegotiationneeded = async () => {
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        s.emit('rtc:offer', { callId: callId.current, sdp: pc.localDescription });
+      } catch {
+        /* 无对端时忽略 */
+      }
+    };
+
+    s.on('connect', () => {
+      setStatus((value) => (value.includes('仅音频') ? value : '信令已连接'));
+      s.emit('rtc:join', { callId: callId.current });
+    });
+
+    s.on('rtc:offer', async (payload: { sdp: RTCSessionDescriptionInit }) => {
+      try {
+        await pc.setRemoteDescription(payload.sdp);
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        s.emit('rtc:answer', { callId: callId.current, sdp: pc.localDescription });
+      } catch {
+        /* ignore */
+      }
+    });
+
+    s.on('rtc:answer', async (payload: { sdp: RTCSessionDescriptionInit }) => {
+      try {
+        if (pc.signalingState === 'have-local-offer') await pc.setRemoteDescription(payload.sdp);
+      } catch {
+        /* ignore */
+      }
+    });
+
+    s.on('rtc:ice', async (payload: { candidate: RTCIceCandidateInit }) => {
+      try {
+        await pc.addIceCandidate(payload.candidate);
+      } catch {
+        /* ignore */
+      }
+    });
+
     return () => {
-      cancelAnimationFrame(frame);
-      stream.getTracks().forEach((track) => track.stop());
-      video.srcObject = null;
+      s.emit('rtc:leave', { callId: callId.current });
+      s.disconnect();
+      pc.close();
+      remote.getTracks().forEach((track) => track.stop());
     };
-  }, [mode]);
+  }, [streamReady]);
+
+  const stopTracks = (stream: MediaStream | null) => {
+    stream?.getTracks().forEach((track) => track.stop());
+  };
+
+  const toggleMute = () => {
+    const next = !muted;
+    localStream.current?.getAudioTracks().forEach((track) => {
+      track.enabled = !next;
+    });
+    setMuted(next);
+  };
+
+  const toggleVideo = async () => {
+    if (mode === 'video') {
+      // 关闭摄像头/屏幕，回到音频
+      stopTracks(cameraStream.current);
+      cameraStream.current = null;
+      setCameraOn(false);
+      setMode('audio');
+      setStatus('音频模式');
+      return;
+    }
+    try {
+      let stream = cameraStream.current;
+      if (!stream) {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        cameraStream.current = stream;
+        stream.getVideoTracks().forEach((track) => peer.current?.addTrack(track, stream!));
+      }
+      if (localVideo.current) {
+        localVideo.current.srcObject = stream;
+        void localVideo.current.play().catch(() => undefined);
+      }
+      setCameraOn(true);
+      setMode('video');
+      setStatus('摄像头已开启');
+    } catch {
+      setStatus('无法开启摄像头');
+    }
+  };
+
+  const toggleShare = async () => {
+    if (sharing) {
+      stopTracks(screenStream.current);
+      screenStream.current = null;
+      setSharing(false);
+      if (mode === 'video' && !cameraOn) setMode('audio');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+      screenStream.current = stream;
+      stream.getVideoTracks().forEach((track) => {
+        peer.current?.addTrack(track, stream);
+        track.onended = () => {
+          setSharing(false);
+          setMode('audio');
+        };
+      });
+      if (remoteVideo.current) {
+        remoteVideo.current.srcObject = stream;
+        void remoteVideo.current.play().catch(() => undefined);
+      }
+      setSharing(true);
+      setMode('video');
+      setStatus('屏幕共享中');
+    } catch {
+      setStatus('屏幕共享已取消');
+    }
+  };
 
   const endCall = () => {
     setEnded(true);
+    stopTracks(localStream.current);
+    stopTracks(cameraStream.current);
+    stopTracks(screenStream.current);
+    stopTracks(remoteStream.current);
+    peer.current?.close();
+    socket.current?.disconnect();
+    void audioContext.current?.close();
     window.setTimeout(() => router.push('/belt/direct'), 800);
   };
+
+  useEffect(() => {
+    return () => {
+      stopTracks(localStream.current);
+      stopTracks(cameraStream.current);
+      stopTracks(screenStream.current);
+      peer.current?.close();
+      socket.current?.disconnect();
+      void audioContext.current?.close();
+    };
+  }, []);
 
   return (
     <div className="rtc2">
@@ -129,16 +374,11 @@ export function BeltRTCView() {
 
       <header className="rtc2-header">
         <div className="rtc2-logo">
-          <span className="rtc2-logo-mark">
-            <i /><i />
-          </span>
-          <div>
-            <b>O.M.V</b>
-            <small>帝江号 · 环带中继</small>
-          </div>
+          <span className="rtc2-logo-mark"><i /><i /></span>
+          <div><b>O.M.V</b><small>帝江号 · 环带中继</small></div>
         </div>
         <p className="rtc2-call-tag">INTERNAL CALL</p>
-        <p className="rtc2-header-meta">RELAY 07 · SECURE</p>
+        <p className="rtc2-header-meta">{status}</p>
       </header>
 
       <div className="rtc2-stage">
@@ -151,14 +391,12 @@ export function BeltRTCView() {
               </div>
             ))}
           </div>
-
           <div className="rtc2-identity">
             <p className="rtc2-eyebrow">COMMUNICATION LINK</p>
             <h1>FIONA</h1>
             <p className="rtc2-band">M10 FM MK H</p>
             <p className="rtc2-timer">{formatTime(elapsed)}</p>
           </div>
-
           <div className="rtc2-meta">
             <span>SIGNAL <b>98%</b></span>
             <span>LATENCY <b>014 MS</b></span>
@@ -180,25 +418,36 @@ export function BeltRTCView() {
               </div>
             ) : (
               <div className="rtc2-video-wrap">
-                <video ref={videoRef} muted playsInline autoPlay />
-                <canvas ref={feedRef} className="hidden" aria-hidden="true" />
-                <span className="rtc2-mode-label">LIVE VIDEO</span>
+                <video
+                  ref={remoteVideo}
+                  muted={false}
+                  playsInline
+                  autoPlay
+                  className={`rtc2-video-main${!hasRemote && !sharing ? ' is-hidden' : ''}`}
+                />
+                <span className="rtc2-mode-label">{sharing ? 'SCREEN SHARE' : hasRemote ? 'REMOTE FEED' : 'LOCAL CAMERA'}</span>
               </div>
             )}
+
+            <div className={`rtc2-pip${mode === 'video' && !sharing && !hasRemote ? ' is-full' : ''}${mode === 'audio' || (!cameraOn && !sharing) ? ' is-hidden' : ''}`}>
+              <video ref={localVideo} muted playsInline autoPlay />
+              <i className="rtc2-pip-corner rtc2-pip-tl" />
+              <i className="rtc2-pip-corner rtc2-pip-br" />
+            </div>
           </div>
         </main>
       </div>
 
       <footer className="rtc2-controls">
-        <button type="button" className={`rtc2-control${muted ? ' is-on' : ''}`} onClick={() => setMuted((value) => !value)}>
+        <button type="button" className={`rtc2-control${muted ? ' is-on is-danger' : ''}`} onClick={toggleMute}>
           <span className="rtc2-icon rtc2-icon-mute" />
           <small>{muted ? 'UNMUTE' : 'MUTE'}</small>
         </button>
-        <button type="button" className={`rtc2-control${mode === 'video' ? ' is-on' : ''}`} onClick={() => setMode((value) => (value === 'video' ? 'audio' : 'video'))}>
+        <button type="button" className={`rtc2-control${mode === 'video' ? ' is-on' : ''}`} onClick={() => void toggleVideo()}>
           <span className="rtc2-icon rtc2-icon-video" />
           <small>{mode === 'video' ? 'AUDIO' : 'VIDEO'}</small>
         </button>
-        <button type="button" className={`rtc2-control${sharing ? ' is-on' : ''}`} onClick={() => setSharing((value) => !value)}>
+        <button type="button" className={`rtc2-control${sharing ? ' is-on' : ''}`} onClick={() => void toggleShare()}>
           <span className="rtc2-icon rtc2-icon-share" />
           <small>SHARE</small>
         </button>

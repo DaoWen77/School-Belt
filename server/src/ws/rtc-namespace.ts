@@ -1,38 +1,107 @@
-import type { Namespace, Server } from 'socket.io';
-import { ErrorCode } from '../common/errors/error-codes';
+import type { Namespace, Server, Socket } from 'socket.io';
+import { WsAuthService } from './ws-auth.service';
+import { extractSocketToken } from '../common/utils/http';
+import type { AuthUser } from '../common/types/context';
 
 interface MiddlewareHost {
-  use(fn: (socket: unknown, next: (err?: Error) => void) => void): unknown;
+  use(fn: (socket: Socket, next: (err?: Error) => void) => void): unknown;
+}
+
+const ROOM = (callId: string) => `rtc:${callId}`;
+
+interface SignalPayload {
+  callId?: unknown;
+  sdp?: unknown;
+  candidate?: unknown;
+  to?: unknown;
 }
 
 /**
- * 契约 §11：`/rtc` 命名空间是预留能力。
- *
- * 建连一律拒绝（connect_error，message 与 data.code 均为 NOT_IMPLEMENTED，
- * 并附带 rtcSignalingEnabled 便于客户端判断），避免客户端收到 Socket.IO 的
- * "Invalid namespace"。开关关闭/开启都返回 NOT_IMPLEMENTED：开启只代表“已预留”。
+ * `/rtc` 命名空间：轻量 WebRTC 信令中继（offer / answer / ice / leave）。
+ * 只做房间内事件转发，不落库、不配对业务关系；鉴权复用 WsAuthService。
  */
 export function installRtcNamespace(
   server: Server,
   rtcEnabled: boolean,
-  logger?: { log(message: string): void },
+  logger: { log(message: string): void; warn(message: string): void } | undefined,
+  wsAuth: WsAuthService,
 ): Namespace {
-  // @WebSocketServer 注入的是 /ws 命名空间；这里取其底层 Server 再创建 /rtc
   const root = ((server as unknown as { server?: Server }).server ?? server) as Server;
   const rtc = root.of('/rtc') as Namespace;
 
-  (rtc as unknown as MiddlewareHost).use((_socket, next) => {
-    const failure = new Error(ErrorCode.NOT_IMPLEMENTED) as Error & {
-      data?: Record<string, unknown>;
-    };
-    failure.data = {
-      code: ErrorCode.NOT_IMPLEMENTED,
-      message: '音视频信令为预留能力（契约 §11），v1.0 不实现',
-      rtcSignalingEnabled: rtcEnabled,
-    };
-    next(failure);
+  (rtc as unknown as MiddlewareHost).use(async (socket, next) => {
+    try {
+      const token = extractSocketToken(socket.handshake.auth);
+      const user = await wsAuth.authenticate(token, { allowBelt: true });
+      socket.data.user = user;
+      socket.data.rtcEnabled = rtcEnabled;
+      next();
+    } catch {
+      const failure = new Error('AUTH_INVALID') as Error & { data?: Record<string, unknown> };
+      failure.data = { code: 'AUTH_INVALID', rtcSignalingEnabled: rtcEnabled };
+      next(failure);
+    }
   });
 
-  logger?.log('已注册 /rtc 命名空间：恒返回 NOT_IMPLEMENTED（契约 §11 预留）');
+  rtc.on('connection', (socket: Socket) => {
+    const user = socket.data.user as AuthUser;
+
+    socket.on('rtc:join', (payload: SignalPayload, ack?: (value: unknown) => void) => {
+      const callId = typeof payload?.callId === 'string' ? payload.callId.slice(0, 120) : '';
+      if (!callId) {
+        ack?.({ ok: false, error: 'callId required' });
+        return;
+      }
+      void socket.join(ROOM(callId));
+      const peers = [...(rtc.adapter.rooms.get(ROOM(callId)) ?? [])].filter((id) => id !== socket.id);
+      socket.emit('rtc:peers', { callId, peers });
+      socket.to(ROOM(callId)).emit('rtc:peer-joined', {
+        callId,
+        from: user.id,
+        handle: user.handle,
+      });
+      ack?.({ ok: true, callId });
+    });
+
+    const relay = (event: string) => {
+      socket.on(event, (payload: SignalPayload, ack?: (value: unknown) => void) => {
+        const callId = typeof payload?.callId === 'string' ? payload.callId.slice(0, 120) : '';
+        if (!callId) {
+          ack?.({ ok: false, error: 'callId required' });
+          return;
+        }
+        const envelope = {
+          callId,
+          from: user.id,
+          handle: user.handle,
+          sdp: payload.sdp,
+          candidate: payload.candidate,
+          to: payload.to,
+        };
+        socket.to(ROOM(callId)).emit(event, envelope);
+        ack?.({ ok: true });
+      });
+    };
+
+    relay('rtc:offer');
+    relay('rtc:answer');
+    relay('rtc:ice');
+
+    socket.on('rtc:leave', (payload: SignalPayload) => {
+      const callId = typeof payload?.callId === 'string' ? payload.callId.slice(0, 120) : '';
+      if (!callId) return;
+      socket.to(ROOM(callId)).emit('rtc:peer-left', { callId, from: user.id });
+      void socket.leave(ROOM(callId));
+    });
+
+    socket.on('disconnecting', () => {
+      for (const room of socket.rooms) {
+        if (!room.startsWith('rtc:')) continue;
+        socket.to(room).emit('rtc:peer-left', { callId: room.slice(4), from: user.id });
+      }
+    });
+  });
+
+  logger?.log('已注册 /rtc 命名空间：offer/answer/ice 信令中继');
   return rtc;
 }

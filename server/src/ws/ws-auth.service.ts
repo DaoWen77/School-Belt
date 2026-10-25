@@ -21,7 +21,7 @@ export class WsAuthService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async authenticate(token: string | null): Promise<AuthUser> {
+  async authenticate(token: string | null, options?: { allowBelt?: boolean }): Promise<AuthUser> {
     if (!token) throw new AppError(ErrorCode.AUTH_REQUIRED);
 
     let sub: string;
@@ -71,7 +71,7 @@ export class WsAuthService {
     if (tokenSurface && tokenSurface !== session.surface) {
       throw new AppError(ErrorCode.AUTH_INVALID, '凭证所属链路不一致');
     }
-    if (session.surface !== 'internal' || !session.user.isInternal) {
+    if (!options?.allowBelt && (session.surface !== 'internal' || !session.user.isInternal)) {
       throw new AppError(ErrorCode.SURFACE_MISMATCH, '该 WS 命名空间仅接受帝江号内部会话');
     }
     if (session.user.status === 'suspended') {

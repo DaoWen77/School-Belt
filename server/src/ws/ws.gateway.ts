@@ -98,7 +98,7 @@ export class WsGateway
       }
     });
 
-    installRtcNamespace(server, this.rtcEnabled, this.logger);
+    installRtcNamespace(server, this.rtcEnabled, this.logger, this.wsAuth);
   }
 
   /**
