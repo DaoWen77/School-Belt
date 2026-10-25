@@ -105,6 +105,7 @@ export interface BeltDmConversation {
   friendshipId: string;
   lastMessageAt: string | null;
   lastMessagePreview: string | null;
+  unreadCount?: number;
 }
 
 export interface BeltFriendView {

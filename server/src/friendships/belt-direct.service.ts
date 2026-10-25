@@ -22,6 +22,7 @@ export interface BeltDmConversationView {
   friendshipId: string;
   lastMessageAt: string | null;
   lastMessagePreview: string | null;
+  unreadCount: number;
 }
 
 interface DmMessageRow {
@@ -91,6 +92,20 @@ export class BeltDirectService {
       ]);
       if (!channel || !peer) continue;
       const prefixes = await this.identity.prefixesForMany([peer]);
+      const membership = await this.prisma.channelMember.findUnique({
+        where: { channelId_userId: { channelId: channel.id, userId: actor.id } },
+        select: { lastReadSeq: true },
+      });
+      const unreadCount = membership
+        ? await this.prisma.message.count({
+            where: {
+              channelId: channel.id,
+              deletedAt: null,
+              senderId: { not: actor.id },
+              id: { gt: membership.lastReadSeq },
+            },
+          })
+        : 0;
       conversations.push({
         id: channel.id,
         surface: channel.surface as 'belt' | 'bridge',
@@ -104,6 +119,7 @@ export class BeltDirectService {
         friendshipId: friendship.id,
         lastMessageAt: channel.lastMessageAt?.toISOString() ?? null,
         lastMessagePreview: last?.body ? last.body.slice(0, 80) : null,
+        unreadCount,
       });
     }
     return { conversations };

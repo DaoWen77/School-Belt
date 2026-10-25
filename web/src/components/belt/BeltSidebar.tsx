@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { beltApi, type BeltUser } from '@/lib/beltApi';
 import type { BeltChannel, BeltDmConversation, BeltFriendView } from '@/lib/beltTypes';
 import { BeltAvatar } from './BeltAvatar';
@@ -49,6 +49,7 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [topic, setTopic] = useState('');
+  const channelDraftLoaded = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [localRefresh, setLocalRefresh] = useState(0);
@@ -133,6 +134,33 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
     );
   }, [conversations, dmSearch, navSearch]);
 
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem('dj.channel-draft');
+      if (raw) {
+        const draft = JSON.parse(raw) as { name?: string; topic?: string };
+        if (typeof draft.name === 'string') setName(draft.name);
+        if (typeof draft.topic === 'string') setTopic(draft.topic);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      channelDraftLoaded.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!channelDraftLoaded.current) return;
+    const timer = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem('dj.channel-draft', JSON.stringify({ name, topic }));
+      } catch {
+        /* ignore */
+      }
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [name, topic]);
+
   const createChannel = async () => {
     if (!name.trim() || busy) return;
     setBusy(true);
@@ -144,6 +172,7 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
       });
       setName('');
       setTopic('');
+      window.localStorage.removeItem('dj.channel-draft');
       setCreating(false);
       window.dispatchEvent(new CustomEvent('belt:refresh'));
     } catch (caught) {
@@ -338,7 +367,7 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
               {filteredDms.length === 0 ? <p className="belt-nav-empty">没有匹配的链路。</p> : null}
               {filteredDms.map((conversation) => {
                 const last = conversation.lastMessageAt;
-                const unread = Boolean(last && (!seen[conversation.id] || last > seen[conversation.id]));
+                const unread = conversation.unreadCount ?? (last && (!seen[conversation.id] || last > seen[conversation.id]) ? 1 : 0);
                 return (
                   <Link
                     key={conversation.id}
@@ -352,7 +381,7 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
                   >
                     <BeltAvatar fileId={conversation.peer.avatarFileId} name={conversation.peer.displayName} size="sm" />
                     <span className="truncate">{conversation.peer.displayName}</span>
-                    {unread ? <i className="belt-nav-unread" aria-label="未读" /> : null}
+                    {unread > 0 ? <i className="belt-nav-unread" aria-label={`${unread} 条未读`}>{unread > 99 ? '99+' : unread}</i> : null}
                   </Link>
                 );
               })}

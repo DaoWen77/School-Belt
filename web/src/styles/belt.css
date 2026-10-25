@@ -4282,11 +4282,19 @@ button.belt-row[data-active='true'] .belt-row-deck {
 }
 
 .belt-nav-unread {
-  width: 0.45rem;
-  height: 0.45rem;
+  display: grid;
+  min-width: 1.05rem;
+  height: 1.05rem;
+  place-items: center;
   margin-left: auto;
-  border-radius: 50%;
+  border-radius: 999px;
   background: #ff4b3e;
+  color: #fff;
+  font-family: var(--ef-font-mono);
+  font-size: 8px;
+  font-style: normal;
+  line-height: 1;
+  padding: 0 0.2rem;
   box-shadow: 0 0 6px rgba(255, 75, 62, 0.7);
 }
 
