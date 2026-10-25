@@ -6,41 +6,26 @@ import { useRouter } from 'next/navigation';
 type CallMode = 'audio' | 'video';
 
 const PARTICIPANTS = [
-  { id: 'FIONA', label: 'FIONA', role: 'CALLER', active: true },
-  { id: 'RELAY-07', label: 'R-07', role: 'RELAY', active: false },
-  { id: 'OBSERVER', label: 'OBS', role: 'OBSERVER', active: false },
+  { id: 'FIONA', initials: 'FN', active: true },
+  { id: 'R-07', initials: '07', active: false },
+  { id: 'OBS', initials: 'OB', active: false },
 ];
-
-const COORDS = [
-  'LAT 31.2304 N',
-  'LON 121.4737 E',
-  'ALT 0004.2 M',
-  'BRG 137.03°',
-  'SIG -42.8 dBm',
-  'ENC AES-256',
-  'PKT 00042/00042',
-];
-
-function pad(value: number, size = 2): string {
-  return String(Math.floor(value)).padStart(size, '0');
-}
 
 function formatTime(ms: number): string {
   const total = Math.floor(ms);
   const minutes = Math.floor(total / 60_000);
   const seconds = Math.floor((total % 60_000) / 1000);
   const millis = total % 1000;
-  return `${pad(minutes)}:${pad(seconds)}.${pad(millis, 3)}`;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
 }
 
-/** 终末地式沉浸式 RTC 通话界面：音频波形 / 视频双模式，纯前端模拟。 */
+/** 极简沉浸式 RTC：景深背景 + 半透明玻璃面板，无仪表盘刻度。 */
 export function BeltRTCView() {
   const router = useRouter();
   const [mode, setMode] = useState<CallMode>('audio');
   const [muted, setMuted] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [elapsed, setElapsed] = useState(6500);
-  const [levels, setLevels] = useState<number[]>(() => Array.from({ length: 34 }, () => 0.18));
   const [ended, setEnded] = useState(false);
   const waveRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -52,29 +37,16 @@ export function BeltRTCView() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setLevels((previous) =>
-        previous.map((value, index) => {
-          const target = 0.12 + Math.abs(Math.sin(Date.now() / (420 + index * 17) + index * 0.7)) * 0.8;
-          return value * 0.55 + target * 0.45;
-        }),
-      );
-    }, 90);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
     if (mode !== 'audio') return;
     const canvas = waveRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     let frame = 0;
-    const bars = 92;
     const draw = (time: number) => {
+      const dpr = window.devicePixelRatio || 1;
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
-      const dpr = window.devicePixelRatio || 1;
       if (canvas.width !== Math.floor(width * dpr) || canvas.height !== Math.floor(height * dpr)) {
         canvas.width = Math.floor(width * dpr);
         canvas.height = Math.floor(height * dpr);
@@ -82,32 +54,17 @@ export function BeltRTCView() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
       const mid = height / 2;
+      const bars = 64;
       const gap = width / bars;
       for (let index = 0; index < bars; index += 1) {
-        const phase = time / 420 + index * 0.32;
-        const envelope = 0.28 + 0.72 * Math.abs(Math.sin(index / bars * Math.PI));
-        const amplitude = (0.12 + Math.abs(Math.sin(phase) * Math.cos(phase * 0.41 + index)) * 0.88) * envelope;
-        const barHeight = Math.max(2, amplitude * height * 0.42);
-        const x = index * gap + gap * 0.28;
-        const barWidth = Math.max(1, gap * 0.36);
-        const gradient = ctx.createLinearGradient(0, mid - barHeight, 0, mid + barHeight);
-        gradient.addColorStop(0, 'rgba(255,250,0,0)');
-        gradient.addColorStop(0.28, 'rgba(255,250,0,0.85)');
-        gradient.addColorStop(0.5, 'rgba(255,250,0,1)');
-        gradient.addColorStop(0.72, 'rgba(255,250,0,0.85)');
-        gradient.addColorStop(1, 'rgba(255,250,0,0)');
-        ctx.fillStyle = gradient;
-        ctx.shadowColor = 'rgba(255,250,0,0.55)';
-        ctx.shadowBlur = 8;
-        ctx.fillRect(x, mid - barHeight, barWidth, barHeight * 2);
+        const envelope = Math.sin((index / (bars - 1)) * Math.PI);
+        const amplitude =
+          (0.08 + Math.abs(Math.sin(time / 700 + index * 0.28) * Math.cos(time / 1100 + index * 0.11)) * 0.92) *
+          envelope;
+        const barHeight = Math.max(1, amplitude * height * 0.34);
+        ctx.fillStyle = `rgba(236, 238, 228, ${0.12 + envelope * 0.42})`;
+        ctx.fillRect(index * gap + gap * 0.34, mid - barHeight, Math.max(1, gap * 0.2), barHeight * 2);
       }
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = 'rgba(232,232,224,0.16)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, mid + 0.5);
-      ctx.lineTo(width, mid + 0.5);
-      ctx.stroke();
       frame = requestAnimationFrame(draw);
     };
     frame = requestAnimationFrame(draw);
@@ -119,57 +76,32 @@ export function BeltRTCView() {
     const feed = feedRef.current;
     const video = videoRef.current;
     if (!feed || !video) return;
+    feed.width = 1280;
+    feed.height = 720;
     const ctx = feed.getContext('2d');
     if (!ctx) return;
-    feed.width = 960;
-    feed.height = 540;
     let frame = 0;
     const draw = (time: number) => {
       const w = feed.width;
       const h = feed.height;
-      ctx.fillStyle = '#070a06';
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, '#141712');
+      grad.addColorStop(0.55, '#0b0e0a');
+      grad.addColorStop(1, '#191d16');
+      ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
-      ctx.strokeStyle = 'rgba(255,250,0,0.08)';
-      ctx.lineWidth = 1;
-      for (let x = 0; x < w; x += 48) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, h);
-        ctx.stroke();
-      }
-      for (let y = 0; y < h; y += 48) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
-        ctx.stroke();
-      }
-      const cx = w / 2 + Math.sin(time / 900) * 120;
-      const cy = h / 2 + Math.cos(time / 1200) * 60;
-      ctx.strokeStyle = 'rgba(0,255,255,0.7)';
-      ctx.shadowColor = 'rgba(0,255,255,0.6)';
-      ctx.shadowBlur = 16;
+      const glow = ctx.createRadialGradient(w * 0.6, h * 0.42, 20, w * 0.6, h * 0.42, 360);
+      glow.addColorStop(0, 'rgba(220, 224, 200, 0.16)');
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = 'rgba(232, 234, 220, 0.05)';
+      ctx.fillRect(w * 0.18 + Math.sin(time / 2200) * 8, h * 0.3, 2, h * 0.5);
+      ctx.fillRect(w * 0.82 + Math.cos(time / 2600) * 6, h * 0.22, 1, h * 0.58);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
       ctx.beginPath();
-      ctx.arc(cx, cy, 54 + Math.sin(time / 260) * 8, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(cx - 84, cy);
-      ctx.lineTo(cx + 84, cy);
-      ctx.moveTo(cx, cy - 84);
-      ctx.lineTo(cx, cy + 84);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = 'rgba(255,250,0,0.8)';
-      ctx.font = '16px monospace';
-      ctx.fillText('LIVE // FIONA // RELAY 07', 28, 42);
-      ctx.fillStyle = 'rgba(232,232,224,0.45)';
-      ctx.font = '12px monospace';
-      ctx.fillText(`FRAME ${Math.floor(time / 33) % 100000}`, 28, 64);
-      ctx.fillStyle = 'rgba(0,255,255,0.25)';
-      for (let index = 0; index < 24; index += 1) {
-        const x = (index * 137 + time / 40) % w;
-        const y = (index * 89 + Math.sin(time / 500 + index) * 30) % h;
-        ctx.fillRect(x, y, 2, 2);
-      }
+      ctx.ellipse(w / 2, h * 0.58, w * 0.2, h * 0.34, 0, 0, Math.PI * 2);
+      ctx.fill();
       frame = requestAnimationFrame(draw);
     };
     frame = requestAnimationFrame(draw);
@@ -185,140 +117,98 @@ export function BeltRTCView() {
 
   const endCall = () => {
     setEnded(true);
-    window.setTimeout(() => router.push('/belt/direct'), 900);
+    window.setTimeout(() => router.push('/belt/direct'), 800);
   };
 
-  if (ended) {
-    return (
-      <div className="rtc-overlay rtc-ended">
-        <p className="rtc-kicker">LINK TERMINATED</p>
-        <h1>CALL ENDED</h1>
-        <p>通话已断开 · 返回链路列表</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="rtc-overlay">
-      <div className="rtc-noise" aria-hidden="true" />
-      <header className="rtc-top">
-        <span>O.M.V / BELT RELAY 07</span>
-        <span>INTERNAL CALL</span>
-        <span className="rtc-live">● SECURE CHANNEL</span>
+    <div className="rtc2">
+      <div className="rtc2-bg" aria-hidden="true">
+        <img src="/rtc-bg.jpg" alt="" />
+        <span className="rtc2-bg-veil" />
+      </div>
+
+      <header className="rtc2-header">
+        <div className="rtc2-logo">
+          <span className="rtc2-logo-mark">
+            <i /><i />
+          </span>
+          <div>
+            <b>O.M.V</b>
+            <small>帝江号 · 环带中继</small>
+          </div>
+        </div>
+        <p className="rtc2-call-tag">INTERNAL CALL</p>
+        <p className="rtc2-header-meta">RELAY 07 · SECURE</p>
       </header>
 
-      <div className={`rtc-stage is-${mode}`}>
-        <aside className="rtc-left">
-          <p className="rtc-kicker">INCOMING CALL / 内部通讯</p>
-          <h1>FIONA</h1>
-          <p className="rtc-band">M10 FM MK H</p>
-          <div className="rtc-time">
-            <b>{formatTime(elapsed)}</b>
-            <span>CALL TIME</span>
+      <div className="rtc2-stage">
+        <aside className="rtc2-left">
+          <div className="rtc2-avatars">
+            {PARTICIPANTS.map((person) => (
+              <div key={person.id} className={`rtc2-avatar${person.active ? ' is-active' : ''}`}>
+                <span>{person.initials}</span>
+                <small>{person.id}</small>
+              </div>
+            ))}
           </div>
-          <div className="rtc-signal">
+
+          <div className="rtc2-identity">
+            <p className="rtc2-eyebrow">COMMUNICATION LINK</p>
+            <h1>FIONA</h1>
+            <p className="rtc2-band">M10 FM MK H</p>
+            <p className="rtc2-timer">{formatTime(elapsed)}</p>
+          </div>
+
+          <div className="rtc2-meta">
             <span>SIGNAL <b>98%</b></span>
-            <span>CODEC <b>OPUS 48K</b></span>
             <span>LATENCY <b>014 MS</b></span>
+            <span>CODEC <b>OPUS 48K</b></span>
           </div>
         </aside>
 
-        <main className="rtc-center">
-          {mode === 'audio' ? (
-            <div className="rtc-wave-wrap">
-              <span className="rtc-cross rtc-cross-tl" />
-              <span className="rtc-cross rtc-cross-tr" />
-              <span className="rtc-cross rtc-cross-bl" />
-              <span className="rtc-cross rtc-cross-br" />
-              <canvas ref={waveRef} className="rtc-wave" />
-              <div className="rtc-wave-label">
-                <span>AUDIO WAVEFORM</span>
-                <span>CH-01 / MONO</span>
+        <main className="rtc2-center">
+          <div className={`rtc2-frame${mode === 'video' ? ' is-video' : ''}`}>
+            <i className="rtc2-corner rtc2-tl" />
+            <i className="rtc2-corner rtc2-tr" />
+            <i className="rtc2-corner rtc2-bl" />
+            <i className="rtc2-corner rtc2-br" />
+
+            {mode === 'audio' ? (
+              <div className="rtc2-wave-wrap">
+                <canvas ref={waveRef} className="rtc2-wave" />
+                <span className="rtc2-mode-label">AUDIO LINK</span>
               </div>
-            </div>
-          ) : (
-            <div className="rtc-video-wrap">
-              <div className="rtc-video-frame">
-                <span className="rtc-corner rtc-corner-tl" />
-                <span className="rtc-corner rtc-corner-tr" />
-                <span className="rtc-corner rtc-corner-bl" />
-                <span className="rtc-corner rtc-corner-br" />
+            ) : (
+              <div className="rtc2-video-wrap">
                 <video ref={videoRef} muted playsInline autoPlay />
-                <div className="rtc-video-hud">
-                  <span>LIVE FEED</span>
-                  <span>FIONA // CAM 01</span>
-                </div>
+                <canvas ref={feedRef} className="hidden" aria-hidden="true" />
+                <span className="rtc2-mode-label">LIVE VIDEO</span>
               </div>
-              <canvas ref={feedRef} className="hidden" aria-hidden="true" />
-              <div className="rtc-dot-matrix" aria-hidden="true">
-                {Array.from({ length: 26 }, (_, index) => <i key={index} />)}
-              </div>
-            </div>
-          )}
-        </main>
-
-        <aside className="rtc-right">
-          <div className="rtc-db">
-            <span className="rtc-db-label">DB</span>
-            <div className="rtc-db-bars">
-              {levels.map((level, index) => (
-                <i
-                  key={index}
-                  className={level > 0.66 ? 'is-hot' : level > 0.38 ? 'is-mid' : ''}
-                  style={{ height: `${Math.max(4, level * 100)}%` }}
-                />
-              ))}
-            </div>
-            <span className="rtc-db-value">-12.4</span>
+            )}
           </div>
-
-          {mode === 'video' ? (
-            <>
-              <div className="rtc-participants">
-                {PARTICIPANTS.map((person) => (
-                  <div key={person.id} className={`rtc-person${person.active ? ' is-active' : ''}`}>
-                    <span>{person.label.slice(0, 2)}</span>
-                    <small>{person.role}</small>
-                  </div>
-                ))}
-              </div>
-              <div className="rtc-radar">
-                <span className="rtc-radar-sweep" />
-                <span className="rtc-radar-dot" />
-                <p>RADAR / 07</p>
-              </div>
-              <div className="rtc-coords">
-                {COORDS.map((line) => <span key={line}>{line}</span>)}
-              </div>
-            </>
-          ) : (
-            <div className="rtc-coords rtc-coords-audio">
-              {COORDS.slice(0, 5).map((line) => <span key={line}>{line}</span>)}
-            </div>
-          )}
-        </aside>
+        </main>
       </div>
 
-      <footer className="rtc-controls">
-        <button type="button" className={`rtc-control${muted ? ' is-danger' : ''}`} onClick={() => setMuted((value) => !value)}>
-          <b>◉</b>
-          <span>{muted ? 'UNMUTE' : 'MUTE'}</span>
+      <footer className="rtc2-controls">
+        <button type="button" className={`rtc2-control${muted ? ' is-on' : ''}`} onClick={() => setMuted((value) => !value)}>
+          <span className="rtc2-icon rtc2-icon-mute" />
+          <small>{muted ? 'UNMUTE' : 'MUTE'}</small>
         </button>
-        <button type="button" className={`rtc-control${mode === 'video' ? ' is-active' : ''}`} onClick={() => setMode((value) => (value === 'video' ? 'audio' : 'video'))}>
-          <b>▣</b>
-          <span>{mode === 'video' ? 'AUDIO' : 'VIDEO'}</span>
+        <button type="button" className={`rtc2-control${mode === 'video' ? ' is-on' : ''}`} onClick={() => setMode((value) => (value === 'video' ? 'audio' : 'video'))}>
+          <span className="rtc2-icon rtc2-icon-video" />
+          <small>{mode === 'video' ? 'AUDIO' : 'VIDEO'}</small>
         </button>
-        <button type="button" className={`rtc-control${sharing ? ' is-active' : ''}`} onClick={() => setSharing((value) => !value)}>
-          <b>⇱</b>
-          <span>SHARE</span>
+        <button type="button" className={`rtc2-control${sharing ? ' is-on' : ''}`} onClick={() => setSharing((value) => !value)}>
+          <span className="rtc2-icon rtc2-icon-share" />
+          <small>SHARE</small>
         </button>
-        <button type="button" className="rtc-control is-hangup" onClick={endCall}>
-          <b>■</b>
-          <span>END</span>
+        <button type="button" className="rtc2-control is-end" onClick={endCall}>
+          <span className="rtc2-icon rtc2-icon-end" />
+          <small>END</small>
         </button>
       </footer>
 
-      <p className="rtc-footnote">ENCRYPTED · BELT RTC · CHANNEL 07 · {mode.toUpperCase()} MODE</p>
+      {ended ? <div className="rtc2-ended">LINK TERMINATED</div> : null}
     </div>
   );
 }

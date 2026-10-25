@@ -10,6 +10,7 @@ import '../styles/sprint4.css';
 import '../styles/motion.css';
 import '../styles/identity.css';
 import '../styles/belt.css';
+import '../styles/rtc.css';
 import '../styles/drawer.css';
 import '../styles/archive.css';
 
