@@ -1,0 +1,28 @@
+﻿import { chromium } from 'playwright-core';
+const b=await chromium.launch({channel:'chrome',headless:true});
+const p=await b.newPage({viewport:{width:1440,height:1000}});
+const errors=[];p.on('console',m=>{if(m.type()==='error')errors.push(m.text().slice(0,140))});p.on('pageerror',e=>errors.push('PAGE '+e.message.slice(0,140)));
+await p.goto('http://localhost:3100/login',{waitUntil:'domcontentloaded'});await p.waitForTimeout(280);
+await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/motion-login-enter-1440.png'});
+await p.waitForTimeout(1000);
+const loginInfo=await p.evaluate(()=>({body:document.body.innerText.slice(0,300),anims:document.getAnimations().map(a=>({name:a.animationName,state:a.playState})).slice(0,10)}));console.log('LOGIN_ANIMS',JSON.stringify(loginInfo.anims));
+await p.fill('input[autocomplete=username]','founder');await p.fill('input[type=password]','Dijiang#2026');
+await p.click('form button[type=submit]');await p.waitForTimeout(120);
+const granted=await p.locator('body').innerText();console.log('GRANTED_VISIBLE',/GRANTED|链路已建立/i.test(granted));
+await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/motion-login-granted-1440.png'});
+await p.waitForTimeout(1400);console.log('URL_AFTER_LOGIN',p.url());
+await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/motion-main-1440.png'});
+const header=await p.locator('header').first().innerText();console.log('HEADER',header.slice(0,160));
+const ch=p.locator('text=全域播报').first();await ch.hover();await p.waitForTimeout(250);await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/motion-channel-hover-1440.png'});
+const msg=p.locator('.im-msg').last();await msg.hover();await p.waitForTimeout(200);await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/motion-message-hover-1440.png'});
+await p.goto('http://localhost:3100/settings',{waitUntil:'networkidle'});await p.waitForTimeout(500);
+await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/motion-settings-enter-1440.png'});
+const tabs=await p.locator('button').allInnerTexts();console.log('TABS',tabs.filter(t=>['资料','安全','通知','设备','管理'].includes(t)));
+await p.getByRole('button',{name:'通知',exact:true}).click();await p.waitForTimeout(350);await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/motion-settings-tab-1440.png'});
+console.log('ERRORS',JSON.stringify(errors.slice(0,6)));
+// reduced motion
+const rc=await b.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});const rp=await rc.newPage();
+await rp.goto('http://localhost:3100/login',{waitUntil:'networkidle'});await rp.waitForTimeout(500);
+const reduce=await rp.evaluate(()=>({anims:document.getAnimations().length,scan:getComputedStyle(document.querySelector('h1')).display,body:document.body.innerText.slice(0,120)}));console.log('REDUCE',JSON.stringify(reduce));
+await rp.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/motion-reduced-1440.png'});
+await rc.close();await b.close();

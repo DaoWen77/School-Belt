@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN" data-ef-accent="yellow" data-ef-paper="neutral" data-ef-cut="standard" data-ef-ground="hatch" data-ef-density="standard" data-ef-motion="full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>投票卡 │ O.M.V 帝江号</title>
+<meta name="theme-color" content="#F4F4F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191919" media="(prefers-color-scheme: dark)">
+<script>
+  try { var t = localStorage.getItem('dj-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../app.css">
+</head>
+<body class="ef ef-contours dj">
+<a class="dj-skip" href="#main">跳到主内容</a>
+<div class="ef-tri" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header class="ef-cmdbar dj-cmdbar">
+  <a class="brand" href="../index.html">
+    <span class="seal" aria-hidden="true">帝</span>
+    <span class="dj-brand-name">帝江号<small>Dijiang / Broadcast</small></span>
+  </a>
+  <nav aria-label="界面导航">
+    <a href="01-chat.html">频道<small>Channel</small></a>
+    <a href="02-archive.html">素材<small>Archive</small></a>
+    <a href="03-ideaboard.html">灵感<small>Ideas</small></a>
+    <a href="04-vote.html" aria-current="page">投票<small>Votes</small></a>
+    <a href="05-tasks.html">任务<small>Tasks</small></a>
+    <a href="06-showcase.html">作品<small>Works</small></a>
+    <a href="07-members.html">成员<small>Members</small></a>
+    <a href="08-settings.html">设置<small>Settings</small></a>
+  </nav>
+  <div class="util dj-util">
+    <span class="dj-link-state"><i aria-hidden="true"></i>信号链路正常</span>
+    <button class="dj-themebtn" type="button" data-theme-toggle aria-pressed="false">深色</button>
+    <a class="dj-me" href="07-members.html"><span class="dj-avatar dj-avatar-s" aria-hidden="true">岑</span>岑野</a>
+  </div>
+</header>
+
+<div class="dj-shell">
+  <aside class="dj-rail" aria-label="频道与今日调度">
+    <div class="dj-rail-block">
+      <p class="ef-eyebrow slash">Channels</p>
+      <h2 class="dj-rail-title">频道 <span class="ef-field">3</span></h2>
+      <ul class="dj-nav">
+        <li><a href="01-chat.html"><span>全域播报<small>general</small></span><span class="dj-count">3</span></a></li>
+        <li><a href="02-archive.html"><span>素材工坊<small>archive</small></span><span class="dj-count">0</span></a></li>
+        <li><a href="01-chat.html"><span>第三协议<small>protocol · 私密</small></span><span class="dj-count">1</span></a></li>
+      </ul>
+    </div>
+    <div class="dj-rail-block dj-rail-extra">
+      <p class="ef-eyebrow slash">Today</p>
+      <h2 class="dj-rail-title">今日调度</h2>
+      <ul class="dj-kvlist">
+        <li><span class="k">日期</span><span class="ef-field">2026.10.22</span></li>
+        <li><span class="k">进行中投票</span><span class="ef-field">2 张</span></li>
+        <li><span class="k">最近截止</span><span class="ef-field">10.24 18:00</span></li>
+        <li><span class="k">已投成员</span><span class="ef-field">6 / 8</span></li>
+      </ul>
+    </div>
+    <div class="dj-rail-block dj-rail-extra">
+      <p class="ef-eyebrow slash">Members</p>
+      <h2 class="dj-rail-title">成员 <span class="ef-field">8</span></h2>
+      <div class="dj-avatars" aria-hidden="true">
+        <span class="dj-avatar dj-avatar-s">岑</span><span class="dj-avatar dj-avatar-s">陆</span><span class="dj-avatar dj-avatar-s">白</span><span class="dj-avatar dj-avatar-s">祁</span><span class="dj-avatar dj-avatar-s">沈</span>
+      </div>
+      <p class="dj-rail-note"><a class="dj-textlink" href="07-members.html">查看成员与邀请码</a></p>
+    </div>
+  </aside>
+
+  <main class="dj-main" id="main">
+    <header class="ef-head">
+      <h1>投票 <small>Votes</small></h1>
+      <p>2 张进行中 │ 最近截止 2026.10.24 18:00 │ 多选 1 张 │ 匿名 1 张</p>
+    </header>
+
+    <div class="dj-votes">
+      <article class="ef-panel dj-vote" data-vote="multi" data-reveal="always" data-voters="6" data-total="8">
+        <header class="dj-vote-head">
+          <div>
+            <p class="ef-eyebrow slash">Vote / 多选 · 匿名</p>
+            <h2 class="dj-vote-title">本轮主题：雾海 / 锈带 / 静默轨道</h2>
+          </div>
+          <span class="ef-state">进行中</span>
+        </header>
+        <ul class="ef-facts ef-field">
+          <li>截止 2026.10.25 21:00</li>
+          <li>剩余 3 天</li>
+          <li><span data-voters>6</span> / 8 人已投票</li>
+          <li>可多选</li>
+        </ul>
+        <p class="dj-vote-note">匿名投票不向成员展示投票人，投票结果只显示票数。截止前可以改选。</p>
+
+        <div class="dj-options" data-options>
+          <label class="dj-opt" data-base="4"><input type="checkbox" name="topic" value="fog">
+            <span class="dj-opt-body">
+              <span class="dj-opt-row"><span class="dj-opt-name">雾海</span><span class="ef-field" data-count>4 票</span></span>
+              <span class="dj-bar" aria-hidden="true"><i data-bar style="width:100%"></i></span>
+            </span>
+          </label>
+          <label class="dj-opt" data-base="3"><input type="checkbox" name="topic" value="rust">
+            <span class="dj-opt-body">
+              <span class="dj-opt-row"><span class="dj-opt-name">锈带</span><span class="ef-field" data-count>3 票</span></span>
+              <span class="dj-bar" aria-hidden="true"><i data-bar style="width:75%"></i></span>
+            </span>
+          </label>
+          <label class="dj-opt" data-base="2"><input type="checkbox" name="topic" value="orbit">
+            <span class="dj-opt-body">
+              <span class="dj-opt-row"><span class="dj-opt-name">静默轨道</span><span class="ef-field" data-count>2 票</span></span>
+              <span class="dj-bar" aria-hidden="true"><i data-bar style="width:50%"></i></span>
+            </span>
+          </label>
+        </div>
+
+        <div class="dj-vote-foot">
+          <p class="ef-actions">
+            <button class="ef-btn go" type="button" data-vote-submit>提交投票</button>
+            <a class="ef-btn" href="03-ideaboard.html">看灵感墙</a>
+          </p>
+          <p class="ef-field" data-vote-state>你还没投过这张卡</p>
+        </div>
+      </article>
+
+      <article class="ef-panel dj-vote" data-vote="single" data-reveal="after" data-voters="4" data-total="8">
+        <header class="dj-vote-head">
+          <div>
+            <p class="ef-eyebrow slash">Vote / 单选 · 实名</p>
+            <h2 class="dj-vote-title">下次同步时间</h2>
+          </div>
+          <span class="ef-state">进行中</span>
+        </header>
+        <ul class="ef-facts ef-field">
+          <li>截止 2026.10.24 18:00</li>
+          <li>剩余 2 天</li>
+          <li><span data-voters>4</span> / 8 人已投票</li>
+          <li>单选 · 实名</li>
+        </ul>
+        <p class="dj-vote-note">实名投票，投完能看到参与人和各自的选择。结果在提交后显示。</p>
+
+        <div class="dj-options" data-options>
+          <label class="dj-opt" data-base="2"><input type="radio" name="sync" value="a">
+            <span class="dj-opt-body">
+              <span class="dj-opt-row"><span class="dj-opt-name">10.26 20:00</span><span class="ef-field" data-count hidden>2 票</span></span>
+              <span class="dj-bar" aria-hidden="true"><i data-bar style="width:0"></i></span>
+            </span>
+          </label>
+          <label class="dj-opt" data-base="1"><input type="radio" name="sync" value="b">
+            <span class="dj-opt-body">
+              <span class="dj-opt-row"><span class="dj-opt-name">10.27 20:00</span><span class="ef-field" data-count hidden>1 票</span></span>
+              <span class="dj-bar" aria-hidden="true"><i data-bar style="width:0"></i></span>
+            </span>
+          </label>
+          <label class="dj-opt" data-base="1"><input type="radio" name="sync" value="c">
+            <span class="dj-opt-body">
+              <span class="dj-opt-row"><span class="dj-opt-name">10.27 21:00</span><span class="ef-field" data-count hidden>1 票</span></span>
+              <span class="dj-bar" aria-hidden="true"><i data-bar style="width:0"></i></span>
+            </span>
+          </label>
+        </div>
+
+        <div class="dj-results" data-results hidden>
+          <p class="ef-eyebrow slash">Results / 结果</p>
+          <p class="dj-voters">参与人：陆见深、白棠、祁雾、闻溪</p>
+        </div>
+
+        <div class="dj-vote-foot">
+          <p class="ef-actions">
+            <button class="ef-btn go" type="button" data-vote-submit>提交投票</button>
+            <a class="ef-btn" href="05-tasks.html">看任务清单</a>
+          </p>
+          <p class="ef-field" data-vote-state>结果在提交后显示</p>
+        </div>
+      </article>
+    </div>
+
+    <p class="dj-footnote ef-field">截止前可改选；截止后结果固定。匿名投票只向成员隐藏投票人，票数照常显示。</p>
+  </main>
+</div>
+
+<p class="dj-sr-only" role="status" aria-live="polite" data-live></p>
+<script src="../demo.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,67 @@
+{
+  "shots": {
+    "sprint4-player-radar-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint4-player-radar-1440.png",
+    "sprint4-moments-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint4-moments-1440.png",
+    "sprint4-post-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint4-post-1440.png",
+    "sprint4-archive-scramble-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint4-archive-scramble-1440.png",
+    "sprint4-archive-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint4-archive-1440.png",
+    "sprint4-ping-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint4-ping-1440.png",
+    "sprint4-sudo-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint4-sudo-1440.png",
+    "sprint4-mobile-moments-390.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint4-mobile-moments-390.png"
+  },
+  "checks": {
+    "radar": {
+      "hud": true,
+      "radarSvg": 1,
+      "metrics": [
+        "1405/1405",
+        "9/1405",
+        "2/1405",
+        "0/1405",
+        "43/1405"
+      ]
+    },
+    "player": {
+      "bar": true,
+      "hasAudio": true,
+      "queueText": "Sprint2 测试音乐",
+      "audioSrc": null
+    },
+    "momentsOpen": {
+      "hasComposer": true,
+      "header": "朋友圈"
+    },
+    "postCreated": {
+      "found": true,
+      "likes": [
+        "删除",
+        "♡ 0",
+        "评论 0",
+        "♡ 1",
+        "评论 1"
+      ]
+    },
+    "postInteractions": {
+      "text": "问 |  | 问道 |  | 2026.10.24 |  | 删除 |  | Sprint4 朋友圈验收 1792816357404 |  | ♥ 1 | 评论 1 |  | 问道Sprint4 评论 |  | 发表"
+    },
+    "archive": {
+      "header": "档案室",
+      "cards": 27,
+      "text": "档案室 |  | ARCHIVE / 素材·作品·灵感 |  | 在线 | 详情 | 深色 | [小号]问道 | 帝 | 帝江号 | BROADCAST | 聊天 | 朋友圈 | 档案室 | 频道 CHANNELS | 2 | 全域播报 | GENERAL · 公开 | 素材工坊 | ARCHIVE · 公开 | 私聊 DIRECT | 2 | 林测绘 | @LIN | 建立者 | @FOUNDER | 新建私聊 | 群聊 GROUPS | 1 | 调度夜班 | 4 人 · 群聊 | 新建群聊 | 态势 HUD | ACTIVITY | − | 消息 | 活跃 | 任务 | 投票 | 素材 | 消息 | 1405/1405 | 活跃 | 9/1405 | 任务 | 2/1405 | 投票 | 0/1405 | 素材 | 43/1405 | 我的任务 TASKS | 1 | − | 素材归档"
+    },
+    "ping": {
+      "hasPing": true,
+      "snippet": "[PING] | REST /healthz  16ms | WS            socket.connected |  | 回复 | 编辑 | 删除 | 发送 |  | ENTER 发送 · SHIFT+ENTER 换行 | 可拖拽 / 粘贴文件 |  | Sprint2 测试"
+    },
+    "sudoActive": true,
+    "sudoGone": true,
+    "mobile": {
+      "header": "朋友圈",
+      "overflowX": 0,
+      "hasComposer": true
+    }
+  },
+  "errors": [],
+  "pageErrors": [],
+  "failedRequests": []
+}

@@ -1,0 +1,355 @@
+/* ==========================================================================
+   im.css · IM 布局的运行时补充（Tailwind 之外的少量必要规则）
+   仍然只用 tokens.css 的变量；无圆角 / 投影 / 渐变。
+   ========================================================================== */
+
+.im-body {
+  overflow: hidden;
+  background: var(--ef-paper);
+  color: var(--ef-ink);
+}
+
+.im-app {
+  height: var(--im-vvh, 100dvh);
+  min-height: var(--im-vvh, 100dvh);
+  overflow: hidden;
+}
+
+/* 唯一滚动区：消息列表 */
+.im-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ef-ink) 30%, transparent) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+.im-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.im-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ef-ink) 26%, transparent);
+}
+.im-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* UA 默认按钮/输入框在未启用 preflight 时是白底立体控件，这里做最小归一：
+   只对没有 Tailwind bg-*（含 bg- 作为独立 class 前缀）的元素去掉默认底色。
+   注意：不能写 color/font 简写，否则会盖掉 Tailwind 的 text 颜色与字号工具类。 */
+.im-body :is(button, input, textarea, select) {
+  font-family: inherit;
+}
+
+.im-body button:not([class*=' bg-']):not([class^='bg-']) {
+  background-color: transparent;
+}
+
+.im-body button:not([class*='border']):not([class*=' border']) {
+  border: 0;
+}
+
+.im-body :is(input, textarea, select):not([class*=' bg-']):not([class^='bg-']):not([type='checkbox']):not([type='radio']):not([type='range']) {
+  background-color: transparent;
+}
+
+.im-body :is(input[type='checkbox'], input[type='radio']) {
+  accent-color: var(--ef-ink);
+}
+
+/* 未启用 preflight：列表默认圆点/缩进去掉 */
+.im-body :is(ul, ol) {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.im-body :is(p, h1, h2, h3, h4) {
+  margin: 0;
+}
+
+/* 消息操作默认隐藏，hover / focus-within 才出现 */
+.im-msg-actions {
+  opacity: 0;
+  transition: opacity 0.12s var(--ef-ease);
+}
+.im-msg:hover .im-msg-actions,
+.im-msg:focus-within .im-msg-actions {
+  opacity: 1;
+}
+
+/* 输入区底部安全区（iOS / 刘海屏） */
+.im-composer {
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* 移动端抽屉动画（reduced-motion 自动关闭） */
+@media (prefers-reduced-motion: no-preference) {
+  .im-drawer-panel {
+    transition: transform 0.22s var(--ef-mech);
+  }
+  .im-drawer-backdrop {
+    animation: im-fade 0.18s linear both;
+  }
+}
+
+@keyframes im-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* 输入框自动增高：1–5 行，超出后内部滚动 */
+.im-textarea {
+  field-sizing: content;
+  max-height: 8.5rem;
+  overflow-y: auto;
+  resize: none;
+}
+@supports not (field-sizing: content) {
+  .im-textarea {
+    height: auto;
+  }
+}
+
+/* 抽屉里的列表 */
+.im-drawer-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+/* 素材缩略图在消息里的紧凑尺寸 */
+.im-thumb img {
+  display: block;
+  max-width: min(100%, 20rem);
+  max-height: 14rem;
+  object-fit: contain;
+}
+
+/* 公告 Markdown（白名单渲染，无 raw HTML） */
+.im-markdown > :first-child {
+  margin-top: 0;
+}
+.im-markdown p,
+.im-markdown ul,
+.im-markdown ol,
+.im-markdown pre,
+.im-markdown blockquote {
+  margin: 0.35rem 0;
+}
+.im-markdown ul {
+  list-style: disc;
+  padding-left: 1.1rem;
+}
+.im-markdown ol {
+  list-style: decimal;
+  padding-left: 1.2rem;
+}
+.im-markdown code {
+  background: var(--ef-chip);
+  padding: 0 0.25em;
+  font-family: var(--ef-font-mono);
+  font-size: 0.92em;
+}
+.im-markdown pre {
+  background: var(--ef-chip);
+  padding: 0.5rem 0.6rem;
+  overflow-x: auto;
+}
+.im-markdown pre code {
+  background: transparent;
+  padding: 0;
+}
+.im-markdown blockquote {
+  border-left: 2px solid var(--ef-ink);
+  padding-left: 0.6rem;
+  color: var(--ef-ink-2);
+}
+.im-markdown h1,
+.im-markdown h2,
+.im-markdown h3,
+.im-markdown h4 {
+  margin: 0.5rem 0 0.25rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.im-markdown h1 {
+  font-size: 1.1rem;
+}
+.im-markdown h2 {
+  font-size: 1rem;
+}
+.im-markdown h3,
+.im-markdown h4 {
+  font-size: 0.95rem;
+}
+
+/* 极淡的消息分组分隔线 */
+.im-group-line {
+  height: 1px;
+  background: color-mix(in srgb, var(--ef-ink) 7%, transparent);
+}
+
+/* 代码块：语言标签 + 复制，高亮色保持纸/墨/低饱和 */
+.im-markdown .md-code {
+  margin: 0.45rem 0;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-chip);
+}
+.md-code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--ef-rule);
+  padding: 0.25rem 0.5rem;
+  font-family: var(--ef-font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ef-ink-2);
+}
+.md-code-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  padding: 0.1rem 0.35rem;
+  color: var(--ef-ink-2);
+}
+.md-code-copy:hover {
+  border-color: var(--ef-ink);
+  color: var(--ef-ink);
+}
+.im-markdown .md-code pre {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  background: transparent;
+  overflow-x: auto;
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+.im-markdown .md-code code {
+  background: transparent;
+  padding: 0;
+  font-family: var(--ef-font-mono);
+}
+
+/* highlight.js tokens（不用外部主题，避免覆盖纸/墨） */
+.hljs-comment,
+.hljs-quote {
+  color: var(--ef-ink-2);
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-section,
+.hljs-link {
+  color: #6b5b00;
+  font-weight: 700;
+}
+.hljs-string,
+.hljs-title,
+.hljs-name,
+.hljs-attribute,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+  color: #245f45;
+}
+.hljs-number,
+.hljs-meta,
+.hljs-built_in,
+.hljs-type,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-attr {
+  color: #7a3d00;
+}
+.hljs-deletion {
+  color: var(--ef-danger);
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 700;
+}
+
+/* 贴纸消息：文件缩略图 96×96 */
+.dj-attach-img.is-sticker img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  background: var(--ef-paper);
+}
+
+/* @Bot / /report：终端风消息（墨底 + 荧光黄游标） */
+.im-bot {
+  max-width: 46rem;
+  border: 1px solid var(--ef-ink);
+  background: var(--ef-ink);
+  color: var(--ef-paper);
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+}
+.im-bot-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ef-paper) 20%, transparent);
+  padding: 0.3rem 0.6rem;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--ef-paper) 70%, transparent);
+}
+.im-bot-tag {
+  color: var(--ef-signal);
+  font-weight: 700;
+}
+.im-bot-sub {
+  border: 1px solid color-mix(in srgb, var(--ef-signal) 55%, transparent);
+  padding: 0 0.25rem;
+  color: var(--ef-signal);
+}
+.im-bot-live {
+  color: var(--ef-signal);
+  animation: im-bot-blink 1s steps(2, start) infinite;
+}
+.im-bot-body {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+  color: var(--ef-paper);
+}
+.im-bot-cursor {
+  display: inline-block;
+  width: 0.55em;
+  color: var(--ef-signal);
+  animation: im-bot-blink 1s steps(2, start) infinite;
+}
+.im-bot-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--ef-danger) 55%, transparent);
+  padding: 0.35rem 0.6rem;
+  font-size: 10px;
+  color: #ff9b9b;
+}
+.im-bot-retry {
+  border: 1px solid var(--ef-signal);
+  color: var(--ef-signal);
+  padding: 0 0.35rem;
+  font-size: 10px;
+}
+@keyframes im-bot-blink {
+  to {
+    opacity: 0.2;
+  }
+}

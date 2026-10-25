@@ -1,0 +1,68 @@
+{
+  "handle": "founder",
+  "corsBypassed": false,
+  "checks": {
+    "login": {
+      "loggedIn": true,
+      "path": "/"
+    },
+    "ws": "信号链路正常",
+    "tabs": [
+      "聊天Chat",
+      "素材Material",
+      "投票Vote",
+      "任务Task"
+    ],
+    "materialBefore": {
+      "cards": 3,
+      "empty": false,
+      "error": ""
+    },
+    "upload": {
+      "skipped": true,
+      "note": "本次运行跳过上传（已有 daily-upload-1440.png 证据）"
+    },
+    "vote": {
+      "skipped": true,
+      "note": "本次运行跳过投票（已有 daily-vote-1440.png 证据）"
+    },
+    "taskBefore": {
+      "columns": [
+        "待办 0",
+        "进行中 4",
+        "已完成 1"
+      ],
+      "cards": 5,
+      "selects": 5,
+      "error": ""
+    },
+    "taskMove": {
+      "title": "Lead 接口自检任务",
+      "inTarget": true,
+      "targetColumn": "已完成 2",
+      "error": ""
+    },
+    "cardMessage": {
+      "cardMessages": 7,
+      "cardTitles": [
+        "Lead 接口自检投票",
+        "Lead 接口自检任务",
+        "upload-test.png"
+      ]
+    },
+    "sent": true,
+    "editOpened": true,
+    "editForm": true,
+    "edited": {
+      "text": "建 | 建立者 | @founder │ 00:09 | 已编辑 |  | daily 验收消息 1792685381045（已编辑） |  | 回复 | 编辑 | 删除 | No.622 | 2026.10.23 00:09",
+      "editedBadge": true
+    },
+    "deleted": {
+      "deleted": true,
+      "note": "消息已不在流中"
+    }
+  },
+  "shots": {},
+  "consoleErrors": [],
+  "exceptions": []
+}

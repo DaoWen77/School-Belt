@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN" data-ef-accent="yellow" data-ef-paper="neutral" data-ef-cut="standard" data-ef-ground="hatch" data-ef-density="standard" data-ef-motion="full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>设置 │ O.M.V 帝江号</title>
+<meta name="theme-color" content="#F4F4F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191919" media="(prefers-color-scheme: dark)">
+<script>
+  try { var t = localStorage.getItem('dj-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../app.css">
+</head>
+<body class="ef ef-contours dj">
+<a class="dj-skip" href="#main">跳到主内容</a>
+<div class="ef-tri" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header class="ef-cmdbar dj-cmdbar">
+  <a class="brand" href="../index.html">
+    <span class="seal" aria-hidden="true">帝</span>
+    <span class="dj-brand-name">帝江号<small>Dijiang / Broadcast</small></span>
+  </a>
+  <nav aria-label="界面导航">
+    <a href="01-chat.html">频道<small>Channel</small></a>
+    <a href="02-archive.html">素材<small>Archive</small></a>
+    <a href="03-ideaboard.html">灵感<small>Ideas</small></a>
+    <a href="04-vote.html">投票<small>Votes</small></a>
+    <a href="05-tasks.html">任务<small>Tasks</small></a>
+    <a href="06-showcase.html">作品<small>Works</small></a>
+    <a href="07-members.html">成员<small>Members</small></a>
+    <a href="08-settings.html" aria-current="page">设置<small>Settings</small></a>
+  </nav>
+  <div class="util dj-util">
+    <span class="dj-link-state"><i aria-hidden="true"></i>信号链路正常</span>
+    <button class="dj-themebtn" type="button" data-theme-toggle aria-pressed="false">深色</button>
+    <a class="dj-me" href="07-members.html"><span class="dj-avatar dj-avatar-s" aria-hidden="true">岑</span>岑野</a>
+  </div>
+</header>
+
+<div class="dj-shell">
+  <aside class="dj-rail" aria-label="频道与今日调度">
+    <div class="dj-rail-block">
+      <p class="ef-eyebrow slash">Channels</p>
+      <h2 class="dj-rail-title">频道 <span class="ef-field">3</span></h2>
+      <ul class="dj-nav">
+        <li><a href="01-chat.html"><span>全域播报<small>general</small></span><span class="dj-count">3</span></a></li>
+        <li><a href="02-archive.html"><span>素材工坊<small>archive</small></span><span class="dj-count">0</span></a></li>
+        <li><a href="01-chat.html"><span>第三协议<small>protocol · 私密</small></span><span class="dj-count">1</span></a></li>
+      </ul>
+    </div>
+    <div class="dj-rail-block dj-rail-extra">
+      <p class="ef-eyebrow slash">Today</p>
+      <h2 class="dj-rail-title">今日调度</h2>
+      <ul class="dj-kvlist">
+        <li><span class="k">日期</span><span class="ef-field">2026.10.22</span></li>
+        <li><span class="k">账号</span><span class="ef-field">@cenye</span></li>
+        <li><span class="k">角色</span><span class="ef-field">建立者</span></li>
+        <li><span class="k">时区</span><span class="ef-field">Asia/Shanghai</span></li>
+      </ul>
+    </div>
+    <div class="dj-rail-block dj-rail-extra">
+      <p class="ef-eyebrow slash">Members</p>
+      <h2 class="dj-rail-title">成员 <span class="ef-field">8</span></h2>
+      <div class="dj-avatars" aria-hidden="true">
+        <span class="dj-avatar dj-avatar-s">岑</span><span class="dj-avatar dj-avatar-s">陆</span><span class="dj-avatar dj-avatar-s">白</span><span class="dj-avatar dj-avatar-s">祁</span><span class="dj-avatar dj-avatar-s">沈</span>
+      </div>
+      <p class="dj-rail-note"><a class="dj-textlink" href="07-members.html">查看成员与邀请码</a></p>
+    </div>
+  </aside>
+
+  <main class="dj-main" id="main">
+    <header class="ef-head">
+      <h1>设置 <small>Settings</small></h1>
+      <p>通知 │ 免打扰时段 │ 主题 │ 设置只影响这台设备上的 @cenye</p>
+    </header>
+
+    <div class="dj-settings">
+      <div class="dj-stack">
+        <section class="ef-panel">
+          <h2>通知 <a href="01-chat.html">回频道</a></h2>
+          <ul class="dj-setlist">
+            <li class="ef-setting">
+              <span><b>通知级别</b><small>全站默认。频道里可以单独覆盖。</small></span>
+              <div class="ef-seg" role="radiogroup" aria-label="通知级别">
+                <label><input type="radio" name="notify" value="all" checked><span>全部</span></label>
+                <label><input type="radio" name="notify" value="mentions"><span>仅提及</span></label>
+                <label><input type="radio" name="notify" value="none"><span>不接收</span></label>
+              </div>
+            </li>
+            <li class="ef-setting">
+              <span><b>网页推送</b><small>浏览器通知。关掉后只留站内未读计数。</small></span>
+              <input class="ef-switch" type="checkbox" role="switch" checked aria-label="网页推送">
+            </li>
+            <li class="ef-setting">
+              <span><b>安卓推送</b><small>1 台设备已登记：Pixel（2026.10.18 最后活跃）。</small></span>
+              <input class="ef-switch" type="checkbox" role="switch" checked aria-label="安卓推送">
+            </li>
+            <li class="ef-setting">
+              <span><b>聚合窗口</b><small>5 分钟内的同类通知合并成一条。</small></span>
+              <span class="ef-field">300 秒</span>
+            </li>
+          </ul>
+        </section>
+
+        <section class="ef-panel">
+          <h2>免打扰时段</h2>
+          <ul class="dj-setlist">
+            <li class="ef-setting">
+              <span><b>开启免打扰</b><small>时段内的推送不弹窗，合并到时段结束后一起发。</small></span>
+              <input class="ef-switch" type="checkbox" role="switch" checked data-dnd aria-label="开启免打扰">
+            </li>
+            <li class="ef-setting">
+              <span><b>时段</b><small>按本机时区计算，跨天的时间也可以。</small></span>
+              <div class="dj-time">
+                <label class="dj-sr-only" for="dnd-start">免打扰开始时间</label>
+                <input id="dnd-start" type="time" value="22:00" data-dnd-time>
+                <span class="ef-field">至</span>
+                <label class="dj-sr-only" for="dnd-end">免打扰结束时间</label>
+                <input id="dnd-end" type="time" value="08:00" data-dnd-time>
+              </div>
+            </li>
+            <li class="ef-setting">
+              <span><b>时区</b><small>邀请码有效期、任务截止都按这个时区显示。</small></span>
+              <span class="ef-field">Asia/Shanghai (UTC+08:00)</span>
+            </li>
+            <li class="ef-setting">
+              <span><b>时段内积压</b><small>现在是 21:07，免打扰还没开始。</small></span>
+              <span class="ef-field">0 条积压</span>
+            </li>
+          </ul>
+          <p class="ef-notice" data-flag="说明">免打扰只影响推送，不影响站内消息。开启后仍然可以正常发信号。</p>
+        </section>
+
+        <section class="ef-panel">
+          <h2>主题</h2>
+          <ul class="dj-setlist">
+            <li class="ef-setting">
+              <span><b>外观</b><small>浅色和深色是两套完整主题，不是反色。改完立刻生效。</small></span>
+              <div class="ef-seg" role="radiogroup" aria-label="外观">
+                <label><input type="radio" name="theme" value="light"><span>浅色</span></label>
+                <label><input type="radio" name="theme" value="dark"><span>深色</span></label>
+                <label><input type="radio" name="theme" value="system"><span>跟随系统</span></label>
+              </div>
+            </li>
+            <li class="ef-setting">
+              <span><b>系统减少动态效果</b><small>跟随操作系统设置。开启后所有动效关闭，内容照常完整。</small></span>
+              <span class="ef-field" data-motion-state>读取中</span>
+            </li>
+            <li class="ef-setting">
+              <span><b>本机记住的选择</b><small>只存在这台设备的浏览器里，不写进账号。</small></span>
+              <span class="ef-field" data-theme-state>跟随系统</span>
+            </li>
+          </ul>
+          <p class="ef-actions">
+            <button class="ef-btn go" type="button" data-save-settings>保存设置</button>
+            <button class="ef-btn" type="button" data-reset-settings>恢复默认</button>
+          </p>
+        </section>
+      </div>
+
+      <aside class="dj-side" aria-label="账号与设备">
+        <section class="ef-panel">
+          <h2>账号</h2>
+          <ul class="dj-kvlist">
+            <li><span class="k">显示名</span><span class="ef-field">岑野</span></li>
+            <li><span class="k">登录名</span><span class="ef-field">@cenye</span></li>
+            <li><span class="k">全站角色</span><span class="ef-field">建立者</span></li>
+            <li><span class="k">状态</span><span class="ef-field">正常</span></li>
+            <li><span class="k">密码</span><span class="ef-field">2026.09.30 修改</span></li>
+          </ul>
+          <p class="dj-rail-note"><a class="dj-textlink" href="07-members.html">管理成员与邀请码</a></p>
+        </section>
+        <section class="ef-panel">
+          <h2>设备 <a href="08-settings.html">2 台</a></h2>
+          <ul class="dj-pins">
+            <li><span class="ef-field">网页</span><span>Chrome │ 这台设备</span><span class="ef-field">在线</span></li>
+            <li><span class="ef-field">安卓</span><span>Pixel │ 2026.10.18 活跃</span><span class="ef-field">推送开</span></li>
+          </ul>
+          <p class="dj-rail-note">退出登录会清掉本机的刷新凭证，push 订阅一起失效。</p>
+        </section>
+        <section class="ef-panel">
+          <h2>当前生效</h2>
+          <ul class="dj-kvlist">
+            <li><span class="k">通知</span><span class="ef-field" data-sum-notify>全部</span></li>
+            <li><span class="k">免打扰</span><span class="ef-field" data-sum-dnd>22:00 至 08:00</span></li>
+            <li><span class="k">外观</span><span class="ef-field" data-sum-theme>跟随系统</span></li>
+            <li><span class="k">时区</span><span class="ef-field">Asia/Shanghai</span></li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<p class="dj-sr-only" role="status" aria-live="polite" data-live></p>
+<script src="../demo.js"></script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>04 · 投票 · 票根 — 帝江号 · 航测档案</title>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../app.css">
+<script src="../demo.js"></script>
+</head>
+<body data-screen="04" data-channel="general">
+<a class="skip" href="#main">跳到主内容</a>
+
+<div class="app">
+  <aside class="rail" aria-label="广播与频道">
+    <a class="brand" href="../index.html">
+      <span class="seal-mark" aria-hidden="true">帝</span>
+      <span class="brand-text">
+        <span class="brand-kicker">O.M.V · 帝江号</span>
+        <span class="brand-title">全域广播</span>
+        <span class="brand-sub">航测档案 · CHART &amp; LOG</span>
+      </span>
+    </a>
+    <nav class="rail-nav" aria-label="全域导航">
+      <section class="rail-sec">
+        <h2 class="rail-label">频道 <span>CHANNELS</span></h2>
+        <ul class="chan-list">
+          <li><a class="chan" href="01-chat.html"><span class="chan-hash">#</span><span class="chan-name">全域播报</span><span class="chan-unread" aria-label="3 条未读">3</span></a></li>
+          <li><a class="chan" href="02-archive.html"><span class="chan-hash">#</span><span class="chan-name">素材工坊</span></a></li>
+          <li><a class="chan chan--private" href="#" data-private="1"><span class="chan-hash">#</span><span class="chan-name">第三协议</span><span class="chan-lock">私密</span><span class="chan-unread" aria-label="1 条未读">1</span></a></li>
+        </ul>
+      </section>
+      <section class="rail-sec">
+        <h2 class="rail-label">档案视图 <span>VIEWS</span></h2>
+        <ul class="rail-list">
+          <li><a class="rail-link" href="03-ideaboard.html">灵感墙</a></li>
+          <li><a class="rail-link" href="06-showcase.html">作品墙</a></li>
+        </ul>
+      </section>
+      <section class="rail-sec">
+        <h2 class="rail-label">调度 <span>DISPATCH</span></h2>
+        <ul class="rail-list">
+          <li><a class="rail-link is-active" href="04-vote.html" aria-current="page">投票 · 票根</a></li>
+          <li><a class="rail-link" href="05-tasks.html">任务 · 台账</a></li>
+        </ul>
+      </section>
+      <section class="rail-sec">
+        <h2 class="rail-label">管理 <span>REGISTRY</span></h2>
+        <ul class="rail-list">
+          <li><a class="rail-link" href="07-invite.html">邀请成员</a></li>
+          <li><a class="rail-link" href="08-settings.html">设置</a></li>
+        </ul>
+      </section>
+    </nav>
+    <div class="rail-foot">
+      <div class="rail-user">
+        <span class="avatar" aria-hidden="true">岑</span>
+        <div class="rail-user-meta">
+          <div class="rail-user-name">岑野</div>
+          <div class="rail-user-role">建立者 · OWNER</div>
+        </div>
+      </div>
+      <div class="rail-tools">
+        <a class="icon-btn icon-btn--quiet" href="../index.html" aria-label="返回设计封面" title="设计封面">
+          <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M9.5 20v-6h5v6"/></svg>
+        </a>
+        <button class="icon-btn icon-btn--quiet" type="button" data-theme-toggle aria-label="切换主题">
+          <svg class="ico theme-glyph" data-theme-glyph="light" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+          <svg class="ico theme-glyph" data-theme-glyph="dark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5z"/></svg>
+          <svg class="ico theme-glyph" data-theme-glyph="system" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <header class="main-head">
+      <div class="head-top">
+        <p class="crumbs"><a href="../index.html">O.M.V 帝江号</a><span class="sep">/</span>全域广播<span class="sep">/</span>调度<span class="sep">/</span><span class="crumb-current">投票 · 票根</span></p>
+        <div class="head-tools">
+          <button class="icon-btn drawer-toggle" type="button" data-drawer-toggle aria-controls="drawer" aria-expanded="true" aria-label="收起或展开档案抽屉">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5h16v14H4z"/><path d="M14 5v14M17 9h1M17 13h1"/></svg>
+          </button>
+          <button class="icon-btn" type="button" data-theme-toggle aria-label="切换主题">
+            <svg class="ico theme-glyph" data-theme-glyph="light" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+            <svg class="ico theme-glyph" data-theme-glyph="dark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5z"/></svg>
+            <svg class="ico theme-glyph" data-theme-glyph="system" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="head-main">
+        <div class="head-titles">
+          <p class="eyebrow">POLL STUB · 卷 06 · 票号 CW-1025-07</p>
+          <h1 class="screen-title">投票 · <em>票根</em></h1>
+          <p class="screen-sub">投票不是表单，而是一张可核验的票据：勾选、撕存根、留票号。开票时按存根联核对。</p>
+        </div>
+        <div class="head-actions">
+          <a class="btn btn--ghost" href="../screens/03-ideaboard.html">
+            <svg class="ico ico--14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 7h3v3H5zM11 8.5h8M5 14h3v3H5zM11 15.5h8"/></svg>查看灵感
+          </a>
+          <button class="btn btn--accent" type="button" data-quick="发起投票 · 新建票根并登记选项（演示）">
+            <svg class="ico ico--14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>发起投票
+          </button>
+        </div>
+      </div>
+      <div class="head-meta">
+        <span class="meta-item"><strong>#general</strong> 公开频道</span>
+        <span class="meta-dot" aria-hidden="true"></span>
+        <span class="meta-item">多选 · 可选任意项</span>
+        <span class="meta-dot" aria-hidden="true"></span>
+        <span class="meta-item">截止 <strong class="mono">10.25 23:59</strong></span>
+        <span class="meta-dot" aria-hidden="true"></span>
+        <span class="meta-item"><strong data-vote-voters>6</strong> 人已投</span>
+        <span class="meta-dot" aria-hidden="true"></span>
+        <span class="meta-item">票面 <strong data-vote-selected>尚未选择</strong></span>
+      </div>
+      <div class="head-rule" aria-hidden="true"></div>
+    </header>
+
+    <div class="main-body">
+      <svg class="head-contour" viewBox="0 0 160 90" aria-hidden="true" focusable="false">
+        <g fill="none" stroke="currentColor" stroke-width=".9">
+          <path d="M-8 60c24 0 28-17 50-17s27 17 50 17 27-11 47-11"/>
+          <path d="M-8 70c25 0 30-17 52-17s26 17 49 17 28-11 48-11"/>
+        </g>
+      </svg>
+
+      <div class="vote-layout">
+        <article class="ticket" data-vote-ticket aria-label="投票票据：本轮主题">
+          <header class="ticket-head">
+            <div class="ticket-head-left">
+              <p class="ticket-kicker"><span>航测投票存根</span><span class="rule-dot" aria-hidden="true"></span><span>POLL STUB</span><span class="rule-dot" aria-hidden="true"></span><span>多选</span></p>
+              <h2 class="ticket-title">本轮主题：雾海 / 锈带 / 静默轨道</h2>
+              <p class="ticket-sub">勾选任意主题，撕下存根联留存票号；截止前可反复核对，封存后不可修改。</p>
+            </div>
+            <div class="ticket-head-right">
+              <span class="ticket-no">No. CW-1025-07</span>
+              <span class="stamp stamp--round stamp--doing">进行中</span>
+            </div>
+          </header>
+
+          <div class="ticket-meta">
+            <span>开具人 <strong>岑野</strong></span>
+            <span>截止 <strong class="deadline"><svg class="ico ico--14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="5" width="16" height="15" rx="1.5"/><path d="M8 3v4M16 3v4M4 10h16"/></svg> 10.25 23:59</strong></span>
+            <span><strong data-vote-meta-voters>6</strong> / 8 人已投</span>
+            <span><strong data-vote-meta-ballots>9</strong> 张选票</span>
+            <span>票根状态 <strong>待封存</strong></span>
+          </div>
+
+          <div class="ticket-body">
+            <label class="opt" data-vote-option="雾海" data-base-votes="4">
+              <input class="opt-input" type="checkbox" name="topic" value="雾海">
+              <span class="opt-box" aria-hidden="true"></span>
+              <span class="opt-label">雾海</span>
+              <span class="opt-bar" aria-hidden="true"><span style="--w:67%"></span></span>
+              <span class="opt-count">4 票 · 67%</span>
+            </label>
+            <label class="opt" data-vote-option="锈带" data-base-votes="3">
+              <input class="opt-input" type="checkbox" name="topic" value="锈带">
+              <span class="opt-box" aria-hidden="true"></span>
+              <span class="opt-label">锈带</span>
+              <span class="opt-bar" aria-hidden="true"><span style="--w:50%"></span></span>
+              <span class="opt-count">3 票 · 50%</span>
+            </label>
+            <label class="opt" data-vote-option="静默轨道" data-base-votes="2">
+              <input class="opt-input" type="checkbox" name="topic" value="静默轨道">
+              <span class="opt-box" aria-hidden="true"></span>
+              <span class="opt-label">静默轨道</span>
+              <span class="opt-bar" aria-hidden="true"><span style="--w:33%"></span></span>
+              <span class="opt-count">2 票 · 33%</span>
+            </label>
+          </div>
+
+          <div class="ticket-perf" aria-hidden="true"></div>
+
+          <div class="ticket-stub">
+            <div class="stub-note">
+              <strong>存根联 · 请保留至开票</strong>
+              <span>多选 · 匿名汇总 · 开票 10.25 23:59</span>
+              <span class="hint">凭票号可在右栏「票据核验」核对有效性。</span>
+            </div>
+            <div class="stub-serial">
+              <svg class="qr" viewBox="0 0 46 46" aria-hidden="true" focusable="false" role="img">
+                <rect x="3" y="3" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"/>
+                <rect x="31" y="3" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"/>
+                <rect x="3" y="31" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"/>
+                <rect x="7" y="7" width="4" height="4" fill="currentColor"/>
+                <rect x="35" y="7" width="4" height="4" fill="currentColor"/>
+                <rect x="7" y="35" width="4" height="4" fill="currentColor"/>
+                <path d="M20 4h3v3h3v3h3v4h-4v3h3v3h-3v3h3v3h-3v4h3v3h-4v-3h-3v-3h-4v3h-3v-3h3v-4h-4v-3h4v-3h-3v-3h3v-4h-4v-3h4z" fill="currentColor" opacity=".82"/>
+                <rect x="19" y="19" width="5" height="5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M34 22h3v3h3v3h-3v3h3v3h-3v-3h-3v3h-3v-3h3v-3h-3v-3h3z" fill="currentColor" opacity=".55"/>
+              </svg>
+              <span class="hand" style="font-size:20px">CW-1025-07</span>
+            </div>
+            <div class="stub-actions">
+              <button class="btn btn--primary" type="button" data-vote-submit>提交选票</button>
+              <button class="btn btn--ghost" type="button" data-focus-target="#verify-input">核验票据</button>
+              <button class="btn btn--quiet" type="button" data-vote-save>抄录存根</button>
+            </div>
+          </div>
+
+          <div class="stub-result" data-vote-result hidden>
+            <span class="seal seal--doing is-stamping" role="img" aria-label="已投票印章"><b>已投票</b><span>BALLOT SEALED</span></span>
+            <div>
+              <p class="serif" style="font-size:18px;font-weight:600;letter-spacing:.03em">选票已封存</p>
+              <p class="hint">票号 <span class="mono" data-result-serial>CW-1025-07</span> · 封存时间 2026.10.22 13:14 · 10.25 23:59 开票</p>
+            </div>
+          </div>
+        </article>
+
+        <div class="voter-strip">
+          <span class="voter-strip-label">已投 <b data-vote-voters>6</b> 人</span>
+          <div class="voter-avatars" data-voter-avatars aria-label="已投票成员">
+            <span class="avatar avatar--xs" aria-label="白棠 已投票">棠</span>
+            <span class="avatar avatar--xs" aria-label="祁雾 已投票">雾</span>
+            <span class="avatar avatar--xs" aria-label="沈迟 已投票">迟</span>
+            <span class="avatar avatar--xs" aria-label="洛因 已投票">因</span>
+            <span class="avatar avatar--xs" aria-label="唐隼 已投票">隼</span>
+            <span class="avatar avatar--xs" aria-label="闻溪 已投票">溪</span>
+          </div>
+          <span class="hint">另有 2 名成员未投 · 8 人频道</span>
+        </div>
+
+        <p class="notice">
+          <svg class="ico ico--14" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8h.01"/></svg>
+          <span>票根规则：多选票按张计，不按人计；同一票号只能封存一次。匿名汇总只保留计数，不展示个人选项。</span>
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <aside class="aside" id="drawer" aria-labelledby="drawer-title">
+    <header class="aside-head">
+      <div>
+        <span class="aside-sub">TICKET CHECK</span>
+        <h2 class="aside-title" id="drawer-title">档案抽屉</h2>
+      </div>
+      <button class="icon-btn icon-btn--quiet" type="button" data-drawer-close aria-label="收起档案抽屉">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </header>
+    <div class="aside-body">
+      <section class="drawer-sec">
+        <div class="drawer-sec-head"><h3 class="drawer-sec-title">票据核验</h3><span class="drawer-sec-en">VERIFY</span></div>
+        <form class="verify-form" data-verify-form>
+          <label class="field">
+            <span class="field-label">存根票号</span>
+            <input class="input mono" type="text" id="verify-input" data-verify-input value="CW-1025-07" placeholder="CW-0000-00" autocomplete="off" spellcheck="false">
+          </label>
+          <p class="hint">票号印在票根撕口上方，形如 CW-1025-07。示例票号可直接核验。</p>
+          <div class="form-actions">
+            <button class="btn btn--primary btn--sm" type="submit">核验票据</button>
+            <button class="btn btn--quiet btn--sm" type="button" data-toast="票号输入已重置为示例（演示）" data-toast-label="票据核验">重置</button>
+          </div>
+        </form>
+        <div class="verify-result" data-verify-result hidden>
+          <span class="seal" data-verify-ok hidden role="img" aria-label="已核验印章"><b>已核验</b><span>VERIFIED</span></span>
+          <span class="seal seal--closed" data-verify-fail hidden role="img" aria-label="无法核验印章"><b>无法核验</b><span>INVALID</span></span>
+          <dl class="meta-list" data-verify-detail>
+            <div class="meta-row"><dt class="meta-key">票号</dt><dd class="meta-val mono" data-verify-code>CW-1025-07</dd></div>
+            <div class="meta-row"><dt class="meta-key">投票</dt><dd class="meta-val" data-verify-vote>本轮主题：雾海 / 锈带 / 静默轨道</dd></div>
+            <div class="meta-row"><dt class="meta-key">票型</dt><dd class="meta-val" data-verify-type>多选 · 截止 10.25</dd></div>
+            <div class="meta-row"><dt class="meta-key">封存</dt><dd class="meta-val mono" data-verify-time>2026.10.22 11:02</dd></div>
+            <div class="meta-row"><dt class="meta-key">状态</dt><dd class="meta-val" data-verify-state>有效 · 未开票</dd></div>
+          </dl>
+          <p class="hint" data-verify-reason hidden></p>
+        </div>
+      </section>
+
+      <section class="drawer-sec">
+        <div class="drawer-sec-head"><h3 class="drawer-sec-title">开票规则</h3><span class="drawer-sec-en">RULES</span></div>
+        <div class="mini-list">
+          <div class="mini-item"><span class="mini-item-main">多选票 · 每人最多 3 张<span class="mini-item-meta">按主题逐张计数</span></span><span class="mini-item-no">01</span></div>
+          <div class="mini-item"><span class="mini-item-main">封存后不可修改<span class="mini-item-meta">截止前可重复核验票号</span></span><span class="mini-item-no">02</span></div>
+          <div class="mini-item"><span class="mini-item-main">匿名汇总 · 不展示个人选项<span class="mini-item-meta">仅保留计数与已投人数</span></span><span class="mini-item-no">03</span></div>
+          <div class="mini-item"><span class="mini-item-main">10.25 23:59 开票<span class="mini-item-meta">结果写入《第三协议》归档</span></span><span class="mini-item-no">04</span></div>
+        </div>
+      </section>
+
+      <section class="drawer-sec">
+        <div class="drawer-sec-head"><h3 class="drawer-sec-title">票根联</h3><span class="drawer-sec-en">STUB</span></div>
+        <dl class="meta-list">
+          <div class="meta-row"><dt class="meta-key">票号</dt><dd class="meta-val mono">CW-1025-07</dd></div>
+          <div class="meta-row"><dt class="meta-key">开具人</dt><dd class="meta-val">岑野 · 建立者</dd></div>
+          <div class="meta-row"><dt class="meta-key">开具日</dt><dd class="meta-val mono">2026.10.18</dd></div>
+          <div class="meta-row"><dt class="meta-key">选项</dt><dd class="meta-val">雾海 / 锈带 / 静默轨道</dd></div>
+          <div class="meta-row"><dt class="meta-key">已投</dt><dd class="meta-val">6 / 8 人 · 9 张选票</dd></div>
+          <div class="meta-row"><dt class="meta-key">状态</dt><dd class="meta-val"><span class="stamp stamp--round stamp--doing stamp--mini">进行中</span></dd></div>
+        </dl>
+        <div class="drawer-actions">
+          <button class="btn btn--ghost btn--sm" type="button" data-toast="票根存根已复制（演示）" data-toast-label="存根">复制存根联</button>
+        </div>
+      </section>
+
+      <p class="drawer-note"><strong>抽屉说明：</strong>核验逻辑演示了票号格式与状态查询；输入非 CW- 开头的编号会得到「无法核验」的朱砂章。</p>
+    </div>
+    <footer class="aside-foot"><span>抽屉编号 D-06</span><span>已同步 13:12</span><span class="hand">D-06</span></footer>
+  </aside>
+</div>
+
+<div class="scrim" data-drawer-close aria-hidden="true"></div>
+<div class="toast" data-toast role="status" aria-live="polite"></div>
+<span class="sr-only" data-live aria-live="polite"></span>
+</body>
+</html>

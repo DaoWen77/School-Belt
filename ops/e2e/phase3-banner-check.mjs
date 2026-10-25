@@ -1,0 +1,10 @@
+﻿import { chromium } from 'playwright-core';
+const b=await chromium.launch({channel:'chrome',headless:true});
+const p=await b.newPage({viewport:{width:1440,height:1000}});
+const errs=[];p.on('console',m=>{if(m.type()==='error')errs.push(m.text().slice(0,120))});
+await p.goto('http://localhost:3100/login',{waitUntil:'networkidle'});
+await p.fill('input[autocomplete=username]','founder');await p.fill('input[type=password]','Dijiang#2026');await p.click('form button[type=submit]');await p.waitForTimeout(3000);
+const body=await p.locator('body').innerText();console.log('BANNER',body.includes('Phase3 全服公告验收'));
+await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/phase3-announcement-banner-1440.png'});
+console.log('ERRORS',JSON.stringify(errs.slice(0,3)));
+await b.close();

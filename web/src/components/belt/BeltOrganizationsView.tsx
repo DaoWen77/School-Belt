@@ -1,0 +1,269 @@
+'use client';
+
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
+import { beltApi, type BeltUser } from '@/lib/beltApi';
+
+interface OrgChannel {
+  id: string;
+  name: string;
+  topic: string | null;
+  memberCount: number;
+  archived: boolean;
+}
+
+interface OrgMember {
+  userId: string;
+  handle: string;
+  displayName: string;
+  role: string;
+  status: string;
+  requestNote: string | null;
+  requestedAt: string;
+}
+
+interface OrgView {
+  id: string;
+  name: string;
+  summary: string;
+  status: string;
+  ownerId: string;
+  myRole: 'owner' | 'admin' | 'member' | null;
+  myStatus: string | null;
+  memberCount: number;
+  channels?: OrgChannel[];
+  pendingRequests?: OrgMember[];
+}
+
+interface MineResponse {
+  organizations: OrgView[];
+  pendingApplication: OrgView | null;
+  pendingJoin: OrgView | null;
+}
+
+export function BeltOrganizationsView({ user }: { user: BeltUser }) {
+  const [data, setData] = useState<MineResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const [name, setName] = useState('');
+  const [summary, setSummary] = useState('');
+  const [channelName, setChannelName] = useState<Record<string, string>>({});
+  const [channelTopic, setChannelTopic] = useState<Record<string, string>>({});
+
+  const load = useCallback(async () => {
+    try {
+      const mine = await beltApi<MineResponse>('/belt/organizations/mine');
+      setData(mine);
+      setError(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '组织状态读取失败');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const apply = async () => {
+    if (!name.trim() || !summary.trim() || busy) return;
+    setBusy('apply');
+    setError(null);
+    setNotice(null);
+    try {
+      await beltApi('/belt/organizations', {
+        method: 'POST',
+        body: JSON.stringify({ name: name.trim(), summary: summary.trim() }),
+      });
+      setName('');
+      setSummary('');
+      setNotice('组织申请已提交，等待全站 Owner 审批。');
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '组织申请失败');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const review = async (orgId: string, userId: string, action: 'approve' | 'reject') => {
+    if (busy) return;
+    setBusy(`${userId}:${action}`);
+    setError(null);
+    try {
+      await beltApi(`/belt/organizations/${orgId}/requests/${userId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ action, ...(action === 'reject' ? { reason: '暂不接收' } : {}) }),
+      });
+      setNotice(action === 'approve' ? '已通过加入申请。' : '已拒绝加入申请。');
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '审批失败');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const createChannel = async (orgId: string) => {
+    const nameValue = channelName[orgId]?.trim();
+    if (!nameValue || busy) return;
+    setBusy(`channel:${orgId}`);
+    setError(null);
+    setNotice(null);
+    try {
+      await beltApi(`/belt/organizations/${orgId}/channels`, {
+        method: 'POST',
+        body: JSON.stringify({ name: nameValue, ...(channelTopic[orgId]?.trim() ? { topic: channelTopic[orgId].trim() } : {}) }),
+      });
+      setChannelName((previous) => ({ ...previous, [orgId]: '' }));
+      setChannelTopic((previous) => ({ ...previous, [orgId]: '' }));
+      setNotice('私有频道已创建。');
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '创建频道失败');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  if (loading) return <div className="belt-panel belt-empty mt-4">正在同步组织台账…</div>;
+
+  return (
+    <div className="belt-organizations mt-4">
+      {error ? (
+        <p className="belt-error" role="alert">
+          <code>ORG_ERROR</code> {error}
+        </p>
+      ) : null}
+      {notice ? <p className="belt-panel belt-hint">{notice}</p> : null}
+
+      {data?.pendingApplication ? (
+        <section className="belt-panel mb-3">
+          <div className="belt-panel-head">
+            <h2>申请审批中</h2>
+            <span className="belt-stamp is-signal">PENDING</span>
+          </div>
+          <p className="belt-row-title">{data.pendingApplication.name}</p>
+          <p className="belt-row-deck">{data.pendingApplication.summary}</p>
+          <p className="belt-hint mt-2">已进入全站 Owner 的审批流。通过后组织频道会出现在这里。</p>
+        </section>
+      ) : null}
+
+      {data?.pendingJoin ? (
+        <section className="belt-panel mb-3">
+          <div className="belt-panel-head">
+            <h2>加入申请待处理</h2>
+            <span className="belt-stamp">JOIN PENDING</span>
+          </div>
+          <p className="belt-row-title">{data.pendingJoin.name}</p>
+          <p className="belt-hint mt-1">组织管理员审批后会加入频道。</p>
+        </section>
+      ) : null}
+
+      {data?.organizations.map((org) => {
+        const isAdmin = org.myRole === 'owner' || org.myRole === 'admin';
+        return (
+          <section key={org.id} className="belt-panel mb-3">
+            <div className="belt-panel-head">
+              <h2>{org.name}</h2>
+              <span className="belt-stamp is-signal">{org.myRole === 'owner' ? 'OWNER' : org.myRole === 'admin' ? 'ADMIN' : 'MEMBER'}</span>
+            </div>
+            <p className="belt-row-deck">{org.summary}</p>
+            <div className="belt-row-meta mt-2">
+              <span>{org.memberCount} members</span>
+              <span>{org.status}</span>
+              <span>{org.channels?.length ?? 0} channels</span>
+            </div>
+
+            {org.channels?.length ? (
+              <ul className="belt-ledger mt-2">
+                {org.channels.map((channel) => (
+                  <li key={channel.id} className="belt-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
+                    <div>
+                      <div className="belt-row-title"># {channel.name}</div>
+                      <div className="belt-row-meta">{channel.topic ?? 'PRIVATE CHANNEL'} · {channel.memberCount} members</div>
+                    </div>
+                    <Link className="belt-header-link" href={`/belt/channel?channelId=${channel.id}`}>
+                      进入 →
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="belt-hint mt-2">还没有私有频道。</p>
+            )}
+
+            {isAdmin ? (
+              <div className="belt-org-manage">
+                <div className="belt-org-manage-block">
+                  <p className="belt-page-kicker">JOIN REQUESTS / 加入审批</p>
+                  {org.pendingRequests?.length ? (
+                    <ul className="belt-ledger">
+                      {org.pendingRequests.map((member) => (
+                        <li key={member.userId} className="belt-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
+                          <div>
+                            <div className="belt-row-title">{member.displayName} <span className="belt-row-meta">@{member.handle}</span></div>
+                            <p className="belt-row-deck">{member.requestNote ?? '申请加入组织'}</p>
+                          </div>
+                          <div className="belt-row-side">
+                            <button type="button" className="belt-button is-signal" disabled={Boolean(busy)} onClick={() => void review(org.id, member.userId, 'approve')}>
+                              通过
+                            </button>
+                            <button type="button" className="belt-button" disabled={Boolean(busy)} onClick={() => void review(org.id, member.userId, 'reject')}>
+                              拒绝
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="belt-hint mt-1">暂无待审申请。</p>
+                  )}
+                </div>
+
+                <div className="belt-org-manage-block">
+                  <p className="belt-page-kicker">NEW PRIVATE CHANNEL / 私有频道</p>
+                  <div className="belt-form-row">
+                    <input className="belt-input" value={channelName[org.id] ?? ''} onChange={(event) => setChannelName((previous) => ({ ...previous, [org.id]: event.target.value }))} placeholder="频道名" aria-label="私有频道名" />
+                    <input className="belt-input" value={channelTopic[org.id] ?? ''} onChange={(event) => setChannelTopic((previous) => ({ ...previous, [org.id]: event.target.value }))} placeholder="主题（可选）" aria-label="私有频道主题" />
+                    <button type="button" className="belt-button is-signal" disabled={Boolean(busy) || !channelName[org.id]?.trim()} onClick={() => void createChannel(org.id)}>
+                      创建
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </section>
+        );
+      })}
+
+      {!data?.pendingApplication ? (
+        <section className="belt-panel">
+          <div className="belt-panel-head">
+            <h2>发起组织申请 / APPLY</h2>
+            <span className="belt-stamp">OWNER REVIEW</span>
+          </div>
+          <p className="belt-hint mb-2">组织申请会进入全站 Owner 审批流。每个 Owner 只能拥有一个在册组织，但可以加入多个组织。</p>
+          <div className="belt-form-row">
+            <label className="belt-field">
+              <span>组织名</span>
+              <input className="belt-input" value={name} onChange={(event) => setName(event.target.value)} maxLength={24} placeholder="2–24 字" aria-label="组织名" />
+            </label>
+            <label className="belt-field">
+              <span>简介</span>
+              <input className="belt-input" value={summary} onChange={(event) => setSummary(event.target.value)} maxLength={400} placeholder="组织简介" aria-label="组织简介" />
+            </label>
+            <button type="button" className="belt-button is-signal signal-publish" disabled={Boolean(busy) || !name.trim() || !summary.trim()} onClick={() => void apply()}>
+              {busy === 'apply' ? '提交中…' : '提交申请'}
+            </button>
+          </div>
+          <p className="belt-hint mt-2">当前身份 @{user.handle} · 申请通过后自动创建「[组织名] 议事厅」私有频道。</p>
+        </section>
+      ) : null}
+    </div>
+  );
+}

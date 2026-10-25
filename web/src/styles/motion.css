@@ -1,0 +1,341 @@
+/* Phase 4 motion layer: endfield tokens only (mech/snap/ease), transform/opacity/clip-path. */
+
+:root {
+  --motion-snap: var(--ef-snap, cubic-bezier(0.16, 1, 0.3, 1));
+  --motion-mech: var(--ef-mech, cubic-bezier(0.7, 0, 0.2, 1));
+  --motion-ease: var(--ef-ease, cubic-bezier(0.2, 0.7, 0.1, 1));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ── login ─────────────────────────────────────────────────────── */
+  .motion-login-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: var(--ef-hatch, repeating-linear-gradient(45deg, rgba(22, 22, 22, 0.06) 0 1px, transparent 1px 10px));
+    opacity: 0.5;
+    animation: motion-hatch 60s linear infinite;
+  }
+  .motion-login-bg::after {
+    content: '';
+    position: absolute;
+    inset: -10%;
+    background-image: radial-gradient(ellipse at 30% 40%, transparent 0 22px, rgba(22, 22, 22, 0.07) 23px, transparent 24px);
+    background-size: 120px 90px;
+    animation: motion-contour 40s linear infinite alternate;
+  }
+  .motion-tri {
+    display: flex;
+    height: 3px;
+    width: 100%;
+    overflow: hidden;
+  }
+  .motion-tri i {
+    display: block;
+    height: 100%;
+    flex: 1;
+    transform-origin: left;
+    animation: motion-sweep 600ms var(--motion-ease) both;
+  }
+  .motion-tri i:nth-child(2) {
+    background: var(--ef-signal, #fffa00);
+    animation-delay: 40ms;
+  }
+  .motion-tri i:nth-child(3) {
+    background: var(--ef-ink, #161616);
+    animation-delay: 80ms;
+  }
+  .motion-login-title {
+    animation: motion-drive 620ms var(--motion-mech) both;
+    clip-path: inset(0 0 0 0);
+  }
+  .motion-login-form > * {
+    animation: motion-come 320ms var(--motion-snap) both;
+  }
+  .motion-login-form > *:nth-child(1) { animation-delay: 120ms; }
+  .motion-login-form > *:nth-child(2) { animation-delay: 220ms; }
+  .motion-login-form > *:nth-child(3) { animation-delay: 320ms; }
+  .motion-login-form input {
+    background-image: linear-gradient(var(--ef-signal, #fffa00), var(--ef-signal, #fffa00));
+    background-size: 0 1px;
+    background-position: left bottom;
+    background-repeat: no-repeat;
+    transition: background-size 240ms var(--motion-mech), border-color 120ms linear;
+  }
+  .motion-login-form input:focus {
+    background-size: 100% 1px;
+  }
+  .motion-granted {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    background: var(--ef-signal, #fffa00);
+    color: var(--ef-on-signal, #161616);
+    clip-path: inset(0 0 0 0);
+    animation: motion-granted 420ms var(--motion-mech) both;
+  }
+  .motion-granted span {
+    font-family: var(--ef-font-sans, ui-sans-serif);
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    animation: motion-come 240ms var(--motion-snap) 80ms both;
+  }
+  .motion-clock {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── page / view switching ─────────────────────────────────────── */
+  .motion-wipe {
+    position: fixed;
+    inset: 0;
+    z-index: 180;
+    pointer-events: none;
+    background: var(--ef-signal, #fffa00);
+    clip-path: polygon(0 0, 0 0, -14% 100%, -14% 100%);
+    animation: motion-shutter 360ms var(--motion-mech) both;
+  }
+  .motion-view {
+    animation: motion-come 180ms var(--motion-snap) both;
+  }
+  .motion-settings-in {
+    animation: motion-come 240ms var(--motion-snap) both;
+  }
+  .motion-tab {
+    position: relative;
+  }
+  .motion-tab[aria-pressed='true']::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--ef-ink, #161616);
+    transform-origin: left;
+    animation: motion-sweep 180ms var(--motion-mech) both;
+  }
+  .motion-panel-in {
+    animation: motion-come 180ms var(--motion-snap) both;
+  }
+
+  /* ── hover / press (whole site) ─────────────────────────────────── */
+  :where(button:not(:disabled)) {
+    background-image: linear-gradient(var(--ef-signal, #fffa00), var(--ef-signal, #fffa00));
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 0 100%;
+    transition: background-size 280ms var(--motion-mech), color 120ms linear, transform 100ms linear;
+  }
+  :where(button:not(:disabled)):hover {
+    background-size: 100% 100%;
+    color: var(--ef-on-signal, #161616);
+  }
+  :where(button:not(:disabled)):active {
+    transform: translateY(1px);
+  }
+  :where(button:disabled) {
+    transition: none;
+  }
+  :where(header button) {
+    transition: background-size 280ms var(--motion-mech), color 120ms linear, outline-color 120ms linear, transform 100ms linear;
+  }
+  :where(header button):hover {
+    outline: 1px solid currentColor;
+    outline-offset: 2px;
+  }
+  .motion-channel-row {
+    position: relative;
+    transition: transform 200ms var(--motion-snap), background-color 200ms linear;
+  }
+  .motion-channel-row::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--ef-signal, #fffa00);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 200ms var(--motion-snap);
+  }
+  .motion-channel-row:hover {
+    transform: translateX(2px);
+  }
+  .motion-channel-row:hover::before,
+  .motion-channel-row[data-active='true']::before {
+    transform: scaleY(1);
+  }
+  .motion-message {
+    transition: background-color 200ms linear;
+  }
+  .motion-message:hover {
+    background: color-mix(in srgb, var(--ef-ink, #161616) 2%, transparent);
+  }
+  .motion-message:hover::before {
+    content: '';
+    position: absolute;
+    inset: 2px auto 2px 0;
+    width: 2px;
+    background: var(--ef-ink, #161616);
+  }
+  .motion-message img {
+    transition: transform 160ms var(--motion-snap);
+  }
+  .motion-message img:hover {
+    transform: scale(1.015);
+  }
+  .motion-card {
+    transition: transform 200ms var(--motion-snap), border-color 120ms linear, background-position 200ms linear;
+    background-image: var(--ef-hatch, repeating-linear-gradient(45deg, rgba(22, 22, 22, 0.06) 0 1px, transparent 1px 10px));
+    background-size: 0 0;
+    background-position: right top;
+    background-repeat: no-repeat;
+  }
+  .motion-card:hover {
+    transform: translateY(-1px);
+  }
+  .motion-card:hover::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    background: var(--ef-hatch, repeating-linear-gradient(45deg, rgba(22, 22, 22, 0.12) 0 1px, transparent 1px 5px));
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    opacity: 0.8;
+  }
+
+  /* ── header / dynamic ──────────────────────────────────────────── */
+  .motion-online-dot {
+    animation: motion-breathe 2s ease-in-out infinite;
+  }
+  .motion-scanline {
+    position: relative;
+    overflow: hidden;
+  }
+  .motion-scanline::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 250, 0, 0.28), transparent);
+    transform: translateX(-100%);
+    animation: motion-scan 6s linear infinite;
+    pointer-events: none;
+  }
+  .motion-badge {
+    animation: motion-badge 240ms var(--motion-snap) 1 both;
+  }
+  .motion-message-in {
+    animation: motion-msg-in 160ms var(--motion-snap) both;
+  }
+  .motion-banner-in {
+    animation: motion-banner-in 240ms var(--motion-mech) both;
+  }
+  .motion-radar-ticks {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: repeating-conic-gradient(from 0deg, rgba(22, 22, 22, 0.28) 0 1deg, transparent 1deg 30deg);
+    -webkit-mask: radial-gradient(circle, transparent 0 40%, #000 41% 48%, transparent 49%);
+    mask: radial-gradient(circle, transparent 0 40%, #000 41% 48%, transparent 49%);
+    animation: motion-rotate 8s linear infinite;
+    pointer-events: none;
+    opacity: 0.55;
+  }
+
+  @keyframes motion-hatch {
+    from { background-position: 0 0; }
+    to { background-position: 120px 120px; }
+  }
+  @keyframes motion-contour {
+    from { transform: translate3d(-2%, -1%, 0); }
+    to { transform: translate3d(2%, 1%, 0); }
+  }
+  @keyframes motion-sweep {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  @keyframes motion-drive {
+    from { clip-path: inset(0 100% 0 0); transform: translateY(4px); }
+    to { clip-path: inset(0 0 0 0); transform: none; }
+  }
+  @keyframes motion-come {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes motion-granted {
+    from { clip-path: inset(0 0 100% 0); }
+    to { clip-path: inset(0 0 0 0); }
+  }
+  @keyframes motion-shutter {
+    from { clip-path: polygon(0 0, 0 0, -14% 100%, -14% 100%); }
+    to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+  }
+  @keyframes motion-breathe {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  @keyframes motion-scan {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+  @keyframes motion-badge {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+  @keyframes motion-msg-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes motion-banner-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes motion-rotate {
+    to { transform: rotate(360deg); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-login-bg,
+  .motion-login-bg::after,
+  .motion-online-dot,
+  .motion-scanline::after,
+  .motion-radar-ticks,
+  .motion-granted,
+  .motion-wipe {
+    animation: none !important;
+  }
+  .motion-radar-ticks {
+    display: none !important;
+  }
+  .motion-granted,
+  .motion-wipe {
+    display: none !important;
+  }
+  .motion-login-title,
+  .motion-login-form > *,
+  .motion-view,
+  .motion-settings-in,
+  .motion-panel-in,
+  .motion-message-in,
+  .motion-banner-in,
+  .motion-badge,
+  .motion-tab[aria-pressed='true']::after,
+  .motion-msg-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+  .motion-channel-row,
+  .motion-message,
+  .motion-card,
+  :where(button:not(:disabled)) {
+    transition: none !important;
+  }
+}

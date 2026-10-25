@@ -1,0 +1,66 @@
+/**
+ * 双 token 存储：内存是唯一读取源，localStorage 只做跨刷新恢复。
+ * - access 15 min / refresh 30 d（契约 §0）
+ * - 登出、refresh 失败、AUTH_INVALID 时一起清掉
+ */
+
+const ACCESS_KEY = 'dj.access';
+const REFRESH_KEY = 'dj.refresh';
+
+let accessToken: string | null = null;
+let refreshToken: string | null = null;
+let loaded = false;
+
+function safeGet(key: string): string | null {
+  try {
+    return typeof window === 'undefined' ? null : window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSet(key: string, value: string | null): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (value === null) window.localStorage.removeItem(key);
+    else window.localStorage.setItem(key, value);
+  } catch {
+    /* 隐私模式下 localStorage 不可写：内存态仍然工作 */
+  }
+}
+
+function load(): void {
+  if (loaded) return;
+  loaded = true;
+  accessToken = safeGet(ACCESS_KEY);
+  refreshToken = safeGet(REFRESH_KEY);
+}
+
+export const session = {
+  hasTokens(): boolean {
+    load();
+    return Boolean(accessToken || refreshToken);
+  },
+  getAccess(): string | null {
+    load();
+    return accessToken;
+  },
+  getRefresh(): string | null {
+    load();
+    return refreshToken;
+  },
+  setTokens(access: string, refresh: string): void {
+    loaded = true;
+    accessToken = access;
+    refreshToken = refresh;
+    safeSet(ACCESS_KEY, access);
+    safeSet(REFRESH_KEY, refresh);
+  },
+  clear(): void {
+    loaded = true;
+    accessToken = null;
+    refreshToken = null;
+    safeSet(ACCESS_KEY, null);
+    safeSet(REFRESH_KEY, null);
+  },
+};

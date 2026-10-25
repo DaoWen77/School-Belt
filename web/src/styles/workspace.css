@@ -1,0 +1,673 @@
+/* ==========================================================================
+   workspace.css · 真实前端运行态的补充样式（甲套 / design/ui-endfield）
+   --------------------------------------------------------------------------
+   1) 只使用 tokens.css 的变量，不新增颜色；
+   2) 不引入圆角 / 投影 / 渐变（切角沿用 --ef-cut，黄只做填充）；
+   3) 动效全部交给 app.css 的 reduced-motion 规则，本文件不写 animation。
+   ========================================================================== */
+
+/* ---------- 跳到主内容：视觉隐藏，键盘聚焦才出现 ----------
+   app.css 的默认规则是 top:-4rem；在某些截图路径下（首帧/焦点恢复）会被看到，
+   这里改成水平移出视口，只有 :focus-visible（键盘 Tab）才回到左上角。 */
+
+.dj-skip {
+  left: -9999px;
+  top: 0.75rem;
+}
+
+.dj-skip:focus-visible {
+  left: 0.75rem;
+  top: 0.75rem;
+}
+
+/* ---------- 左侧三组列表：长列表滚动，不撑破 1440 布局 ---------- */
+
+.dj-scroll {
+  max-height: 15rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.dj-rail-block > .ef-btn {
+  justify-self: start;
+  margin-top: 0.45rem;
+}
+
+/* ---------- 登录页 ---------- */
+
+.dj-login {
+  display: grid;
+  place-items: start center;
+  min-height: calc(100dvh - 3.4rem);
+  padding-top: clamp(2rem, 7vw, 4.5rem);
+}
+
+.dj-login-card {
+  width: min(31rem, 100%);
+}
+
+.dj-login-head {
+  display: grid;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.dj-login-head .ef-eyebrow {
+  margin: 0;
+}
+
+.dj-login-head .ef-wordmark {
+  --ef-wordmark: clamp(2.6rem, 6vw, 3.9rem);
+  margin: 0.2rem 0 0;
+}
+
+.dj-login-lede {
+  margin: 0;
+  color: var(--ef-ink-2);
+  line-height: 1.75;
+}
+
+.dj-login-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1.1rem;
+}
+
+.dj-login-tabs .ef-btn[aria-pressed='true'] {
+  --fill: var(--ef-signal);
+  color: var(--ef-on-signal);
+}
+
+.dj-login-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.dj-login .ef-notice {
+  margin: 0;
+}
+
+.dj-login > .dj-rail-note {
+  margin-top: 1rem;
+}
+
+/* ---------- 消息状态：乐观 pending / 未确认 ---------- */
+
+.dj-msg.is-pending {
+  opacity: 0.62;
+}
+
+.dj-msg.is-pending .dj-msg-text {
+  border-left: 2px solid var(--ef-rule);
+  padding-left: 0.5rem;
+}
+
+.dj-msg.is-failed .dj-msg-text {
+  color: var(--ef-ink-2);
+}
+
+.dj-msg .ef-notice {
+  margin-top: 0.1rem;
+}
+
+.dj-msg .ef-notice .dj-actlink {
+  margin-left: 0.5rem;
+}
+
+/* ---------- 线程内回复框 ---------- */
+
+.dj-thread-compose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: center;
+  margin-top: 0.4rem;
+}
+
+.dj-thread-compose .dj-textinput {
+  min-height: 2.5rem;
+}
+
+/* ---------- 成员列表里的操作 ---------- */
+
+.dj-memberrow .dj-actlink {
+  justify-self: end;
+}
+
+/* ---------- 对话框内表单 ---------- */
+
+.ef-dialog .ef-notice {
+  margin: 0.6rem 0;
+}
+
+.ef-dialog .ef-empty {
+  margin: 0.4rem 0 0;
+  color: var(--ef-ink-2);
+}
+
+.dj-picklist {
+  max-height: 17rem;
+  overflow-y: auto;
+}
+
+/* ---------- 窄屏：三段列表横向时允许换行，不撑出横向滚动 ---------- */
+
+@media (max-width: 1099px) {
+  .dj-scroll {
+    max-height: none;
+    display: flex;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+  .dj-nav {
+    flex-wrap: wrap;
+  }
+  .dj-login {
+    min-height: auto;
+    padding-top: 1.6rem;
+  }
+}
+
+/* ==========================================================================
+   日常档：视图切换 / 素材 / 投票 / 任务 / 附件 / 编辑删除
+   规则同上：只用 tokens 变量，1px 细线，无圆角/投影，黄只做填充。
+   ========================================================================== */
+
+/* ---------- 视图切换：细线分组 + 选中黄块 + 英文小字 + 切角 ---------- */
+
+.dj-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding-bottom: 0;
+  border-bottom: 1px solid var(--ef-ink);
+}
+
+.dj-viewtab {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.05rem;
+  padding: 0.4rem calc(0.95rem + var(--ef-cut)) 0.4rem 0.85rem;
+  border: 0;
+  background: var(--ef-chip);
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-ui);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--ef-cut)), calc(100% - var(--ef-cut)) 100%, 0 100%);
+}
+
+.dj-viewtab small {
+  font-size: 0.6rem;
+  font-stretch: var(--ef-wider);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.dj-viewtab:hover {
+  background: var(--ef-paper);
+  color: var(--ef-ink);
+}
+
+.dj-viewtab[aria-pressed='true'] {
+  background: var(--ef-signal);
+  color: var(--ef-on-signal);
+}
+
+.dj-viewtab[aria-pressed='true'] small {
+  color: var(--ef-on-signal);
+}
+
+.dj-viewtab:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -4px;
+}
+
+/* ---------- 视图通用骨架 ---------- */
+
+.dj-view {
+  display: grid;
+  gap: var(--dj-gap);
+  align-content: start;
+  min-width: 0;
+}
+
+.dj-view-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--ef-ink);
+}
+
+.dj-view-head .ef-eyebrow {
+  margin: 0 0 0.15rem;
+}
+
+.dj-view-head h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.dj-view .ef-notice {
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dj-view .ef-notice .ef-btn {
+  margin-left: auto;
+}
+
+/* ---------- 附件：图片缩略 / 文件卡 / 大图 ---------- */
+
+.dj-attachments {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 36rem;
+}
+
+.dj-attach-imgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.dj-attach-img {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-paper);
+  cursor: pointer;
+}
+
+.dj-attach-img:hover {
+  border-color: var(--ef-ink);
+}
+
+.dj-attach-img img {
+  display: block;
+  max-width: min(100%, 22rem);
+  max-height: 16rem;
+  object-fit: contain;
+}
+
+.dj-attachments.is-compact .dj-attach-img img {
+  max-width: 100%;
+  max-height: 7rem;
+}
+
+.dj-attach-files {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.dj-attach-file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  font-size: 0.85rem;
+}
+
+.dj-attach-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.dj-attach-error {
+  color: var(--ef-danger);
+  font-size: 0.78rem;
+}
+
+.dj-attach-loading {
+  color: var(--ef-ink-2);
+  font-size: 0.78rem;
+}
+
+.dj-attachtray {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dj-attachtray > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.6rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  font-size: 0.8rem;
+}
+
+.dj-attachtray .ef-field {
+  margin-left: auto;
+}
+
+.dj-lightbox {
+  width: min(64rem, calc(100% - 2 * var(--ef-pad)));
+}
+
+.dj-lightbox-inner {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.dj-lightbox-img {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  margin: 0 auto;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-paper);
+  object-fit: contain;
+}
+
+/* ---------- 上传进度 / 拖拽态 ---------- */
+
+.dj-uploadlist {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dj-uploadrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.6rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  font-size: 0.8rem;
+}
+
+.dj-uploadrow .ef-field {
+  margin-left: auto;
+}
+
+.dj-uploadrow.is-done {
+  border-color: var(--ef-ink);
+}
+
+.dj-uploadrow.is-failed {
+  border-color: var(--ef-danger);
+}
+
+.dj-upload-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.dj-uploadbar {
+  flex: 1 1 100%;
+  height: 5px;
+  background: var(--ef-chip);
+}
+
+.dj-uploadbar > i {
+  display: block;
+  height: 100%;
+  background: var(--ef-signal);
+}
+
+.dj-upload-error {
+  flex: 1 1 100%;
+  color: var(--ef-danger);
+  font-size: 0.75rem;
+}
+
+.dj-upload-clear {
+  justify-content: flex-end;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+
+.dj-composer.is-dragover {
+  outline: 2px dashed var(--ef-ink);
+  outline-offset: 2px;
+  background: var(--ef-chip);
+}
+
+/* ---------- 卡片消息（聊天流里的紧凑卡） ---------- */
+
+.dj-cardmsg {
+  gap: 0.3rem;
+}
+
+.dj-cardmsg .dj-attachments {
+  max-width: 100%;
+}
+
+.dj-cardmsg-open {
+  justify-self: start;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: var(--ef-font-ui);
+}
+
+/* ---------- 素材库 ---------- */
+
+.dj-material-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dj-material {
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+  padding: 0.7rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+}
+
+.dj-material-thumbs {
+  display: grid;
+  place-items: center;
+  min-height: 6rem;
+  padding: 0.4rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-paper);
+  overflow: hidden;
+}
+
+.dj-material-thumbs .dj-attachments {
+  width: 100%;
+}
+
+.dj-material-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.dj-material.is-skeleton {
+  pointer-events: none;
+}
+
+/* ---------- 投票 ---------- */
+
+.dj-votes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: var(--dj-gap);
+  align-items: start;
+}
+
+.dj-votecard {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.dj-votecard .ef-eyebrow {
+  margin: 0;
+}
+
+.dj-vote-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.dj-vote-note {
+  margin: 0;
+  color: var(--ef-ink-2);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.dj-vote-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--ef-rule);
+}
+
+.dj-votecard .dj-options {
+  margin: 0;
+}
+
+/* ---------- 任务 ---------- */
+
+.dj-taskcols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.dj-taskcol {
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+  padding: 0.75rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+}
+
+.dj-taskcol > h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--ef-ink);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.dj-tasklist {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dj-taskcard {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-paper);
+}
+
+.dj-task-title {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.dj-task-note {
+  margin: 0;
+  color: var(--ef-ink-2);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.dj-task-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dj-task-status .ef-field {
+  margin-right: auto;
+}
+
+/* ---------- 编辑 / 删除 ---------- */
+
+.dj-editform {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.dj-actlink-danger {
+  color: var(--ef-danger);
+}
+
+.dj-actlink-danger:hover {
+  color: var(--ef-danger);
+  background: var(--ef-chip);
+}
+
+.dj-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dj-checks .dj-pick {
+  flex: 1 1 8rem;
+}
+
+@media (max-width: 1099px) {
+  .dj-taskcols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 719px) {
+  .dj-material-grid,
+  .dj-votes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .dj-view-head {
+    align-items: flex-start;
+  }
+}

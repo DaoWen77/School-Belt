@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN" data-ef-accent="yellow" data-ef-paper="neutral" data-ef-cut="standard" data-ef-ground="hatch" data-ef-density="standard" data-ef-motion="full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>任务清单 │ O.M.V 帝江号</title>
+<meta name="theme-color" content="#F4F4F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191919" media="(prefers-color-scheme: dark)">
+<script>
+  try { var t = localStorage.getItem('dj-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../app.css">
+</head>
+<body class="ef ef-contours dj">
+<a class="dj-skip" href="#main">跳到主内容</a>
+<div class="ef-tri" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header class="ef-cmdbar dj-cmdbar">
+  <a class="brand" href="../index.html">
+    <span class="seal" aria-hidden="true">帝</span>
+    <span class="dj-brand-name">帝江号<small>Dijiang / Broadcast</small></span>
+  </a>
+  <nav aria-label="界面导航">
+    <a href="01-chat.html">频道<small>Channel</small></a>
+    <a href="02-archive.html">素材<small>Archive</small></a>
+    <a href="03-ideaboard.html">灵感<small>Ideas</small></a>
+    <a href="04-vote.html">投票<small>Votes</small></a>
+    <a href="05-tasks.html" aria-current="page">任务<small>Tasks</small></a>
+    <a href="06-showcase.html">作品<small>Works</small></a>
+    <a href="07-members.html">成员<small>Members</small></a>
+    <a href="08-settings.html">设置<small>Settings</small></a>
+  </nav>
+  <div class="util dj-util">
+    <span class="dj-link-state"><i aria-hidden="true"></i>信号链路正常</span>
+    <button class="dj-themebtn" type="button" data-theme-toggle aria-pressed="false">深色</button>
+    <a class="dj-me" href="07-members.html"><span class="dj-avatar dj-avatar-s" aria-hidden="true">岑</span>岑野</a>
+  </div>
+</header>
+
+<div class="dj-shell">
+  <aside class="dj-rail" aria-label="频道与今日调度">
+    <div class="dj-rail-block">
+      <p class="ef-eyebrow slash">Channels</p>
+      <h2 class="dj-rail-title">频道 <span class="ef-field">3</span></h2>
+      <ul class="dj-nav">
+        <li><a href="01-chat.html"><span>全域播报<small>general</small></span><span class="dj-count">3</span></a></li>
+        <li><a href="02-archive.html"><span>素材工坊<small>archive</small></span><span class="dj-count">0</span></a></li>
+        <li><a href="01-chat.html"><span>第三协议<small>protocol · 私密</small></span><span class="dj-count">1</span></a></li>
+      </ul>
+    </div>
+    <div class="dj-rail-block dj-rail-extra">
+      <p class="ef-eyebrow slash">Today</p>
+      <h2 class="dj-rail-title">今日调度</h2>
+      <ul class="dj-kvlist">
+        <li><span class="k">日期</span><span class="ef-field">2026.10.22</span></li>
+        <li><span class="k">任务</span><span class="ef-field">3 项</span></li>
+        <li><span class="k">最近截止</span><span class="ef-field">10.24</span></li>
+        <li><span class="k">逾期</span><span class="ef-field">0</span></li>
+      </ul>
+    </div>
+    <div class="dj-rail-block dj-rail-extra">
+      <p class="ef-eyebrow slash">Members</p>
+      <h2 class="dj-rail-title">成员 <span class="ef-field">8</span></h2>
+      <div class="dj-avatars" aria-hidden="true">
+        <span class="dj-avatar dj-avatar-s">岑</span><span class="dj-avatar dj-avatar-s">陆</span><span class="dj-avatar dj-avatar-s">白</span><span class="dj-avatar dj-avatar-s">祁</span><span class="dj-avatar dj-avatar-s">沈</span>
+      </div>
+      <p class="dj-rail-note"><a class="dj-textlink" href="07-members.html">查看成员与邀请码</a></p>
+    </div>
+  </aside>
+
+  <main class="dj-main" id="main">
+    <header class="ef-head">
+      <h1>任务清单 <small>Tasks</small></h1>
+      <p>3 项任务 │ 进行中 1 │ 待办 1 │ 已完成 1 │ 最近截止 2026.10.24</p>
+    </header>
+
+    <div class="dj-tasks-wrap">
+      <section aria-label="任务列表">
+        <div class="dj-toolbar">
+          <div class="dj-chips" role="group" aria-label="按状态筛选">
+            <button class="ef-chip" type="button" aria-pressed="true" data-task-filter="all">全部 <span class="n" data-task-count="all">3</span></button>
+            <button class="ef-chip" type="button" aria-pressed="false" data-task-filter="doing">进行中 <span class="n" data-task-count="doing">1</span></button>
+            <button class="ef-chip" type="button" aria-pressed="false" data-task-filter="todo">待办 <span class="n" data-task-count="todo">1</span></button>
+            <button class="ef-chip" type="button" aria-pressed="false" data-task-filter="done">已完成 <span class="n" data-task-count="done">1</span></button>
+          </div>
+        </div>
+
+        <section class="ef-panel dj-taskpanel">
+          <h2>本周任务 <a href="03-ideaboard.html">灵感墙</a></h2>
+          <ul class="ef-rows" data-task-list>
+            <li data-task data-status="doing">
+              <div class="dj-task-main">
+                <div class="dj-task-title">素材归档至素材工坊 <span class="ef-state" data-task-state>进行中</span></div>
+                <div class="meta">
+                  <span>指派 <b data-assignee>白棠</b></span>
+                  <span>截止 2026.10.24</span>
+                  <span>No.T-014</span>
+                  <span>创建 2026.10.19</span>
+                </div>
+              </div>
+              <div class="acts">
+                <button class="ef-btn small" type="button" data-open="dlg-assign" data-scope="[data-task]">指派</button>
+                <button class="ef-btn small go" type="button" data-task-set="done">标记完成</button>
+              </div>
+            </li>
+            <li data-task data-status="todo">
+              <div class="dj-task-main">
+                <div class="dj-task-title">第三协议封面重绘 <span class="ef-state is-draft" data-task-state>待办</span></div>
+                <div class="meta">
+                  <span>指派 <b data-assignee>祁雾</b></span>
+                  <span>截止 2026.10.27</span>
+                  <span>No.T-015</span>
+                  <span>创建 2026.10.20</span>
+                </div>
+              </div>
+              <div class="acts">
+                <button class="ef-btn small" type="button" data-open="dlg-assign" data-scope="[data-task]">指派</button>
+                <button class="ef-btn small go" type="button" data-task-set="doing">开始处理</button>
+              </div>
+            </li>
+            <li data-task data-status="done">
+              <div class="dj-task-main">
+                <div class="dj-task-title">外景调色交付 <span class="ef-state is-done" data-task-state>已完成</span></div>
+                <div class="meta">
+                  <span>指派 <b data-assignee>沈迟</b></span>
+                  <span>截止 2026.10.20</span>
+                  <span>No.T-013</span>
+                  <span data-task-done>完成于 2026.10.20 18:22</span>
+                </div>
+              </div>
+              <div class="acts">
+                <button class="ef-btn small" type="button" data-task-set="todo">重新打开</button>
+              </div>
+            </li>
+          </ul>
+          <p class="ef-notice" data-task-empty data-flag="没有" hidden>这个状态里现在没有任务。</p>
+        </section>
+
+        <p class="dj-footnote ef-field">状态只有三步：待办 → 进行中 → 已完成。重新打开会回到待办，并保留原来的截止时间。</p>
+      </section>
+
+      <aside class="dj-side" aria-label="任务概况">
+        <section class="ef-panel">
+          <h2>本周进度</h2>
+          <div class="ef-figs">
+            <div><b>3</b><span>任务</span></div>
+            <div><b>1</b><span>进行中</span></div>
+            <div><b>1</b><span>已完成</span></div>
+          </div>
+          <ul class="dj-kvlist">
+            <li><span class="k">待办</span><span class="ef-field">1 项</span></li>
+            <li><span class="k">逾期</span><span class="ef-field">0 项</span></li>
+            <li><span class="k">完成率</span><span class="ef-field">1 / 3</span></li>
+          </ul>
+        </section>
+        <section class="ef-panel">
+          <h2>截止提醒</h2>
+          <ul class="dj-pins">
+            <li><span class="ef-field">10.24</span><span>素材归档至素材工坊</span><span class="ef-field">白棠</span></li>
+            <li><span class="ef-field">10.27</span><span>第三协议封面重绘</span><span class="ef-field">祁雾</span></li>
+          </ul>
+        </section>
+        <section class="ef-panel">
+          <h2>指派规则</h2>
+          <p class="dj-rail-note">一张任务可以指派多人，界面上只显示第一位。指派人会收到一条「任务已指派」的通知。</p>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<dialog class="ef-dialog" id="dlg-assign" aria-labelledby="dlg-assign-title">
+  <div class="ef-panel cut-br">
+    <p class="ef-eyebrow slash">Assign / 指派</p>
+    <h2 id="dlg-assign-title">把任务指派给谁？</h2>
+    <div class="dj-picklist" role="radiogroup" aria-label="成员">
+      <label class="dj-pick"><input type="radio" name="assignee" value="岑野" checked><span>岑野</span><span class="ef-field">@cenye │ 建立者</span></label>
+      <label class="dj-pick"><input type="radio" name="assignee" value="陆见深"><span>陆见深</span><span class="ef-field">@lujianshen │ 协议官</span></label>
+      <label class="dj-pick"><input type="radio" name="assignee" value="白棠"><span>白棠</span><span class="ef-field">@baitang │ 档案员</span></label>
+      <label class="dj-pick"><input type="radio" name="assignee" value="祁雾"><span>祁雾</span><span class="ef-field">@qiwu │ 成员</span></label>
+      <label class="dj-pick"><input type="radio" name="assignee" value="沈迟"><span>沈迟</span><span class="ef-field">@shenchi │ 成员</span></label>
+      <label class="dj-pick"><input type="radio" name="assignee" value="洛因"><span>洛因</span><span class="ef-field">@luoyin │ 成员</span></label>
+      <label class="dj-pick"><input type="radio" name="assignee" value="唐隼"><span>唐隼</span><span class="ef-field">@tangsun │ 成员</span></label>
+      <label class="dj-pick"><input type="radio" name="assignee" value="闻溪"><span>闻溪</span><span class="ef-field">@wenxi │ 成员</span></label>
+    </div>
+    <p class="ef-actions">
+      <button class="ef-btn small" type="button" data-close>取消</button>
+      <button class="ef-btn small go" type="button" data-assign-confirm>指派任务</button>
+    </p>
+  </div>
+</dialog>
+
+<p class="dj-sr-only" role="status" aria-live="polite" data-live></p>
+<script src="../demo.js"></script>
+</body>
+</html>

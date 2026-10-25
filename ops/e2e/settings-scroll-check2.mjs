@@ -1,0 +1,11 @@
+﻿import { chromium } from 'playwright-core';
+const b=await chromium.launch({channel:'chrome',headless:true});const p=await b.newPage({viewport:{width:1440,height:900}});
+await p.goto('http://localhost:3100/login',{waitUntil:'networkidle'});await p.fill('input[autocomplete=username]','founder');await p.fill('input[type=password]','Dijiang#2026');await p.click('form button[type=submit]');await p.waitForTimeout(2500);await p.goto('http://localhost:3100/settings',{waitUntil:'networkidle'});await p.waitForTimeout(800);
+const info=await p.evaluate(()=>{const root=document.querySelector('main')?.parentElement;const c=root?getComputedStyle(root):null;return{rootClass:root?.className,rootOverflow:c?.overflowY,rootH:root?.clientHeight,rootScrollH:root?.scrollHeight,docScrollH:document.documentElement.scrollHeight,win:innerHeight}});console.log('BEFORE',JSON.stringify(info));
+await p.mouse.wheel(0,1400);await p.waitForTimeout(600);
+console.log('AFTER_WHEEL',await p.evaluate(()=>{const root=document.querySelector('main')?.parentElement;return{rootTop:root?.scrollTop,winY:window.scrollY}}));
+const root=p.locator('main').locator('..');console.log('ROOT_SCROLL',await root.evaluate(e=>({top:e.scrollTop,h:e.scrollHeight,c:e.clientHeight})));
+await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/settings-scroll-after-1440.png'});
+await p.evaluate(()=>{const root=document.querySelector('main')?.parentElement;if(root)root.scrollTop=root.scrollHeight});await p.waitForTimeout(400);
+await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/settings-scroll-bottom-1440.png'});
+await b.close();

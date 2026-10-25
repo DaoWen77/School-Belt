@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="zh-CN" data-ef-accent="yellow" data-ef-paper="neutral" data-ef-cut="standard" data-ef-ground="hatch" data-ef-density="standard" data-ef-motion="full">
+<!-- 变体：yellow / neutral / standard / hatch / standard / full。
+     固定规则不变：唯一强调色只做填充、红色只给删除、切角=可点击、宽体大写英文配粗体中文、
+     真实数字、1px 细线、机械动效。深色是完整第二套主题。 -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>频道 · 全域播报 │ O.M.V 帝江号</title>
+<meta name="theme-color" content="#F4F4F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191919" media="(prefers-color-scheme: dark)">
+<script>
+  /* 先写好主题，避免刷新时闪一下。演示页记住的是本机选择。 */
+  try {
+    var t = localStorage.getItem('dj-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../app.css">
+</head>
+<body class="ef ef-contours dj">
+<a class="dj-skip" href="#main">跳到主内容</a>
+<div class="ef-tri" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header class="ef-cmdbar dj-cmdbar">
+  <a class="brand" href="../index.html">
+    <span class="seal" aria-hidden="true">帝</span>
+    <span class="dj-brand-name">帝江号<small>Dijiang / Broadcast</small></span>
+  </a>
+  <nav aria-label="界面导航">
+    <a href="01-chat.html" aria-current="page">频道<small>Channel</small></a>
+    <a href="02-archive.html">素材<small>Archive</small></a>
+    <a href="03-ideaboard.html">灵感<small>Ideas</small></a>
+    <a href="04-vote.html">投票<small>Votes</small></a>
+    <a href="05-tasks.html">任务<small>Tasks</small></a>
+    <a href="06-showcase.html">作品<small>Works</small></a>
+    <a href="07-members.html">成员<small>Members</small></a>
+    <a href="08-settings.html">设置<small>Settings</small></a>
+  </nav>
+  <div class="util dj-util">
+    <span class="dj-link-state"><i aria-hidden="true"></i>信号链路正常</span>
+    <button class="dj-themebtn" type="button" data-theme-toggle aria-pressed="false">深色</button>
+    <a class="dj-me" href="07-members.html"><span class="dj-avatar dj-avatar-s" aria-hidden="true">岑</span>岑野</a>
+  </div>
+</header>
+
+<div class="dj-shell">
+  <aside class="dj-rail" aria-label="频道与今日调度">
+    <div class="dj-rail-block">
+      <p class="ef-eyebrow slash">Channels</p>
+      <h2 class="dj-rail-title">频道 <span class="ef-field">3</span></h2>
+      <ul class="dj-nav">
+        <li><a href="01-chat.html" aria-current="page"><span>全域播报<small>general</small></span><span class="dj-count">3</span></a></li>
+        <li><a href="02-archive.html"><span>素材工坊<small>archive</small></span><span class="dj-count">0</span></a></li>
+        <li><a href="01-chat.html"><span>第三协议<small>protocol · 私密</small></span><span class="dj-count">1</span></a></li>
+      </ul>
+    </div>
+    <div class="dj-rail-block dj-rail-extra">
+      <p class="ef-eyebrow slash">Today</p>
+      <h2 class="dj-rail-title">今日调度</h2>
+      <ul class="dj-kvlist">
+        <li><span class="k">日期</span><span class="ef-field">2026.10.22</span></li>
+        <li><span class="k">待办任务</span><span class="ef-field">1</span></li>
+        <li><span class="k">进行中</span><span class="ef-field">1</span></li>
+        <li><span class="k">投票截止</span><span class="ef-field">10.25</span></li>
+      </ul>
+    </div>
+    <div class="dj-rail-block dj-rail-extra">
+      <p class="ef-eyebrow slash">Members</p>
+      <h2 class="dj-rail-title">成员 <span class="ef-field">8</span></h2>
+      <div class="dj-avatars" aria-hidden="true">
+        <span class="dj-avatar dj-avatar-s">岑</span><span class="dj-avatar dj-avatar-s">陆</span><span class="dj-avatar dj-avatar-s">白</span><span class="dj-avatar dj-avatar-s">祁</span><span class="dj-avatar dj-avatar-s">沈</span>
+      </div>
+      <p class="dj-rail-note"><a class="dj-textlink" href="07-members.html">查看成员与邀请码</a></p>
+    </div>
+  </aside>
+
+  <main class="dj-main" id="main">
+    <header class="ef-head">
+      <h1>全域播报 <small>General</small></h1>
+      <p>公开频道 │ 8 位成员可读 │ 置顶 2 条 │ 2026.10.22 21:07 最后一条</p>
+    </header>
+
+    <div class="dj-chat-wrap">
+      <section class="dj-chat" aria-label="消息流">
+        <ol class="dj-stream">
+          <li class="dj-msg is-system">
+            <span class="dj-avatar dj-avatar-s" aria-hidden="true">系</span>
+            <div class="dj-msg-main">
+              <p class="dj-msg-text">白棠把 1 个文件归档到 <a class="dj-textlink" href="02-archive.html">#素材工坊</a>。</p>
+              <p class="ef-field">2026.10.22 20:12 │ 系统记录</p>
+            </div>
+          </li>
+
+          <li class="dj-msg">
+            <span class="dj-avatar" aria-hidden="true">白</span>
+            <div class="dj-msg-main">
+              <div class="dj-msg-head">
+                <span class="dj-name">白棠</span>
+                <span class="ef-field">@baitang │ 档案员 │ 20:14</span>
+              </div>
+              <p class="dj-msg-text">封面第二稿放上去了，切角按协议内页的比例收紧了一点。等外景调色齐了一起看。</p>
+              <div class="dj-msg-card">
+                <span class="ef-eyebrow slash">Material / 20:14</span>
+                <span class="dj-msg-card-title">《终末地工业·第三协议》封面.png</span>
+                <span class="ef-field">PNG │ 1920 × 1080 │ 2.4 MB │ 版本 v2</span>
+                <a class="dj-textlink" href="02-archive.html">查看素材</a>
+              </div>
+              <div class="dj-msg-acts">
+                <button class="dj-actlink" type="button" data-quote="白棠|封面第二稿放上去了，切角按协议内页的比例收紧了一点。">引用</button>
+                <button class="dj-actlink" type="button" data-react aria-pressed="false">反应 4</button>
+                <a class="dj-actlink" href="02-archive.html">归档素材</a>
+              </div>
+            </div>
+          </li>
+
+          <li class="dj-msg" data-thread-root>
+            <span class="dj-avatar" aria-hidden="true">陆</span>
+            <div class="dj-msg-main">
+              <div class="dj-msg-head">
+                <span class="dj-name">陆见深</span>
+                <span class="ef-field">@lujianshen │ 协议官 │ 20:21</span>
+              </div>
+              <div class="dj-quote">
+                <span class="ef-field">引用 白棠 │ 20:14</span>
+                <span>封面第二稿放上去了，切角按协议内页的比例收紧了一点。</span>
+              </div>
+              <p class="dj-msg-text">外景那组我先按 0412 的色温走，雾海采样接在 07 号后面。<span class="dj-mention">@岑野</span> 第三协议的准入名单还是两人，别把外景加进去。</p>
+              <div class="dj-msg-acts">
+                <button class="dj-actlink dj-thread-toggle" type="button" data-thread-toggle aria-expanded="false" aria-controls="thread-1">展开 2 条回复</button>
+                <button class="dj-actlink" type="button" data-quote="陆见深|外景那组我先按 0412 的色温走，雾海采样接在 07 号后面。">引用</button>
+                <button class="dj-actlink" type="button" data-react aria-pressed="false">反应 2</button>
+                <span class="ef-field">线程 2</span>
+              </div>
+              <div class="dj-thread" id="thread-1" hidden>
+                <div class="dj-msg">
+                  <span class="dj-avatar dj-avatar-s" aria-hidden="true">岑</span>
+                  <div class="dj-msg-main">
+                    <div class="dj-msg-head"><span class="dj-name">岑野</span><span class="ef-field">@cenye │ 建立者 │ 20:24</span></div>
+                    <p class="dj-msg-text">收到，第三协议只留我和陆见深。外景走素材工坊。</p>
+                  </div>
+                </div>
+                <div class="dj-msg">
+                  <span class="dj-avatar dj-avatar-s" aria-hidden="true">白</span>
+                  <div class="dj-msg-main">
+                    <div class="dj-msg-head"><span class="dj-name">白棠</span><span class="ef-field">@baitang │ 20:26</span></div>
+                    <p class="dj-msg-text">那我把封面版本号改成 v3，附件里只留最终稿。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+
+          <li class="dj-msg">
+            <span class="dj-avatar" aria-hidden="true">岑</span>
+            <div class="dj-msg-main">
+              <div class="dj-msg-head">
+                <span class="dj-name">岑野</span>
+                <span class="ef-field">@cenye │ 建立者 │ 20:32</span>
+              </div>
+              <p class="dj-msg-text">主题投票到 10.25 截止，现在 6 人已投。没投的去投票卡上点一下。</p>
+              <div class="dj-msg-card">
+                <span class="ef-eyebrow slash">Vote / 多选</span>
+                <span class="dj-msg-card-title">本轮主题：雾海 / 锈带 / 静默轨道</span>
+                <span class="ef-field">6 人已投票 │ 截止 2026.10.25 21:00 │ 匿名</span>
+                <a class="dj-textlink" href="04-vote.html">去投票</a>
+              </div>
+              <div class="dj-msg-acts">
+                <button class="dj-actlink" type="button" data-quote="岑野|主题投票到 10.25 截止，现在 6 人已投。">引用</button>
+                <button class="dj-actlink" type="button" data-open="dlg-del-msg" data-scope=".dj-msg" data-action="delete-message">删除</button>
+              </div>
+            </div>
+          </li>
+
+          <li class="dj-msg">
+            <span class="dj-avatar" aria-hidden="true">祁</span>
+            <div class="dj-msg-main">
+              <div class="dj-msg-head">
+                <span class="dj-name">祁雾</span>
+                <span class="ef-field">@qiwu │ 成员 │ 20:40</span>
+              </div>
+              <p class="dj-msg-text">信号塔草图 v3 的透视还是偏了一点，明天早上重画一版。</p>
+              <div class="dj-msg-acts">
+                <button class="dj-actlink" type="button" data-quote="祁雾|信号塔草图 v3 的透视还是偏了一点。">引用</button>
+              </div>
+            </div>
+          </li>
+
+          <li class="dj-msg">
+            <span class="dj-avatar" aria-hidden="true">唐</span>
+            <div class="dj-msg-main">
+              <div class="dj-msg-head">
+                <span class="dj-name">唐隼</span>
+                <span class="ef-field">@tangsun │ 成员 │ 20:44</span>
+              </div>
+              <p class="dj-msg-text">雾海采样 07 的底噪我压了两档，原文件留在素材工坊，别覆盖。</p>
+              <div class="dj-msg-acts">
+                <button class="dj-actlink" type="button" data-quote="唐隼|雾海采样 07 的底噪我压了两档。">引用</button>
+                <button class="dj-actlink" type="button" data-react aria-pressed="false">反应 3</button>
+              </div>
+            </div>
+          </li>
+
+          <li class="dj-unread" aria-label="以下 3 条为新信号">以下 3 条为新信号</li>
+
+          <li class="dj-msg">
+            <span class="dj-avatar" aria-hidden="true">沈</span>
+            <div class="dj-msg-main">
+              <div class="dj-msg-head"><span class="dj-name">沈迟</span><span class="ef-field">@shenchi │ 成员 │ 21:02</span></div>
+              <p class="dj-msg-text">外景 0412 的调色我今晚交，版号 v4。</p>
+            </div>
+          </li>
+          <li class="dj-msg">
+            <span class="dj-avatar" aria-hidden="true">洛</span>
+            <div class="dj-msg-main">
+              <div class="dj-msg-head"><span class="dj-name">洛因</span><span class="ef-field">@luoyin │ 成员 │ 21:05</span></div>
+              <p class="dj-msg-text">收到，我在任务清单上把归档这条标到白棠名下了。</p>
+            </div>
+          </li>
+          <li class="dj-msg">
+            <span class="dj-avatar" aria-hidden="true">闻</span>
+            <div class="dj-msg-main">
+              <div class="dj-msg-head"><span class="dj-name">闻溪</span><span class="ef-field">@wenxi │ 成员 │ 21:07</span></div>
+              <p class="dj-msg-text">第三协议的封面重绘我来接，明天中午给第一版。</p>
+            </div>
+          </li>
+        </ol>
+
+        <form class="dj-composer" data-composer>
+          <div class="dj-quote-bar" data-quote-bar hidden>
+            <div>
+              <p class="ef-eyebrow slash">Quoting</p>
+              <p class="dj-quote-bar-text" data-quote-text></p>
+            </div>
+            <button class="dj-actlink" type="button" data-quote-cancel>取消引用</button>
+          </div>
+          <label class="dj-sr-only" for="composer-input">写一条信号</label>
+          <textarea class="dj-input" id="composer-input" name="body" rows="2" placeholder="写一条信号，@ 提到成员，或把文件拖进来归档。"></textarea>
+          <p class="ef-notice" data-composer-error data-flag="还没写" hidden></p>
+          <div class="dj-composer-acts">
+            <button class="ef-btn go" type="button" data-send>发送信号<span class="sub">Enter</span></button>
+            <a class="ef-btn" href="02-archive.html">归档素材</a>
+            <a class="ef-btn" href="04-vote.html">发起投票</a>
+            <span class="ef-field dj-composer-hint">Shift + Enter 换行 │ 单条上限 8,000 字</span>
+          </div>
+        </form>
+      </section>
+
+      <aside class="dj-side" aria-label="频道信息">
+        <section class="ef-panel">
+          <h2>频道信息 <a href="08-settings.html">设置</a></h2>
+          <ul class="dj-kvlist">
+            <li><span class="k">可见性</span><span class="ef-field">公开</span></li>
+            <li><span class="k">成员</span><span class="ef-field">8 人</span></li>
+            <li><span class="k">卡片</span><span class="ef-field">17 张</span></li>
+            <li><span class="k">素材</span><span class="ef-field">5 份</span></li>
+            <li><span class="k">未读</span><span class="ef-field">3 条</span></li>
+          </ul>
+        </section>
+        <section class="ef-panel">
+          <h2>置顶 <a href="01-chat.html">2 条</a></h2>
+          <ul class="dj-pins">
+            <li><span class="ef-field">2026.10.18</span><span>第三协议·协作条款（v1.0 冻结）</span><span class="ef-field">陆见深 置顶</span></li>
+            <li><span class="ef-field">2026.10.21</span><span>本周排期 10.22–10.25</span><span class="ef-field">岑野 置顶</span></li>
+          </ul>
+        </section>
+        <section class="ef-panel">
+          <h2>成员 <a href="07-members.html">全部 8 人</a></h2>
+          <div class="dj-avatars" aria-hidden="true">
+            <span class="dj-avatar dj-avatar-s">岑</span><span class="dj-avatar dj-avatar-s">陆</span><span class="dj-avatar dj-avatar-s">白</span><span class="dj-avatar dj-avatar-s">祁</span><span class="dj-avatar dj-avatar-s">沈</span><span class="dj-avatar dj-avatar-s">洛</span><span class="dj-avatar dj-avatar-s">唐</span><span class="dj-avatar dj-avatar-s">闻</span>
+          </div>
+          <p class="dj-rail-note"><a class="dj-textlink" href="07-members.html">邀请新成员</a></p>
+        </section>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<dialog class="ef-dialog" id="dlg-del-msg" aria-labelledby="dlg-del-msg-title">
+  <div class="ef-panel cut-br">
+    <p class="ef-eyebrow slash">Confirm / 删除</p>
+    <h2 id="dlg-del-msg-title">删除这条信号？</h2>
+    <p>删除后不会出现在频道里，其他成员的引用会显示为「已删除」。</p>
+    <p class="ef-actions">
+      <button class="ef-btn small" type="button" data-close>取消</button>
+      <button class="ef-btn small danger" type="button" data-confirm="delete-message">删除</button>
+    </p>
+  </div>
+</dialog>
+
+<p class="dj-sr-only" role="status" aria-live="polite" data-live></p>
+<script src="../demo.js"></script>
+</body>
+</html>

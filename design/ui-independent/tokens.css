@@ -1,0 +1,316 @@
+/* ==========================================================================
+   O.M.V 帝江号 · 全域广播 — 乙套 UI「航测档案 / Chart & Log」
+   tokens.css · 设计令牌（唯一视觉事实源）
+   --------------------------------------------------------------------------
+   约定：
+   - 无外部字体 / 无 CDN / 无第三方图片；字体全部走本地回退栈。
+   - 色彩按“角色”命名，深浅主题只替换令牌，不改组件 CSS。
+   - 间距 4px 基线；圆角只有 2 / 3 / 4 / full 四档（对应 2–4px 小圆角语言）。
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* --- 1. 纸张与墨 ------------------------------------------------------ */
+  --c-paper:        #F3EBDD;   /* 航测纸底，约 12.5:1 vs 墨 */
+  --c-paper-deep:   #EBE1CF;   /* 侧栏 / 页脚纸 */
+  --c-board:        #FBF6EC;   /* 卡片、板面、票据 */
+  --c-board-2:      #F7F0E3;   /* 次级板面 / 输入槽 */
+  --c-board-3:      #EFE6D6;   /* 悬停 / 选中底 */
+  --c-ink:          #1B2A2C;   /* 主文字 */
+  --c-ink-2:        #3E4E4E;   /* 次级正文 */
+  --c-muted:        #566866;   /* 注释文字（纸上 4.97:1） */
+  --c-mist:         #6C7F7D;   /* 图标 / 边框（图形 3:1） */
+  --c-hairline:     #D6C9B4;   /* 发丝线 */
+  --c-line:         #C2B096;   /* 分隔线 */
+  --c-line-strong:  #9E8B70;   /* 账本双线 */
+
+  /* --- 2. 主色：深海墨青 ------------------------------------------------ */
+  --c-teal:         #0E3B3E;   /* 墨青文字 / 图形（纸上 10.3:1） */
+  --c-teal-deep:    #0A2C2F;
+  --c-teal-bright:  #1B5A5E;
+  --c-teal-wash:    #DFE8E2;
+  --c-on-teal:      #FBF6EC;
+
+  /* --- 3. 强调：铜橙 ---------------------------------------------------- */
+  --c-copper:       #B85C38;   /* 图形 / 大字号（3.8:1，仅大文本与图形） */
+  --c-copper-ink:   #8F4327;   /* 铜橙小字 / 按钮底（纸上 5.9:1） */
+  --c-copper-wash:  #F2E2D3;
+  --c-on-copper:    #FBF6EC;
+
+  /* --- 4. 警示：朱砂（只用于截止 / 失效 / 撤销） ------------------------ */
+  --c-cinnabar:     #9E3B2F;   /* 纸上 5.7:1 */
+  --c-cinnabar-ink: #8A2F26;
+  --c-cinnabar-wash:#F3DED7;
+  --c-on-cinnabar:  #FBF6EC;
+
+  /* --- 5. 语义角色 ------------------------------------------------------ */
+  --c-action-bg:    #0E3B3E;
+  --c-action-ink:   #FBF6EC;
+  --c-action-hover: #1B5A5E;
+  --c-accent-bg:    #8F4327;   /* 铜橙按钮：纸白字 6.5:1 */
+  --c-accent-ink:   #FBF6EC;
+  --c-accent-hover: #A34E2D;
+  --c-focus:        #B85C38;
+  --c-selection:    #E8D9C2;
+  --c-overlay:      rgba(27, 42, 44, .42);
+  --c-shadow-ink:   rgba(27, 42, 44, .28);
+
+  /* 状态语义（印章） */
+  --c-status-todo:  #566866;   /* 待办：青灰方章 */
+  --c-status-doing: #8F4327;   /* 进行中：铜橙圆章（边框用 --c-copper） */
+  --c-status-done:  #0E3B3E;   /* 已完成：墨青双线圈章 */
+  --c-status-closed:#9E3B2F;   /* 截止 / 撤销：朱砂章 */
+
+  /* 灵感色标（契约枚举 amber|teal|rose|violet|slate → 纸感五色） */
+  --c-tag-amber:  #A9742E;   /* 板上 3.7:1，满足图形对比 */
+  --c-tag-teal:   #2F6F6C;
+  --c-tag-rose:   #9E3B2F;
+  --c-tag-violet: #6E6472;
+  --c-tag-slate:  #6C7F7D;
+
+  /* --- 6. CSS/SVG 生成的占位视觉（不使用第三方图片） -------------------- */
+  --grad-sea:    linear-gradient(160deg, #DFE8E1 0%, #C6D6CE 42%, #A6BDB6 100%);
+  --grad-dusk:   linear-gradient(152deg, #F2E2CA 0%, #DCC0A0 38%, #A28C74 100%);
+  --grad-ink:    linear-gradient(150deg, #315152 0%, #163538 46%, #0A1C1E 100%);
+  --grad-copper: linear-gradient(145deg, #E8C4A9 0%, #C97C52 52%, #8F4327 100%);
+  --grad-paper:  linear-gradient(180deg, #FBF6EC 0%, #F3EBDD 100%);
+
+  /* --- 7. 纸纹与格线 ---------------------------------------------------- */
+  --grain: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='.30'/%3E%3C/svg%3E");
+  --grid-line:        rgba(27, 42, 44, .045);
+  --grid-line-major:  rgba(27, 42, 44, .075);
+
+  /* --- 8. 字体 ---------------------------------------------------------- */
+  /* 标题：思源宋体 / Noto Serif SC 本地回退，不加载网络字体 */
+  --font-serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong",
+                "SimSun", "Times New Roman", serif;
+  --font-sans:  "Noto Sans SC", "Source Han Sans SC", "PingFang SC",
+                "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system,
+                "Segoe UI", sans-serif;
+  --font-mono:  "Saira", "IBM Plex Mono", "Cascadia Mono", "SFMono-Regular",
+                ui-monospace, Consolas, monospace;
+  /* 手写体：仅用于档案编号 / 票号（每屏 ≤ 2 处） */
+  --font-hand:  "Segoe Print", "Bradley Hand", "Ink Free", "Segoe Script", cursive;
+
+  --fs-2xs: 10px;
+  --fs-xs:  11px;
+  --fs-sm:  12.5px;
+  --fs-base:14px;
+  --fs-md:  15px;
+  --fs-lg:  17px;
+  --fs-xl:  20px;
+  --fs-2xl: 25px;
+  --fs-3xl: 31px;
+  --fs-4xl: 42px;
+  --lh-tight: 1.28;
+  --lh-snug:  1.48;
+  --lh-base:  1.72;
+  --ls-wide:  .08em;
+  --ls-wider: .16em;
+  --ls-widest:.24em;
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* --- 9. 间距（4px 基线） --------------------------------------------- */
+  --s-1: 4px;   --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
+  --s-5: 20px;  --s-6: 24px;  --s-7: 32px;  --s-8: 40px;
+  --s-9: 56px;  --s-10: 72px; --s-11: 96px;
+
+  /* --- 10. 圆角 / 边线 / 阴影 ------------------------------------------ */
+  --r-1: 2px; --r-2: 3px; --r-3: 4px; --r-round: 999px;
+
+  --bw-hair: 1px;
+  --bw-line: 1.5px;
+  --bw-mark: 2px;
+
+  --sh-1: 0 1px 0 rgba(120, 102, 76, .10), 0 1px 2px rgba(27, 42, 44, .05);
+  --sh-2: 0 1px 1px rgba(27, 42, 44, .06), 0 6px 18px -10px rgba(27, 42, 44, .26);
+  --sh-3: 0 2px 4px rgba(27, 42, 44, .07), 0 22px 48px -26px rgba(27, 42, 44, .40);
+  --sh-slot: inset 0 1px 2px rgba(27, 42, 44, .07), 0 0 0 1px var(--c-hairline);
+  --focus-ring: 0 0 0 2px var(--c-paper), 0 0 0 4px var(--c-focus);
+
+  /* --- 11. 动效 --------------------------------------------------------- */
+  --dur-1: 120ms;    /* 纸面反馈：印章、按钮按态 */
+  --dur-2: 180ms;    /* 悬停、标签切换 */
+  --dur-3: 280ms;    /* 抽屉、浮层 */
+  --dur-4: 420ms;    /* 盖章入场（一次性） */
+  --ease-out:   cubic-bezier(.22, .68, .34, 1);
+  --ease-soft:  cubic-bezier(.4, .14, .3, 1);
+  --ease-stamp: cubic-bezier(.2, .9, .25, 1.18);
+
+  /* --- 12. 栅格与布局 --------------------------------------------------- */
+  --rail-w: 252px;
+  --aside-w: 336px;
+  --gap: 20px;
+  --pad-x: 28px;
+  --content-max: 1760px;
+  --grid-32: 32px;      /* 细格纸 */
+  --gutter: 24px;
+  --cols: 12;
+  --z-rail: 30;
+  --z-aside: 40;
+  --z-scrim: 50;
+  --z-toast: 80;
+}
+
+/* ==========================================================================
+   深色主题「夜航」：同一套角色令牌，仅替换取值。完整可用（非缩水版）。
+   ========================================================================== */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --c-paper:        #101A1B;
+  --c-paper-deep:   #0C1516;
+  --c-board:        #172325;
+  --c-board-2:      #1C2A2C;
+  --c-board-3:      #223133;
+  --c-ink:          #E8DFCE;   /* 13.4:1 vs 纸 */
+  --c-ink-2:        #CBC5B5;
+  --c-muted:        #9AA8A2;   /* 6.5:1 vs 板 */
+  --c-mist:         #879994;
+  --c-hairline:     #2E3E3D;
+  --c-line:         #405452;
+  --c-line-strong:  #5C716D;
+
+  --c-teal:         #A8D5CE;
+  --c-teal-deep:    #0A2C2F;
+  --c-teal-bright:  #C6E6E1;
+  --c-teal-wash:    #1E3234;
+  --c-on-teal:      #0C191A;
+
+  --c-copper:       #E2835C;
+  --c-copper-ink:   #E9A07E;
+  --c-copper-wash:  #33241D;
+  --c-on-copper:    #1A100C;
+
+  --c-cinnabar:     #E47A66;
+  --c-cinnabar-ink: #F0A08F;
+  --c-cinnabar-wash:#37221F;
+  --c-on-cinnabar:  #1A100C;
+
+  --c-action-bg:    #A8D5CE;
+  --c-action-ink:   #0C191A;
+  --c-action-hover: #C6E6E1;
+  --c-accent-bg:    #E2835C;
+  --c-accent-ink:   #1A100C;
+  --c-accent-hover: #EDA07E;
+  --c-focus:        #E2835C;
+  --c-selection:    #3A3A2C;
+  --c-overlay:      rgba(4, 10, 11, .62);
+  --c-shadow-ink:   rgba(0, 0, 0, .55);
+
+  --c-status-todo:  #9AA8A2;
+  --c-status-doing: #E2835C;
+  --c-status-done:  #A8D5CE;
+  --c-status-closed:#E47A66;
+
+  --c-tag-amber:  #D9A45C;
+  --c-tag-teal:   #7FBDB6;
+  --c-tag-rose:   #E47A66;
+  --c-tag-violet: #A99DB3;
+  --c-tag-slate:  #93A7A2;
+
+  --grad-sea:    linear-gradient(160deg, #24383A 0%, #173033 46%, #0C1F21 100%);
+  --grad-dusk:   linear-gradient(152deg, #3B2E26 0%, #2A2320 52%, #171514 100%);
+  --grad-ink:    linear-gradient(150deg, #2E4B4D 0%, #122E31 50%, #061416 100%);
+  --grad-copper: linear-gradient(145deg, #8E5B3B 0%, #6B3C26 55%, #402317 100%);
+  --grad-paper:  linear-gradient(180deg, #172325 0%, #101A1B 100%);
+
+  --grain: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='.16'/%3E%3C/svg%3E");
+  --grid-line:       rgba(232, 223, 206, .035);
+  --grid-line-major: rgba(232, 223, 206, .06);
+
+  --sh-1: 0 1px 0 rgba(0, 0, 0, .35), 0 1px 2px rgba(0, 0, 0, .30);
+  --sh-2: 0 1px 1px rgba(0, 0, 0, .40), 0 8px 22px -12px rgba(0, 0, 0, .72);
+  --sh-3: 0 2px 4px rgba(0, 0, 0, .42), 0 24px 54px -26px rgba(0, 0, 0, .82);
+  --sh-slot: inset 0 1px 2px rgba(0, 0, 0, .40), 0 0 0 1px var(--c-hairline);
+}
+
+/* 跟随系统：仅在未显式选择 light/dark 时生效（system 时 data-theme="system"） */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --c-paper:        #101A1B;
+    --c-paper-deep:   #0C1516;
+    --c-board:        #172325;
+    --c-board-2:      #1C2A2C;
+    --c-board-3:      #223133;
+    --c-ink:          #E8DFCE;
+    --c-ink-2:        #CBC5B5;
+    --c-muted:        #9AA8A2;
+    --c-mist:         #879994;
+    --c-hairline:     #2E3E3D;
+    --c-line:         #405452;
+    --c-line-strong:  #5C716D;
+
+    --c-teal:         #A8D5CE;
+    --c-teal-deep:    #0A2C2F;
+    --c-teal-bright:  #C6E6E1;
+    --c-teal-wash:    #1E3234;
+    --c-on-teal:      #0C191A;
+
+    --c-copper:       #E2835C;
+    --c-copper-ink:   #E9A07E;
+    --c-copper-wash:  #33241D;
+    --c-on-copper:    #1A100C;
+
+    --c-cinnabar:     #E47A66;
+    --c-cinnabar-ink: #F0A08F;
+    --c-cinnabar-wash:#37221F;
+    --c-on-cinnabar:  #1A100C;
+
+    --c-action-bg:    #A8D5CE;
+    --c-action-ink:   #0C191A;
+    --c-action-hover: #C6E6E1;
+    --c-accent-bg:    #E2835C;
+    --c-accent-ink:   #1A100C;
+    --c-accent-hover: #EDA07E;
+    --c-focus:        #E2835C;
+    --c-selection:    #3A3A2C;
+    --c-overlay:      rgba(4, 10, 11, .62);
+    --c-shadow-ink:   rgba(0, 0, 0, .55);
+
+    --c-status-todo:  #9AA8A2;
+    --c-status-doing: #E2835C;
+    --c-status-done:  #A8D5CE;
+    --c-status-closed:#E47A66;
+
+    --c-tag-amber:  #D9A45C;
+    --c-tag-teal:   #7FBDB6;
+    --c-tag-rose:   #E47A66;
+    --c-tag-violet: #A99DB3;
+    --c-tag-slate:  #93A7A2;
+
+    --grad-sea:    linear-gradient(160deg, #24383A 0%, #173033 46%, #0C1F21 100%);
+    --grad-dusk:   linear-gradient(152deg, #3B2E26 0%, #2A2320 52%, #171514 100%);
+    --grad-ink:    linear-gradient(150deg, #2E4B4D 0%, #122E31 50%, #061416 100%);
+    --grad-copper: linear-gradient(145deg, #8E5B3B 0%, #6B3C26 55%, #402317 100%);
+    --grad-paper:  linear-gradient(180deg, #172325 0%, #101A1B 100%);
+
+    --grain: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='.16'/%3E%3C/svg%3E");
+    --grid-line:       rgba(232, 223, 206, .035);
+    --grid-line-major: rgba(232, 223, 206, .06);
+
+    --sh-1: 0 1px 0 rgba(0, 0, 0, .35), 0 1px 2px rgba(0, 0, 0, .30);
+    --sh-2: 0 1px 1px rgba(0, 0, 0, .40), 0 8px 22px -12px rgba(0, 0, 0, .72);
+    --sh-3: 0 2px 4px rgba(0, 0, 0, .42), 0 24px 54px -26px rgba(0, 0, 0, .82);
+    --sh-slot: inset 0 1px 2px rgba(0, 0, 0, .40), 0 0 0 1px var(--c-hairline);
+  }
+}
+
+/* ==========================================================================
+   reduced-motion：所有令牌时长归零，组件 CSS 无需重复声明。
+   （app.css 中另有一条兜底 * 规则，防止组件写死时长。）
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 0ms;
+    --dur-2: 0ms;
+    --dur-3: 0ms;
+    --dur-4: 0ms;
+  }
+}

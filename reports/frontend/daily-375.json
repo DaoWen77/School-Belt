@@ -1,0 +1,36 @@
+{
+  "views": {
+    "聊天": {
+      "path": "/",
+      "innerWidth": 375,
+      "docScrollWidth": 375,
+      "overflowX": 0,
+      "tabs": 4,
+      "cards": 50
+    },
+    "素材": {
+      "path": "/",
+      "innerWidth": 375,
+      "docScrollWidth": 375,
+      "overflowX": 0,
+      "tabs": 4,
+      "cards": 3
+    },
+    "投票": {
+      "path": "/",
+      "innerWidth": 375,
+      "docScrollWidth": 375,
+      "overflowX": 0,
+      "tabs": 4,
+      "cards": 5
+    },
+    "任务": {
+      "path": "/",
+      "innerWidth": 375,
+      "docScrollWidth": 375,
+      "overflowX": 0,
+      "tabs": 4,
+      "cards": 5
+    }
+  }
+}

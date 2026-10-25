@@ -1,0 +1,174 @@
+{
+  "contract": "docs/_contract-v1.2.md §10 文件直传（F9）",
+  "suite": "upload-full-chain",
+  "startedAt": "2026-10-23T15:13:44.900Z",
+  "finishedAt": "2026-10-23T15:13:45.191Z",
+  "apiBase": "http://127.0.0.1:3000",
+  "s3": {
+    "implementation": "rclone-s3",
+    "endpoint": "http://127.0.0.1:9000",
+    "publicEndpoint": "http://127.0.0.1:9000",
+    "bucket": "dijiang",
+    "signatureCheck": true,
+    "note": "真实 S3 兼容服务（本机 rclone serve s3；生产为 MinIO/云 S3，需配置桶 CORS）"
+  },
+  "credentials": {
+    "handle": "qiu",
+    "id": "5d47dd62-ef08-4f7e-bc90-d7b537a5420f"
+  },
+  "channel": {
+    "id": "298e06ba-0623-47f5-925e-920ef8005b92",
+    "name": "全域播报"
+  },
+  "verdict": "PASS",
+  "bytes": 1217,
+  "sha256": "c3528c47ccca0f8e9f7cb15065f0cecccc20153eaf176c372f6af79ead73de83",
+  "presigned": {
+    "fileId": "155e8153-cc23-46d3-a7b6-1f6ae127dbba",
+    "uploadHost": "127.0.0.1:9000",
+    "presignedSignature": true,
+    "kind": "image"
+  },
+  "upload": {
+    "status": 200,
+    "etag": "\"006f91249349ed67746fb2a79c02e7d6\"",
+    "uploadMs": 4
+  },
+  "complete": {
+    "status": "ready",
+    "sizeBytes": "1217",
+    "mime": "image/png",
+    "kind": "image"
+  },
+  "download": {
+    "status": 200,
+    "bytes": 1217,
+    "byteEqual": true,
+    "sha256Equal": true,
+    "sha256": "c3528c47ccca0f8e9f7cb15065f0cecccc20153eaf176c372f6af79ead73de83"
+  },
+  "message": {
+    "messageId": "1393",
+    "clientMsgId": "0adc8c29-f2a7-400f-a88f-a0615c96dedd",
+    "fileId": "155e8153-cc23-46d3-a7b6-1f6ae127dbba"
+  },
+  "limits": {
+    "oversize": {
+      "rejected": true,
+      "status": 413,
+      "code": "FILE_TOO_LARGE"
+    },
+    "fakeMime": {
+      "rejected": true,
+      "status": 415,
+      "code": "FILE_TYPE_NOT_ALLOWED",
+      "fileStayedRejected": true
+    },
+    "unsupportedMime": {
+      "rejected": true,
+      "status": 415,
+      "code": "FILE_TYPE_NOT_ALLOWED"
+    }
+  },
+  "steps": [
+    {
+      "id": "U1",
+      "name": "POST /files/presign（真实 PNG 24×18）",
+      "ok": true,
+      "detail": {
+        "fileId": "155e8153-cc23-46d3-a7b6-1f6ae127dbba",
+        "kind": "image",
+        "maxBytes": 20971520,
+        "method": "PUT",
+        "expiresIn": 900,
+        "uploadHost": "127.0.0.1:9000",
+        "presignedSignature": true,
+        "bytes": 1217
+      }
+    },
+    {
+      "id": "U2",
+      "name": "预签名 PUT 上传真实 PNG 字节",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "etag": "\"006f91249349ed67746fb2a79c02e7d6\"",
+        "uploadMs": 4,
+        "bytes": 1217
+      }
+    },
+    {
+      "id": "U3",
+      "name": "POST /files/:id/complete（大小 + 魔数校验）→ ready",
+      "ok": true,
+      "detail": {
+        "status": "ready",
+        "sizeBytes": "1217",
+        "mime": "image/png",
+        "kind": "image",
+        "previewStatus": "pending"
+      }
+    },
+    {
+      "id": "U4",
+      "name": "GET /files/:id/url 下载 + 逐字节比对",
+      "ok": true,
+      "detail": {
+        "downloadStatus": 200,
+        "downloadHost": "127.0.0.1:9000",
+        "downloadedBytes": 1217,
+        "lengthEqual": true,
+        "byteEqual": true,
+        "sha256Equal": true,
+        "sha256": "c3528c47ccca0f8e9f7cb15065f0cecccc20153eaf176c372f6af79ead73de83"
+      }
+    },
+    {
+      "id": "U5",
+      "name": "REST 发带 attachmentIds 消息 → 读回确认 attachments",
+      "ok": true,
+      "detail": {
+        "messageId": "1393",
+        "clientMsgId": "0adc8c29-f2a7-400f-a88f-a0615c96dedd",
+        "attachment": {
+          "fileId": "155e8153-cc23-46d3-a7b6-1f6ae127dbba",
+          "originalName": "e2e-upload-1792768425008.png",
+          "mime": "image/png",
+          "sizeBytes": "1217",
+          "kind": "image"
+        }
+      }
+    },
+    {
+      "id": "U6",
+      "name": "25MB PNG 被 presign 拒绝（413 FILE_TOO_LARGE）",
+      "ok": true,
+      "detail": {
+        "status": 413,
+        "code": "FILE_TOO_LARGE",
+        "maxBytes": 20971520
+      }
+    },
+    {
+      "id": "U7",
+      "name": "伪造 MIME 被 complete 拒绝（415 FILE_TYPE_NOT_ALLOWED）且文件置 rejected",
+      "ok": true,
+      "detail": {
+        "completeStatus": 415,
+        "code": "FILE_TYPE_NOT_ALLOWED",
+        "urlStatus": 409,
+        "urlCode": "FILE_NOT_READY"
+      }
+    },
+    {
+      "id": "U8",
+      "name": "不支持类型 text/html 被 presign 拒绝（415 FILE_TYPE_NOT_ALLOWED）",
+      "ok": true,
+      "detail": {
+        "status": 415,
+        "code": "FILE_TYPE_NOT_ALLOWED"
+      }
+    }
+  ],
+  "ok": true
+}

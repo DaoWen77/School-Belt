@@ -1,0 +1,38 @@
+﻿import { chromium } from 'playwright-core';
+const base='http://192.168.1.9:3100';
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});
+const errors=[];const s3reqs=[];
+page.on('console',m=>{if(m.type()==='error')errors.push(m.text().slice(0,160))});
+page.on('pageerror',e=>errors.push('PAGE '+e.message.slice(0,160)));
+page.on('request',r=>{if(r.url().includes(':9000'))s3reqs.push(r.url())});
+await page.goto(base+'/login',{waitUntil:'networkidle'});
+await page.fill('input[autocomplete=username]','founder');
+await page.fill('input[type=password]','Dijiang#2026');
+await page.click('form button[type=submit]');
+await page.waitForTimeout(3000);
+console.log('URL',page.url());
+const msg=page.locator('.im-msg').last();
+await msg.hover(); await page.waitForTimeout(300);
+const quoteBtn=msg.locator('button',{hasText:'引用'});
+console.log('QUOTE_BTN',await quoteBtn.count());
+if(await quoteBtn.count()){ await quoteBtn.click(); await page.waitForTimeout(300); }
+const body='PHASE1-LAN-'+Date.now();
+await page.locator('textarea[aria-label="输入信号"]').fill(body);
+await page.keyboard.press('Enter');
+await page.waitForTimeout(2500);
+const bodyText=await page.locator('body').innerText();
+console.log('SENT_VISIBLE',bodyText.includes(body));
+const row=page.locator('.im-msg').filter({hasText:body}).last();
+console.log('ROW_TEXT',(await row.innerText()).slice(0,300));
+console.log('S3_REQ_HOSTS',JSON.stringify([...new Set(s3reqs.map(u=>new URL(u).host))]));
+const imgs=await page.locator('img').evaluateAll(list=>list.map(i=>({src:i.src,nw:i.naturalWidth})).filter(i=>i.src.includes(':9000')));
+console.log('S3_IMGS',JSON.stringify(imgs.slice(0,6)));
+for(let i=0;i<3;i++){ await page.reload({waitUntil:'networkidle'}); await page.waitForTimeout(1200); }
+const avatars=await page.locator('img').evaluateAll(list=>list.filter(i=>i.src.includes(':9000')).map(i=>({nw:i.naturalWidth,alt:i.alt,src:i.src.slice(0,55)})));
+console.log('AFTER_RELOAD_AVATARS',JSON.stringify(avatars.slice(0,6)));
+await page.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/phase1-lan-1440.png'});
+await page.setViewportSize({width:390,height:844}); await page.waitForTimeout(800);
+await page.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/phase1-lan-390.png'});
+console.log('ERRORS',JSON.stringify(errors.slice(0,5)));
+await browser.close();

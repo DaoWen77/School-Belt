@@ -1,0 +1,30 @@
+{
+  "shots": {
+    "sprint5-invite-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint5-invite-1440.png",
+    "sprint5-invite-member-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint5-invite-member-1440.png",
+    "sprint5-commands-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint5-commands-1440.png"
+  },
+  "checks": {
+    "inviteCreated": {
+      "hasSection": true,
+      "codeVisible": true,
+      "code": "DJ-TRKE-8264",
+      "codeInLocalStorage": false,
+      "listHasPrefix": true,
+      "statusActive": true
+    },
+    "member": {
+      "hasInviteSection": false,
+      "hasAiSection": false
+    },
+    "commands": {
+      "dialogOpen": true,
+      "draft": "",
+      "messages": 8,
+      "beforeMessages": 8
+    }
+  },
+  "errors": [],
+  "pageErrors": [],
+  "failedRequests": []
+}

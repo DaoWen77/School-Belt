@@ -1,0 +1,174 @@
+# O.M.V 帝江号 · 全域广播 —— 本地/单机编排
+# 用法：cp .env.example .env && docker compose up -d
+# 依赖：Docker Desktop / Docker Engine + Compose v2（交付环境未实测，见 docs/16）
+name: dijiang
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dijiang-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dijiang}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dijiang_dev_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-dijiang}
+      TZ: ${TZ:-Asia/Shanghai}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - dijiang
+
+  redis:
+    image: redis:7-alpine
+    container_name: dijiang-redis
+    restart: unless-stopped
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${REDIS_PASSWORD:-dijiang_dev_redis}",
+      ]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "redis-cli -a $${REDIS_PASSWORD} ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-dijiang_dev_redis}
+    networks:
+      - dijiang
+
+  minio:
+    image: minio/minio:RELEASE.2024-10-13T13-34-11Z
+    container_name: dijiang-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-minioadmin}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dijiang
+
+  # 一次性任务：创建 bucket（幂等）
+  minio-init:
+    image: minio/mc:RELEASE.2024-10-12T18-37-01Z
+    container_name: dijiang-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:-minioadmin}
+      S3_BUCKET: ${S3_BUCKET:-dijiang}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mc alias set local http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}" &&
+        mc mb --ignore-existing "local/$${S3_BUCKET}" &&
+        echo "bucket $${S3_BUCKET} ready"
+    networks:
+      - dijiang
+
+  api:
+    build:
+      context: ../server
+      dockerfile: Dockerfile
+    container_name: dijiang-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # 容器内固定监听，外网由 Caddy 反代
+      HOST: 0.0.0.0
+      PORT: 3000
+      NODE_ENV: ${NODE_ENV:-production}
+      # 覆盖成容器内 DNS，避免沿用宿主机的 localhost
+      DATABASE_URL: postgresql://${POSTGRES_USER:-dijiang}:${POSTGRES_PASSWORD:-dijiang_dev_pw}@postgres:5432/${POSTGRES_DB:-dijiang}?schema=public&connection_limit=${DATABASE_POOL_MAX:-10}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-dijiang_dev_redis}@redis:6379/0
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - dijiang
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: dijiang-caddy
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+      ACME_EMAIL: ${ACME_EMAIL:-ops@dijiang.local}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - dijiang
+
+volumes:
+  pgdata:
+    name: dijiang_pgdata
+  redisdata:
+    name: dijiang_redisdata
+  miniodata:
+    name: dijiang_miniodata
+  caddy_data:
+    name: dijiang_caddy_data
+  caddy_config:
+    name: dijiang_caddy_config
+
+networks:
+  dijiang:
+    name: dijiang
+    driver: bridge

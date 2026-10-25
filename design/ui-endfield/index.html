@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN" data-ef-accent="yellow" data-ef-paper="neutral" data-ef-cut="standard" data-ef-ground="hatch" data-ef-density="standard" data-ef-motion="full">
+<!-- 变体：yellow / neutral / standard / hatch / standard / full（见 README 的变体卡）。
+     主视觉：帝江号外景线稿 + 信号链路（3 个频道的真实计数）。 -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>总览 │ O.M.V 帝江号 · 全域广播</title>
+<meta name="theme-color" content="#F4F4F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191919" media="(prefers-color-scheme: dark)">
+<script>
+  try { var t = localStorage.getItem('dj-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="ef ef-contours dj">
+<a class="dj-skip" href="#main">跳到主内容</a>
+<div class="ef-tri" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header class="ef-cmdbar dj-cmdbar">
+  <a class="brand" href="index.html">
+    <span class="seal" aria-hidden="true">帝</span>
+    <span class="dj-brand-name">帝江号<small>Dijiang / Broadcast</small></span>
+  </a>
+  <nav aria-label="界面导航">
+    <a href="screens/01-chat.html">频道<small>Channel</small></a>
+    <a href="screens/02-archive.html">素材<small>Archive</small></a>
+    <a href="screens/03-ideaboard.html">灵感<small>Ideas</small></a>
+    <a href="screens/04-vote.html">投票<small>Votes</small></a>
+    <a href="screens/05-tasks.html">任务<small>Tasks</small></a>
+    <a href="screens/06-showcase.html">作品<small>Works</small></a>
+    <a href="screens/07-members.html">成员<small>Members</small></a>
+    <a href="screens/08-settings.html">设置<small>Settings</small></a>
+  </nav>
+  <div class="util dj-util">
+    <span class="dj-link-state"><i aria-hidden="true"></i>信号链路正常</span>
+    <button class="dj-themebtn" type="button" data-theme-toggle aria-pressed="false">深色</button>
+    <a class="dj-me" href="screens/07-members.html"><span class="dj-avatar dj-avatar-s" aria-hidden="true">岑</span>岑野</a>
+  </div>
+</header>
+
+<div class="dj-shell">
+  <aside class="dj-rail" aria-label="频道与今日调度">
+    <div class="dj-rail-block">
+      <p class="ef-eyebrow slash">Channels</p>
+      <h2 class="dj-rail-title">频道 <span class="ef-field">3</span></h2>
+      <ul class="dj-nav">
+        <li><a href="screens/01-chat.html"><span>全域播报<small>general</small></span><span class="dj-count">3</span></a></li>
+        <li><a href="screens/02-archive.html"><span>素材工坊<small>archive</small></span><span class="dj-count">0</span></a></li>
+        <li><a href="screens/01-chat.html"><span>第三协议<small>protocol · 私密</small></span><span class="dj-count">1</span></a></li>
+      </ul>
+    </div>
+    <div class="dj-rail-block dj-rail-extra">
+      <p class="ef-eyebrow slash">Today</p>
+      <h2 class="dj-rail-title">今日调度</h2>
+      <ul class="dj-kvlist">
+        <li><span class="k">日期</span><span class="ef-field">2026.10.22</span></li>
+        <li><span class="k">在线</span><span class="ef-field">4 / 8</span></li>
+        <li><span class="k">未读</span><span class="ef-field">4 条</span></li>
+        <li><span class="k">待办任务</span><span class="ef-field">1 项</span></li>
+      </ul>
+    </div>
+    <div class="dj-rail-block dj-rail-extra">
+      <p class="ef-eyebrow slash">Members</p>
+      <h2 class="dj-rail-title">成员 <span class="ef-field">8</span></h2>
+      <div class="dj-avatars" aria-hidden="true">
+        <span class="dj-avatar dj-avatar-s">岑</span><span class="dj-avatar dj-avatar-s">陆</span><span class="dj-avatar dj-avatar-s">白</span><span class="dj-avatar dj-avatar-s">祁</span><span class="dj-avatar dj-avatar-s">沈</span>
+      </div>
+      <p class="dj-rail-note"><a class="dj-textlink" href="screens/07-members.html">查看成员与邀请码</a></p>
+    </div>
+  </aside>
+
+  <main class="dj-main" id="main">
+    <header class="ef-head">
+      <h1>总览 <small>Overview</small></h1>
+      <p>3 个频道 │ 8 位成员 │ 17 张卡片 │ 今天 2026.10.22</p>
+    </header>
+
+    <section class="dj-hero" aria-label="帝江号总览">
+      <div class="dj-hero-copy">
+        <p class="ef-eyebrow slash">Invite only / 邀请制</p>
+        <h2 class="ef-wordmark">
+          <span class="solid ef-in-drive">帝江号</span>
+          <span class="hollow ef-in-drive" style="animation-delay:140ms" aria-hidden="true">Dijiang</span>
+        </h2>
+        <p class="dj-hero-lede ef-read">一个邀请制的创意社团协作空间。频道收信号，素材工坊收文件，灵感墙收想法，投票定主题，任务派人，作品墙发布。第三协议只对两个人开放。</p>
+        <ul class="ef-facts ef-field">
+          <li>2026.10.22</li>
+          <li>21:07 最后一条信号</li>
+          <li>512 条信号</li>
+          <li>未读 4 条</li>
+        </ul>
+        <p class="ef-actions">
+          <a class="ef-btn go" href="screens/01-chat.html">进入全域播报 <span class="sub">3 条未读</span></a>
+          <a class="ef-btn" href="#screens">8 屏清单</a>
+        </p>
+      </div>
+
+      <figure class="ef-frame dj-frame">
+        <div class="window">
+          <svg viewBox="0 0 640 420" role="img" aria-label="线稿：帝江号外景，右侧是信号塔与雾层">
+            <g fill="none" stroke="currentColor" stroke-width="1">
+              <path d="M14 300h612"/>
+              <path d="M110 264l42-34h330l54 34-26 26H136z"/>
+              <path d="M152 230h300" opacity=".55"/>
+              <path d="M236 230v-34h96v34"/>
+              <path d="M268 196v-30h32v30"/>
+              <path d="M278 166v-24"/>
+              <path d="M226 244h230M250 256h190" opacity=".35"/>
+              <path d="M300 230v20M340 230v20M380 230v20" opacity=".3"/>
+              <path d="M512 250l34-24 42 24" opacity=".55"/>
+              <path d="M470 216h26M482 204h14" opacity=".4"/>
+              <circle cx="548" cy="104" r="32" opacity=".3"/>
+              <path d="M28 286h584M28 316h584M60 332h520" opacity=".2"/>
+              <path d="M84 162h6M120 138h6M96 110h6M148 96h6M188 124h6" opacity=".45"/>
+              <path d="M612 300v-96M604 300v-72" opacity=".25"/>
+            </g>
+          </svg>
+        </div>
+        <figcaption class="ef-plate">帝江号外景 · 归档 0412</figcaption>
+      </figure>
+    </section>
+
+    <ul class="dj-fignums" aria-label="全域计数">
+      <li><b>3</b><span>频道</span></li>
+      <li><b>8</b><span>成员</span></li>
+      <li><b>17</b><span>张卡片</span></li>
+      <li><b>512</b><span>条信号</span></li>
+    </ul>
+
+    <div class="ef-ticker" aria-label="最近 5 条信号">
+      <div class="track">
+        <ul>
+          <li><a href="screens/01-chat.html"><b>No.512</b>闻溪：第三协议的封面重绘我来接，明天中午给第一版。</a></li>
+          <li><a href="screens/01-chat.html"><b>No.511</b>洛因：收到，我在任务清单上把归档这条标到白棠名下了。</a></li>
+          <li><a href="screens/04-vote.html"><b>No.510</b>岑野：主题投票到 10.25 截止，现在 6 人已投。</a></li>
+          <li><a href="screens/01-chat.html"><b>No.509</b>祁雾：信号塔草图 v3 的透视还是偏了一点，明天早上重画一版。</a></li>
+          <li><a href="screens/02-archive.html"><b>No.508</b>唐隼：雾海采样 07 的底噪我压了两档，原文件留在素材工坊，别覆盖。</a></li>
+        </ul>
+        <ul aria-hidden="true">
+          <li><a href="screens/01-chat.html" tabindex="-1"><b>No.512</b>闻溪：第三协议的封面重绘我来接，明天中午给第一版。</a></li>
+          <li><a href="screens/01-chat.html" tabindex="-1"><b>No.511</b>洛因：收到，我在任务清单上把归档这条标到白棠名下了。</a></li>
+          <li><a href="screens/04-vote.html" tabindex="-1"><b>No.510</b>岑野：主题投票到 10.25 截止，现在 6 人已投。</a></li>
+          <li><a href="screens/01-chat.html" tabindex="-1"><b>No.509</b>祁雾：信号塔草图 v3 的透视还是偏了一点，明天早上重画一版。</a></li>
+          <li><a href="screens/02-archive.html" tabindex="-1"><b>No.508</b>唐隼：雾海采样 07 的底噪我压了两档，原文件留在素材工坊，别覆盖。</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="dj-overview" id="screens">
+      <section aria-label="8 屏清单">
+        <div class="ef-bar-title">8 屏清单</div>
+        <ol class="dj-screens">
+          <li><a class="dj-screen" href="screens/01-chat.html">
+            <span class="ef-tag">No.01</span><span class="ef-field">频道</span>
+            <span class="dj-screen-name"><b>全域播报</b><small>消息流、引用、线程展开、置顶与频道信息</small></span>
+            <span class="ef-field">512 条</span>
+          </a></li>
+          <li><a class="dj-screen" href="screens/02-archive.html">
+            <span class="ef-tag">No.02</span><span class="ef-field">素材</span>
+            <span class="dj-screen-name"><b>素材工坊</b><small>缩略图网格、类型与标签筛选、拖拽归档、上传进度</small></span>
+            <span class="ef-field">5 份</span>
+          </a></li>
+          <li><a class="dj-screen" href="screens/03-ideaboard.html">
+            <span class="ef-tag">No.03</span><span class="ef-field">灵感</span>
+            <span class="dj-screen-name"><b>灵感墙</b><small>三列、色标、拖拽换列与移列按钮</small></span>
+            <span class="ef-field">6 条</span>
+          </a></li>
+          <li><a class="dj-screen" href="screens/04-vote.html">
+            <span class="ef-tag">No.04</span><span class="ef-field">投票</span>
+            <span class="dj-screen-name"><b>投票卡</b><small>单选与多选、匿名标记、提交后结果条</small></span>
+            <span class="ef-field">2 张</span>
+          </a></li>
+          <li><a class="dj-screen" href="screens/05-tasks.html">
+            <span class="ef-tag">No.05</span><span class="ef-field">任务</span>
+            <span class="dj-screen-name"><b>任务清单</b><small>指派、截止、待办到已完成的状态流转</small></span>
+            <span class="ef-field">3 项</span>
+          </a></li>
+          <li><a class="dj-screen" href="screens/06-showcase.html">
+            <span class="ef-tag">No.06</span><span class="ef-field">作品</span>
+            <span class="dj-screen-name"><b>作品墙</b><small>组图画廊、大图预览、赞</small></span>
+            <span class="ef-field">3 张</span>
+          </a></li>
+          <li><a class="dj-screen" href="screens/07-members.html">
+            <span class="ef-tag">No.07</span><span class="ef-field">成员</span>
+            <span class="dj-screen-name"><b>成员与邀请</b><small>邀请码生成、复制、撤销，成员角色，私密频道</small></span>
+            <span class="ef-field">8 人</span>
+          </a></li>
+          <li><a class="dj-screen" href="screens/08-settings.html">
+            <span class="ef-tag">No.08</span><span class="ef-field">设置</span>
+            <span class="dj-screen-name"><b>设置</b><small>通知级别、免打扰时段、主题与减少动态效果</small></span>
+            <span class="ef-field">3 组</span>
+          </a></li>
+        </ol>
+      </section>
+
+      <aside class="dj-side" aria-label="信号链路与待处理">
+        <section class="ef-panel">
+          <h2>信号链路 <a href="screens/01-chat.html">信道</a></h2>
+          <ul class="dj-route">
+            <li><i class="dj-node" aria-hidden="true"></i>
+              <span class="dj-route-name">全域播报<small>general · 公开</small></span>
+              <span class="dj-route-count">512</span>
+            </li>
+            <li><i class="dj-node" aria-hidden="true"></i>
+              <span class="dj-route-name">素材工坊<small>archive · 公开</small></span>
+              <span class="dj-route-count">5</span>
+            </li>
+            <li><i class="dj-node" aria-hidden="true"></i>
+              <span class="dj-route-name">第三协议<small>protocol · 私密 2 人</small></span>
+              <span class="dj-route-count">1</span>
+            </li>
+          </ul>
+          <p class="dj-rail-note">链路状态：正常。3 个频道里 2 个公开、1 个私密。</p>
+        </section>
+        <section class="ef-panel">
+          <h2>需要处理</h2>
+          <ul class="dj-pins">
+            <li><a href="screens/05-tasks.html"><span class="ef-field">10.24</span><span>素材归档至素材工坊</span><span class="ef-field">白棠</span></a></li>
+            <li><a href="screens/04-vote.html"><span class="ef-field">10.24</span><span>下次同步时间投票</span><span class="ef-field">4 / 8</span></a></li>
+            <li><a href="screens/05-tasks.html"><span class="ef-field">10.27</span><span>第三协议封面重绘</span><span class="ef-field">祁雾</span></a></li>
+          </ul>
+        </section>
+        <section class="ef-panel">
+          <h2>今日</h2>
+          <ul class="dj-kvlist">
+            <li><span class="k">日期</span><span class="ef-field">2026.10.22</span></li>
+            <li><span class="k">在线</span><span class="ef-field">4 / 8</span></li>
+            <li><span class="k">未读</span><span class="ef-field">4 条</span></li>
+            <li><span class="k">新素材</span><span class="ef-field">1 份</span></li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+
+    <p class="dj-footnote ef-field">演示数据固定在 2026.10.22：3 个频道、8 位成员、5 份素材、6 条灵感、2 张投票、3 项任务、1 组 3 张作品。</p>
+  </main>
+</div>
+
+<p class="dj-sr-only" role="status" aria-live="polite" data-live></p>
+<script src="demo.js"></script>
+</body>
+</html>

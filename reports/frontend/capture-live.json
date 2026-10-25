@@ -1,0 +1,139 @@
+{
+  "handle": "lin",
+  "shots": {
+    "main1440": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\main-1440.png",
+    "thread1440": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\thread-1440.png",
+    "dm1440": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\dm-1440.png",
+    "group1440": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\group-1440.png"
+  },
+  "checks": {
+    "main": {
+      "path": "/",
+      "wsState": "信号链路正常",
+      "h1": "全域播报 general",
+      "headerLine": "公开频道 │ 7 位成员可读 │ 未读 355 条 │ 最后一条 2026.10.22 23:36",
+      "channelCount": 2,
+      "dmCount": 1,
+      "groupCount": 3,
+      "messageCount": 50,
+      "hasRealData": true,
+      "rightPanelMemberCount": 7,
+      "composer": true,
+      "overflowX": 0,
+      "firstMessages": [
+        "安 | 安观测 | @an_obs │ 23:30 |  | 本轮广播覆盖全部 7 个观测点。（#468） |  | 回复 | No.496 | 2026.10.22 23:30",
+        "岳 | 岳调度 | @yue │ 23:30 |  | 协作条款 §4 的权限矩阵已上线，请各频道核对。（#471） |  | 回复 | No.499 | 2026.10.22 23:30",
+        "邱 | 邱档案 | @qiu │ 23:30 |  | 本班次广播窗口剩余 12 分钟。（#472） |  | 回复 | No.500 | 2026.10.22 23:30"
+      ],
+      "dmTitles": [
+        "DIRECT",
+        "",
+        "私聊",
+        "1",
+        "陈工",
+        "林测绘：明白。",
+        "3",
+        "新建私聊"
+      ],
+      "groupTitles": [
+        "GROUPS",
+        "",
+        "群聊",
+        "3",
+        "e2e 群 1792683386727",
+        "3 人 · 群聊",
+        "1",
+        "e2e 群 1792683244053"
+      ]
+    },
+    "thread": {
+      "toggleFound": true,
+      "toggleText": "收起回复",
+      "expanded": "true",
+      "replyCount": 2,
+      "hasReplyComposer": true,
+      "replySnippets": [
+        "林 | 林测绘 | @lin │ 23:30 |  | 素材工坊新增 3 份测绘档案，等待归档。（#242）",
+        "岳 | 岳调度 | @yue │ 23:30 |  | 协作条款 §4 的权限矩阵已上线，请各频道核对。（#243）"
+      ]
+    },
+    "dm": {
+      "path": "/",
+      "wsState": "信号链路正常",
+      "h1": "陈工 dm",
+      "headerLine": "私聊 │ 对方 @chen │ 未读 3 条",
+      "channelCount": 2,
+      "dmCount": 1,
+      "groupCount": 3,
+      "messageCount": 6,
+      "hasRealData": true,
+      "rightPanelMemberCount": 2,
+      "composer": true,
+      "overflowX": 0,
+      "firstMessages": [
+        "陈 | 陈工 | @chen │ 23:24 |  | 陈工：第 3 组测绘图的分辨率我核对过了，可以直接进素材库。 |  | 回复 | No.1 | 2026.10.22 23:24",
+        "林 | 林测绘 | @lin │ 23:25 |  | 林测绘：收到，我今晚把航拍原片一起补上。 |  | 回复 | No.2 | 2026.10.22 23:25",
+        "陈 | 陈工 | @chen │ 23:26 |  | 陈工：素材工坊的归档目录记得用协议编号。 |  | 回复 | No.3 | 2026.10.22 23:26"
+      ],
+      "dmTitles": [
+        "DIRECT",
+        "",
+        "私聊",
+        "1",
+        "陈工",
+        "林测绘：明白。",
+        "3",
+        "新建私聊"
+      ],
+      "groupTitles": [
+        "GROUPS",
+        "",
+        "群聊",
+        "3",
+        "e2e 群 1792683386727",
+        "3 人 · 群聊",
+        "1",
+        "e2e 群 1792683244053"
+      ]
+    },
+    "group": {
+      "path": "/",
+      "wsState": "信号链路正常",
+      "h1": "e2e 群 1792683386727 group",
+      "headerLine": "群聊 │ 3 人 │ 未读 1 条 │ 最后一条 2026.10.22 23:36",
+      "channelCount": 2,
+      "dmCount": 1,
+      "groupCount": 3,
+      "messageCount": 1,
+      "hasRealData": true,
+      "rightPanelMemberCount": 3,
+      "composer": true,
+      "overflowX": 0,
+      "firstMessages": [
+        "建 | 建立者 | @founder │ 23:36 |  | [e2e] F5 群消息 |  | 回复 | No.563 | 2026.10.22 23:36"
+      ],
+      "dmTitles": [
+        "DIRECT",
+        "",
+        "私聊",
+        "1",
+        "陈工",
+        "林测绘：明白。",
+        "3",
+        "新建私聊"
+      ],
+      "groupTitles": [
+        "GROUPS",
+        "",
+        "群聊",
+        "3",
+        "e2e 群 1792683386727",
+        "3 人 · 群聊",
+        "1",
+        "e2e 群 1792683244053"
+      ]
+    }
+  },
+  "consoleErrors": [],
+  "exceptions": []
+}

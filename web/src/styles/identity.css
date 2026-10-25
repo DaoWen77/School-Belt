@@ -1,0 +1,142 @@
+/* ==========================================================================
+   identity.css · 文明环带 Phase B 身份证章
+   规则：不圆角、不发光、不渐变文字；Owner 是黄底墨字 + 一次细扫描。
+   ========================================================================== */
+
+.identity-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem;
+  vertical-align: middle;
+  min-width: 0;
+}
+
+.identity-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 1px solid var(--ef-ink);
+  background: var(--ef-chip);
+  color: var(--ef-ink);
+  padding: 0.02rem 0.3rem 0.04rem 0.34rem;
+  font-family: var(--ef-font-ui);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.015em;
+  line-height: 1.35;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
+  animation: identity-stamp 0.28s var(--ef-mech) both;
+}
+
+.identity-badge.is-system {
+  background: var(--ef-ink);
+  color: var(--ef-panel);
+  border-color: var(--ef-ink);
+}
+
+.identity-badge.is-org {
+  background: transparent;
+  color: var(--ef-ink);
+  border-color: color-mix(in srgb, var(--ef-ink) 55%, transparent);
+}
+
+/* 旧 status_prefix 兜底：灰字、无身份感，不能和官方证章混淆 */
+.identity-badge.is-custom {
+  background: transparent;
+  color: var(--ef-ink-2);
+  border-color: var(--ef-line);
+  font-weight: 600;
+}
+
+/* 深色顶栏里的组织/自定义证章需要反过来读 */
+.bg-chrome .identity-badge.is-org,
+.bg-chrome .identity-badge.is-custom {
+  color: var(--ef-panel);
+  border-color: color-mix(in srgb, var(--ef-panel) 45%, transparent);
+}
+
+/* 全站 Owner：酸黄实底、墨色字，最重的一枚证章 */
+.identity-badge.is-system.is-official {
+  background: var(--ef-signal);
+  color: var(--ef-on-signal);
+  border-color: var(--ef-ink);
+}
+
+/* 组织 Owner：透明底 + 左侧黄块，和全站 Owner 区分 */
+.identity-badge.is-org.is-official {
+  background: var(--ef-panel);
+  color: var(--ef-ink);
+  border-color: var(--ef-ink);
+  border-left: 3px solid var(--ef-signal);
+}
+
+.identity-badge.is-official::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--ef-ink) 24%, transparent) 48%,
+    transparent 100%
+  );
+  transform: translateX(-120%);
+}
+
+.identity-badge.is-official.is-scan::after {
+  animation: identity-scan 6s var(--ef-mech) infinite;
+}
+
+.identity-badge:hover {
+  background: var(--ef-ink);
+  color: var(--ef-panel);
+  transition:
+    background-color 0.12s var(--ef-mech),
+    color 0.12s var(--ef-mech);
+}
+
+.identity-badge.is-system.is-official:hover,
+.identity-badge.is-org.is-official:hover {
+  background: var(--ef-ink);
+  color: var(--ef-signal);
+}
+
+@keyframes identity-stamp {
+  from {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%, 0 100%);
+    opacity: 0.4;
+  }
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%);
+    opacity: 1;
+  }
+}
+
+@keyframes identity-scan {
+  0%,
+  60% {
+    transform: translateX(-120%);
+  }
+  78%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@media (max-width: 480px) {
+  .identity-badge {
+    font-size: 8px;
+    padding-inline: 0.24rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .identity-badge,
+  .identity-badge.is-official.is-scan::after {
+    animation: none !important;
+  }
+}

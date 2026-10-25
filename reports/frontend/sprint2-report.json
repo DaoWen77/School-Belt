@@ -1,0 +1,84 @@
+{
+  "shots": {
+    "sprint2-code-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-code-1440.png",
+    "sprint2-music-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-music-1440.png",
+    "sprint2-chart-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-chart-1440.png",
+    "sprint2-stickers-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-stickers-1440.png",
+    "sprint2-sticker-msg-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-sticker-msg-1440.png",
+    "sprint2-tasks-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-tasks-1440.png",
+    "sprint2-mytasks-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-mytasks-1440.png",
+    "sprint2-command-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-command-1440.png",
+    "sprint2-cmdk-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-cmdk-1440.png",
+    "sprint2-cmdk-tasks-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-cmdk-tasks-1440.png",
+    "sprint2-mobile-menu-390.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\sprint2-mobile-menu-390.png"
+  },
+  "checks": {
+    "code": {
+      "blocks": 2,
+      "language": "ts",
+      "hasCopy": true,
+      "highlighted": true,
+      "text": "ts 复制const signal = \"帝江\"; | console.log(signal); | ",
+      "copyLabel": " 已复制"
+    },
+    "music": {
+      "found": true,
+      "cardText": "[战术规划中] | 林测绘 | @lin | 12:03 | 音乐 |  | Sprint2 测试音乐 |  | 帝江号 |  | 无封面 |  | Sprint2 测试音乐 |  | 帝江号 |  | ▶ 播放音乐在网易云打开 | 回复 | 删除",
+      "iframes": 0,
+      "playerButton": true
+    },
+    "chart": {
+      "found": true,
+      "rechartsSvg": 2
+    },
+    "stickers": {
+      "count": 6,
+      "panelText": "贴纸 |  | 上传贴纸 | 6 个 | sprint1-avatar-source | sprint1-avatar-source | sprint1-avatar-source | sprint1-avatar-source | sprint1-avatar-source | sprint1-avatar-source"
+    },
+    "stickerMessage": {
+      "count": 2,
+      "widths": [
+        96,
+        96
+      ]
+    },
+    "tasks": {
+      "hasTitle": true,
+      "section": [
+        "我的任务 TASKS",
+        "Sprint2 我的任务",
+        "Sprint2 我的任务",
+        "Sprint2 我的任务",
+        "Sprint2 我的任务",
+        "Sprint2 我的任务"
+      ]
+    },
+    "command": {
+      "visible": true,
+      "text": "ESC | MESSAGE | [e2e] 带附件消息 1792769712156 | 全域播报 · 邱档案 | ↵ | MESSAGE | [e2e-offline] 重连后的实时消息 | 全域播报 · 邱档案 | ↵ | MESSAGE | [e2e-offline] 断网期间第 5/5 条 | 全域播报 · 邱档案 | ↵ | MESSAGE | [e2e-offline] 断网期间第 4/5 条 | 全域播报 · 邱档案 | ↵ | MESSAGE | [e2e-offline] 断网期间第 3/5 条 | 全域播报 · 邱档案 | ↵ | MESSAGE | [e2e-offline] 断网期间第 2/5 条 | 全域播报 · 邱档案 | ↵ | MESSAGE | [e2e-offline] 断网期间第 1/5 条 | 全域播报 · 邱档案 | ↵ | MESSAGE | [e2e] 带附件消息 1792768425078 | 全域播报 · 邱档案 | ↵ | ↑↓ 选择 | ↵ 打开 | /goto 频道名 | /tasks | Ctrl/⌘ K"
+    },
+    "commandGoto": "素材工坊",
+    "commandTasks": {
+      "text": "ESC | TASK | 第三协议封面重绘 | 任务 · 全域播报 | ↵ | TASK | Sprint2 我的任务 | 任务 · 全域播报 | ↵ | TASK | Sprint2 我的任务 | 任务 · 全域播报 | ↵ | TASK | Sprint2 我的任务 | 任务 · 全域播报 | ↵ | TASK | Sprint2 我的任务 | 任务 · 全域播报 | ↵ | TASK | Sprint2 我的任务 | 任务 · 全域播报 | ↵ | ↑↓ 选择 | ↵ 打开 | /goto 频道名 | /tasks | Ctrl/⌘ K",
+      "hasTask": true
+    },
+    "commandEsc": true,
+    "mobile": {
+      "innerWidth": 390,
+      "overflowX": 0,
+      "menuItems": [
+        "素材",
+        "投票",
+        "任务",
+        "音乐",
+        "图表",
+        "贴纸",
+        "图片",
+        "文件"
+      ]
+    }
+  },
+  "errors": [],
+  "pageErrors": [],
+  "failedRequests": []
+}

@@ -1,0 +1,193 @@
+{
+  "checkedAt": "2026-10-23T15:13:36.439Z",
+  "api": {
+    "healthz": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "uptimeSeconds": 465,
+        "timestamp": "2026-10-23T15:13:36.466Z"
+      }
+    },
+    "readyz": {
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "checks": [
+          {
+            "name": "postgres",
+            "ok": true
+          },
+          {
+            "name": "s3",
+            "ok": true
+          },
+          {
+            "name": "redis",
+            "ok": true
+          }
+        ],
+        "timestamp": "2026-10-23T15:13:36.483Z"
+      }
+    },
+    "degraded": null,
+    "checks": [
+      {
+        "name": "postgres",
+        "ok": true
+      },
+      {
+        "name": "s3",
+        "ok": true
+      },
+      {
+        "name": "redis",
+        "ok": true
+      }
+    ]
+  },
+  "redis": {
+    "ping": "PONG",
+    "version": {
+      "memurai_version": "4.1.8",
+      "redis_version": "7.2.12",
+      "os": "Windows Client 10.0.26100"
+    },
+    "dbsize": 16,
+    "keys": [
+      {
+        "key": "dijiang:ratelimit:msg:2701276b-be2b-4a8e-8ee2-0a2446ba3bdf:60000",
+        "type": "zset",
+        "ttl": 47,
+        "value": "44 members"
+      },
+      {
+        "key": "dijiang:ratelimit:login:account:yue",
+        "type": "string",
+        "ttl": 3241,
+        "value": "2"
+      },
+      {
+        "key": "dijiang:ratelimit:login:account:shen",
+        "type": "string",
+        "ttl": 3241,
+        "value": "2"
+      },
+      {
+        "key": "dijiang:ratelimit:login:account:lin",
+        "type": "string",
+        "ttl": 3240,
+        "value": "2"
+      },
+      {
+        "key": "dijiang:ratelimit:msg:f5faae43-e5c5-4d6d-a317-c05fa0eb5ead:60000",
+        "type": "zset",
+        "ttl": 47,
+        "value": "51 members"
+      },
+      {
+        "key": "dijiang:ratelimit:login:account:chen",
+        "type": "string",
+        "ttl": 3240,
+        "value": "2"
+      },
+      {
+        "key": "dijiang:ratelimit:msg:4398946d-0439-497a-8149-95989c7a4ccb:60000",
+        "type": "zset",
+        "ttl": 47,
+        "value": "44 members"
+      },
+      {
+        "key": "dijiang:ratelimit:msg:6fed69e2-7860-4157-9012-c80d6bead7de:60000",
+        "type": "zset",
+        "ttl": 47,
+        "value": "44 members"
+      },
+      {
+        "key": "dijiang:ratelimit:login:account:protocol_officer",
+        "type": "string",
+        "ttl": 3452,
+        "value": "1"
+      },
+      {
+        "key": "dijiang:ratelimit:login:account:qiu",
+        "type": "string",
+        "ttl": 3148,
+        "value": "3"
+      },
+      {
+        "key": "dijiang:ratelimit:login:account:founder",
+        "type": "string",
+        "ttl": 3327,
+        "value": "2"
+      },
+      {
+        "key": "dijiang:ratelimit:login:account:an_obs",
+        "type": "string",
+        "ttl": 3452,
+        "value": "1"
+      },
+      {
+        "key": "dijiang:ratelimit:msg:9de8e4be-9b24-4e73-b11a-2c51a7589b76:60000",
+        "type": "zset",
+        "ttl": 46,
+        "value": "44 members"
+      },
+      {
+        "key": "dijiang:ratelimit:msg:5d47dd62-ef08-4f7e-bc90-d7b537a5420f:60000",
+        "type": "zset",
+        "ttl": 46,
+        "value": "51 members"
+      },
+      {
+        "key": "dijiang:ratelimit:msg:8fe142c6-389b-47a3-a472-f59316978480:60000",
+        "type": "zset",
+        "ttl": 46,
+        "value": "44 members"
+      },
+      {
+        "key": "dijiang:ratelimit:msg:5ab7facd-4c5a-4919-8a51-5522bc0565a8:60000",
+        "type": "zset",
+        "ttl": 46,
+        "value": "44 members"
+      }
+    ]
+  },
+  "s3": {
+    "endpoint": "http://127.0.0.1:9000",
+    "buckets": [
+      {
+        "bucket": "dijiang",
+        "headBucket": {
+          "ok": true,
+          "status": 200
+        },
+        "listObjects": {
+          "ok": true,
+          "keyCount": 3,
+          "sample": [
+            "channels/298e06ba-0623-47f5-925e-920ef8005b92/2026/10/cb90ec43-eaee-44d0-9810-1377d566f168.png",
+            "cors.txt",
+            "probe.txt"
+          ]
+        }
+      }
+    ]
+  },
+  "postgres": {
+    "ok": true,
+    "version": "PostgreSQL 17.5 on x86_64-windows, compiled by msvc-19.43.34808, 64-bit",
+    "maxConnections": "100",
+    "activity": [
+      {
+        "state": "active",
+        "count": 1
+      },
+      {
+        "state": "idle",
+        "count": 20
+      }
+    ]
+  },
+  "verdict": "PASS"
+}

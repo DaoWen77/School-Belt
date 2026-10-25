@@ -1,0 +1,29 @@
+# 依赖
+node_modules/
+.pnpm-store/
+
+# 构建产物
+.next/
+out/
+dist/
+coverage/
+.vitest/
+*.tsbuildinfo
+
+# 本地环境变量（含密钥）
+.env
+.env.local
+.env.*.local
+
+# 运行时/测试数据（数据库文件、对象存储、日志）
+ops/e2e/pgdata/
+ops/e2e/rclone-s3/
+ops/e2e/server.log
+ops/e2e/*.log
+reports/e2e/
+reports/tmp/
+
+# 系统垃圾
+nul
+.DS_Store
+Thumbs.db

@@ -1,0 +1,973 @@
+// O.M.V 帝江号 · 全域广播
+// Prisma schema —— 严格对齐 docs/_contract.md §1 枚举 与 §2 表结构（18 张表）。
+// 迁移 SQL 为手写（prisma/migrations/0001_init/migration.sql），Prisma 只用于类型安全的客户端访问。
+// 说明：契约中的部分唯一索引（reactions / attachments）、生成列（messages.search_vector）、
+// inet 列无法用 Prisma schema 完整表达，统一在 migration.sql 中实现，本文件保留列与普通索引定义。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────────── §1 枚举 ─────────────────────────────
+enum GlobalRole {
+  owner
+  admin
+  member
+}
+
+enum UserStatus {
+  active
+  suspended
+}
+
+enum ChannelRole {
+  member
+  moderator
+}
+
+enum Visibility {
+  public
+  private
+}
+
+// 契约 v1.2 §A1：channels 表承担三种会话；社区频道恒为 channel
+enum ChannelKind {
+  channel
+  dm
+  group
+}
+
+enum NotifyLevel {
+  all
+  mentions
+  none
+}
+
+enum MessageKind {
+  text
+  image
+  file
+  card
+  system
+}
+
+enum CardKind {
+  material
+  idea
+  vote
+  task
+  artwork
+  music
+  chart
+}
+
+enum CardStatus {
+  open
+  done
+  closed
+  archived
+}
+
+enum TaskStatus {
+  todo
+  doing
+  done
+}
+
+enum FileKind {
+  image
+  video
+  audio
+  document
+  archive
+  other
+}
+
+enum FileStatus {
+  pending
+  ready
+  rejected
+  deleted
+}
+
+enum PreviewStatus {
+  none
+  pending
+  ready
+  failed
+}
+
+enum NotificationType {
+  mention
+  thread_reply
+  card_assigned
+  card_due
+  vote_closed
+  invite_accepted
+  system
+}
+
+enum PushStatus {
+  pending
+  sent
+  failed
+  skipped
+}
+
+enum Platform {
+  web
+  android
+}
+
+// ───────────────────────────── 文明环带 Phase A：身份分面 ─────────────────────────────
+/**
+ * 账号/会话/帖子所属面：帝江号内部 / 文明环带外部
+ */
+enum Surface {
+  internal
+  belt
+}
+
+/**
+ * 频道所属面：内部 / 环带 / 跨环带桥接 DM
+ */
+enum ChannelSurface {
+  internal
+  belt
+  bridge
+}
+
+/**
+ * 帖子版块：朋友圈与环带四个版块（电文单列）
+ */
+enum PostBoard {
+  moments
+  bulletin
+  bounty
+  daily
+  telegraph
+}
+
+// ───────────────────────────── 文明环带 Phase B：组织与证章 ─────────────────────────────
+enum OrgStatus {
+  pending
+  active
+  rejected
+  suspended
+  dissolved
+}
+
+enum OrgMemberRole {
+  owner
+  admin
+  member
+}
+
+enum OrgMemberStatus {
+  pending
+  invited
+  active
+  left
+  rejected
+  banned
+}
+
+// ───────────────────────────── 文明环带 Phase C：内容 ─────────────────────────────
+enum PostSource {
+  user
+  official
+  rss
+  system
+}
+
+enum PostStatus {
+  published
+  hidden
+  removed
+}
+
+enum BountyStatus {
+  open
+  in_talk
+  closed
+}
+
+enum NewsCategory {
+  tech
+  world
+  campus
+  game
+}
+
+enum PromotionKind {
+  auto
+  manual
+}
+
+// ───────────────────────────── 文明环带 Phase D：好友与 DM ─────────────────────────────
+enum FriendshipStatus {
+  pending
+  accepted
+  rejected
+  blocked
+  removed
+}
+
+// ───────────────────────────── §2.1 users ─────────────────────────────
+model User {
+  id                    String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  handle                String     @unique @db.Citext
+  displayName           String     @map("display_name") @db.VarChar(40)
+  passwordHash          String     @map("password_hash")
+  avatarFileId          String?    @map("avatar_file_id") @db.Uuid
+  globalRole            GlobalRole @default(member) @map("global_role")
+  status                UserStatus @default(active)
+  mutedUntil            DateTime?  @map("muted_until") @db.Timestamptz(6)
+  /**
+   * 状态前缀（v1.2 Sprint1，≤24 字符；前端展示在昵称前）
+   */
+  statusPrefix          String?    @map("status_prefix") @db.VarChar(24)
+  /**
+   * 系统身份标签；只有包含 `[极光科技]` 的账号才是内部账号
+   */
+  tags                  String[]   @default([])
+  /**
+   * 身份标签的派生结果；由 0009 迁移的触发器与 CHECK 强制，不可直接写
+   */
+  isInternal            Boolean    @default(false) @map("is_internal")
+  /**
+   * 账号出生面：内部邀请/初始化=internal，环带自助注册=belt
+   */
+  accountOrigin         Surface    @default(internal) @map("account_origin")
+  /**
+   * 多组织身份：用户当前选择展示的组织；NULL = 按权重自动选择。
+   * 不建 Prisma 关系，避免 User 与 Organization 的双向关系污染；数据库 FK 由 0015 建。
+   */
+  displayOrganizationId String?    @map("display_organization_id") @db.Uuid
+  /**
+   * 系统 bot（Sprint3：@Bot 回复的 senderId；固定用户由 0005 迁移插入）
+   */
+  isBot                 Boolean    @default(false) @map("is_bot")
+  createdAt             DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastSeenAt            DateTime?  @map("last_seen_at") @db.Timestamptz(6)
+
+  settings              UserSetting?
+  devices               Device[]
+  sessions              Session[]
+  notifications         Notification[]
+  posts                 Post[]
+  postLikes             PostLike[]
+  postComments          PostComment[]
+  botProfile            BotProfile?
+  channelMembers        ChannelMember[]
+  ownedOrganizations    Organization[]       @relation("OrganizationOwner")
+  reviewedOrganizations Organization[]       @relation("OrganizationReviewer")
+  organizationMembers   OrganizationMember[]
+  friendshipsSent       Friendship[]         @relation("FriendshipRequester")
+  friendshipsReceived   Friendship[]         @relation("FriendshipAddressee")
+  deviceBindCodes       DeviceBindCode[]
+  deviceTokens          DeviceToken[]
+
+  @@index([status])
+  @@index([isInternal])
+  @@index([accountOrigin])
+  @@index([displayOrganizationId])
+  @@map("users")
+}
+
+// ───────────────────────────── Phase B organizations ─────────────────────────────
+// 部分唯一索引在 0010 迁移中创建：
+// - 同一 owner 只能有一个 pending/active 组织
+// - 0015 起移除“同一用户只能一个 active 组织成员行”的约束，支持多组织身份
+model Organization {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// 唯一性只覆盖 pending/active/suspended；rejected/dissolved 后名字可重新申请
+  name         String         @db.Citext
+  slug         String         @unique @db.Citext
+  summary      String         @db.VarChar(400)
+  status       OrgStatus      @default(pending)
+  /**
+   * 组织所属面：内部组织 / 环带外部组织；私密频道继承该面
+   */
+  surface      ChannelSurface @default(internal)
+  ownerId      String         @map("owner_id") @db.Uuid
+  logoFileId   String?        @map("logo_file_id") @db.Uuid
+  reviewedBy   String?        @map("reviewed_by") @db.Uuid
+  reviewedAt   DateTime?      @map("reviewed_at") @db.Timestamptz(6)
+  rejectReason String?        @map("reject_reason") @db.VarChar(200)
+  dissolvedAt  DateTime?      @map("dissolved_at") @db.Timestamptz(6)
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  owner    User                 @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  reviewer User?                @relation("OrganizationReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  members  OrganizationMember[]
+  channels Channel[]
+
+  @@index([status])
+  @@index([ownerId, status])
+  @@index([name])
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organizationId String          @map("organization_id") @db.Uuid
+  userId         String          @map("user_id") @db.Uuid
+  role           OrgMemberRole   @default(member)
+  status         OrgMemberStatus @default(pending)
+  requestNote    String?         @map("request_note") @db.VarChar(200)
+  invitedBy      String?         @map("invited_by") @db.Uuid
+  reviewedBy     String?         @map("reviewed_by") @db.Uuid
+  requestedAt    DateTime        @default(now()) @map("requested_at") @db.Timestamptz(6)
+  reviewedAt     DateTime?       @map("reviewed_at") @db.Timestamptz(6)
+  joinedAt       DateTime?       @map("joined_at") @db.Timestamptz(6)
+  leftAt         DateTime?       @map("left_at") @db.Timestamptz(6)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId, status])
+  @@index([userId, status])
+  @@map("organization_members")
+}
+
+// ───────────────────────────── Phase D friendships ─────────────────────────────
+// 部分唯一索引在 0012 迁移中创建：
+// - 一对用户只能有一条关系：UNIQUE (LEAST(requester_id, addressee_id), GREATEST(...))
+// - dm_channel_id 唯一；同一条 DM 只对应一条好友链路
+model Friendship {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requesterId   String           @map("requester_id") @db.Uuid
+  addresseeId   String           @map("addressee_id") @db.Uuid
+  status        FriendshipStatus @default(pending)
+  /**
+   * internal / belt / bridge：bridge 仅由悬赏上下文触发
+   */
+  surface       ChannelSurface   @default(internal)
+  contextPostId String?          @map("context_post_id") @db.Uuid
+  requestNote   String?          @map("request_note") @db.VarChar(200)
+  dmChannelId   String?          @unique @map("dm_channel_id") @db.Uuid
+  blockedBy     String?          @map("blocked_by") @db.Uuid
+  requestedAt   DateTime         @default(now()) @map("requested_at") @db.Timestamptz(6)
+  respondedAt   DateTime?        @map("responded_at") @db.Timestamptz(6)
+  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  requester User @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@index([addresseeId, status, requestedAt])
+  @@index([requesterId, status])
+  @@index([dmChannelId])
+  @@map("friendships")
+}
+
+// ───────────────────────────── §2.2 user_settings ─────────────────────────────
+// ───────────────────────────── Sprint 7.3 / IoT device tokens ─────────────────────────────
+model DeviceBindCode {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String    @db.VarChar(6)
+  userId    String    @map("user_id") @db.Uuid
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([code, usedAt, expiresAt])
+  @@index([userId, createdAt])
+  @@map("device_bind_codes")
+}
+
+model DeviceToken {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  mac        String    @db.VarChar(64)
+  tokenHash  String    @unique @map("token_hash") @db.VarChar(128)
+  name       String?   @db.VarChar(60)
+  lastSeenAt DateTime? @map("last_seen_at") @db.Timestamptz(6)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mac])
+  @@index([userId, revokedAt])
+  @@map("device_tokens")
+}
+
+model DirectClear {
+  channelId String   @map("channel_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  clearedAt DateTime @default(now()) @map("cleared_at") @db.Timestamptz(6)
+
+  @@id([channelId, userId])
+  @@index([userId])
+  @@map("direct_clears")
+}
+
+model UserSetting {
+  userId       String      @id @map("user_id") @db.Uuid
+  locale       String      @default("zh-CN") @db.VarChar(8)
+  theme        String      @default("system")
+  notifyLevel  NotifyLevel @default(all) @map("notify_level")
+  dndEnabled   Boolean     @default(false) @map("dnd_enabled")
+  dndStart     DateTime?   @map("dnd_start") @db.Time(6)
+  dndEnd       DateTime?   @map("dnd_end") @db.Time(6)
+  timezone     String      @default("Asia/Shanghai")
+  pushWeb      Boolean     @default(true) @map("push_web")
+  pushAndroid  Boolean     @default(true) @map("push_android")
+  digestWindow Int         @default(300) @map("digest_window")
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+// ───────────────────────────── §2.3 devices ─────────────────────────────
+model Device {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  platform     Platform
+  name         String    @db.VarChar(60)
+  pushProvider String?   @map("push_provider")
+  pushToken    String?   @map("push_token")
+  pushKeys     Json?     @map("push_keys")
+  lastActiveAt DateTime? @map("last_active_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([platform, pushToken])
+  @@index([userId])
+  @@map("devices")
+}
+
+// ───────────────────────────── §2.4 sessions ─────────────────────────────
+model Session {
+  id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String               @map("user_id") @db.Uuid
+  /**
+   * 会话所属面：内部 token 不能调环带 API，反之亦然
+   */
+  surface     Surface              @default(internal)
+  tokenHash   String               @unique @map("token_hash")
+  deviceId    String?              @map("device_id") @db.Uuid
+  ip          Unsupported("inet")?
+  userAgent   String?              @map("user_agent")
+  expiresAt   DateTime             @map("expires_at") @db.Timestamptz(6)
+  revokedAt   DateTime?            @map("revoked_at") @db.Timestamptz(6)
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  rotatedFrom String?              @map("rotated_from") @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([userId, surface, revokedAt])
+  @@map("sessions")
+}
+
+// ───────────────────────────── §2.5 invites ─────────────────────────────
+model Invite {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  codeHash   String     @unique @map("code_hash")
+  codePrefix String     @map("code_prefix") @db.VarChar(8)
+  createdBy  String     @map("created_by") @db.Uuid
+  role       GlobalRole @default(member)
+  maxUses    Int        @default(1) @map("max_uses")
+  uses       Int        @default(0)
+  expiresAt  DateTime   @default(dbgenerated("now() + interval '7 days'")) @map("expires_at") @db.Timestamptz(6)
+  revokedAt  DateTime?  @map("revoked_at") @db.Timestamptz(6)
+  note       String?    @db.VarChar(80)
+  createdAt  DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdBy])
+  @@index([expiresAt])
+  @@map("invites")
+}
+
+// ───────────────────────────── §2.6 channels ─────────────────────────────
+// 契约 v1.2 §A1：新增 kind / dm_key / last_message_at 三列，社区频道行为不变。
+// dm_key 的真实唯一性由 0002 迁移中的部分唯一索引保证
+// （`CREATE UNIQUE INDEX channels_dm_key_key ON channels (dm_key) WHERE dm_key IS NOT NULL`），
+// Prisma schema 侧的 @unique 只用于客户端类型表达（DDL 以手写 SQL 为准）。
+model Channel {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String         @db.VarChar(60)
+  slug           String         @unique @db.Citext
+  topic          String?        @db.VarChar(200)
+  /**
+   * 群公告（v1.2 Sprint1，≤4000 字符；仅 kind=group 可写）
+   */
+  announcement   String?        @db.Text
+  visibility     Visibility     @default(public)
+  kind           ChannelKind    @default(channel)
+  /**
+   * 频道所属面：内部频道 / 环带公开频道 / 跨环带桥接 DM
+   */
+  surface        ChannelSurface @default(internal)
+  /**
+   * 组织专属私有频道；非空时只有该组织 active 成员可读写
+   */
+  organizationId String?        @map("organization_id") @db.Uuid
+  /**
+   * 复合唯一由 0012 迁移保证：(dm_key, surface)
+   */
+  dmKey          String?        @map("dm_key") @db.VarChar(80)
+  position       Int            @default(0)
+  createdBy      String         @map("created_by") @db.Uuid
+  archivedAt     DateTime?      @map("archived_at") @db.Timestamptz(6)
+  lastMessageAt  DateTime?      @map("last_message_at") @db.Timestamptz(6)
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  members      ChannelMember[]
+  cards        Card[]
+  organization Organization?   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@index([kind, position])
+  @@index([surface, kind, position])
+  @@index([organizationId])
+  @@index([dmKey, surface])
+  @@map("channels")
+}
+
+// ───────────────────────────── §2.7 channel_members ─────────────────────────────
+model ChannelMember {
+  channelId   String      @map("channel_id") @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  role        ChannelRole @default(member)
+  notifyLevel NotifyLevel @default(all) @map("notify_level")
+  mutedUntil  DateTime?   @map("muted_until") @db.Timestamptz(6)
+  lastReadSeq BigInt      @default(0) @map("last_read_seq")
+  lastReadAt  DateTime?   @map("last_read_at") @db.Timestamptz(6)
+  joinedAt    DateTime    @default(now()) @map("joined_at") @db.Timestamptz(6)
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([channelId, userId])
+  @@index([userId])
+  @@map("channel_members")
+}
+
+// ───────────────────────────── §2.8 messages ─────────────────────────────
+model Message {
+  id               BigInt                   @id @default(autoincrement())
+  channelId        String                   @map("channel_id") @db.Uuid
+  senderId         String                   @map("sender_id") @db.Uuid
+  kind             MessageKind
+  body             String?
+  clientMsgId      String                   @map("client_msg_id") @db.Uuid
+  parentId         BigInt?                  @map("parent_id")
+  threadRootId     BigInt?                  @map("thread_root_id")
+  replyToId        BigInt?                  @map("reply_to_id")
+  cardId           String?                  @map("card_id") @db.Uuid
+  mentions         String[]                 @default([]) @db.Uuid
+  threadReplyCount Int                      @default(0) @map("thread_reply_count")
+  lastReplyAt      DateTime?                @map("last_reply_at") @db.Timestamptz(6)
+  editedAt         DateTime?                @map("edited_at") @db.Timestamptz(6)
+  deletedAt        DateTime?                @map("deleted_at") @db.Timestamptz(6)
+  deletedBy        String?                  @map("deleted_by") @db.Uuid
+  createdAt        DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  searchVector     Unsupported("tsvector")? @default(dbgenerated("to_tsvector('simple'::regconfig, COALESCE(body, ''::text))"))
+
+  // 索引在 migration.sql 中创建：频道分页 / 线程分页 / 发送者 / GIN(search_vector) /
+  // GIN(body gin_trgm_ops) / GIN(mentions) / card_id。
+  @@unique([channelId, senderId, clientMsgId], map: "messages_channel_sender_client_key")
+  @@map("messages")
+}
+
+// ───────────────────────────── §2.9 reactions ─────────────────────────────
+// 部分唯一索引（message_id / card_id 二选一）在 migration.sql 中创建。
+model Reaction {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  messageId BigInt?  @map("message_id")
+  cardId    String?  @map("card_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  emoji     String   @db.VarChar(32)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([messageId])
+  @@index([cardId])
+  @@map("reactions")
+}
+
+// ───────────────────────────── §2.10 files ─────────────────────────────
+model File {
+  id             String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId        String        @map("owner_id") @db.Uuid
+  channelId      String?       @map("channel_id") @db.Uuid
+  bucket         String
+  storageKey     String        @unique @map("storage_key")
+  originalName   String        @map("original_name") @db.VarChar(255)
+  mime           String        @db.VarChar(120)
+  kind           FileKind      @default(other)
+  sizeBytes      BigInt        @map("size_bytes")
+  checksumSha256 String?       @map("checksum_sha256") @db.Char(64)
+  width          Int?
+  height         Int?
+  durationMs     Int?          @map("duration_ms")
+  previewKey     String?       @map("preview_key")
+  previewStatus  PreviewStatus @default(none) @map("preview_status")
+  status         FileStatus    @default(pending)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  stickers Sticker[]
+
+  @@index([channelId, kind, createdAt])
+  @@index([ownerId])
+  @@index([status])
+  @@map("files")
+}
+
+// ───────────────────────────── Sprint2 stickers ─────────────────────────────
+// 个人贴纸库：每人同一文件只能收藏一次（唯一 (owner_id, file_id)）
+model Sticker {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  fileId    String   @map("file_id") @db.Uuid
+  name      String   @db.VarChar(40)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  file File @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, fileId])
+  @@index([ownerId])
+  @@map("stickers")
+}
+
+// ───────────────────────────── §2.11 attachments ─────────────────────────────
+// 部分唯一索引在 migration.sql 中创建。
+model Attachment {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fileId    String   @map("file_id") @db.Uuid
+  messageId BigInt?  @map("message_id")
+  cardId    String?  @map("card_id") @db.Uuid
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([messageId])
+  @@index([cardId])
+  @@map("attachments")
+}
+
+// ───────────────────────────── §2.12 pins ─────────────────────────────
+model Pin {
+  channelId String   @map("channel_id") @db.Uuid
+  messageId BigInt   @map("message_id")
+  pinnedBy  String   @map("pinned_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([channelId, messageId])
+  @@index([channelId, createdAt])
+  @@map("pins")
+}
+
+// ───────────────────────────── §2.13 cards ─────────────────────────────
+model Card {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  channelId    String      @map("channel_id") @db.Uuid
+  kind         CardKind
+  title        String      @db.VarChar(120)
+  body         String?     @db.Text
+  color        String?     @db.VarChar(16)
+  tags         String[]    @default([])
+  position     Float       @default(1000)
+  status       CardStatus  @default(open)
+  taskStatus   TaskStatus? @map("task_status")
+  dueAt        DateTime?   @map("due_at") @db.Timestamptz(6)
+  closedAt     DateTime?   @map("closed_at") @db.Timestamptz(6)
+  messageId    BigInt?     @map("message_id")
+  sourceCardId String?     @map("source_card_id") @db.Uuid
+  createdBy    String      @map("created_by") @db.Uuid
+  data         Json        @default("{}")
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt    DateTime?   @map("deleted_at") @db.Timestamptz(6)
+
+  options   VoteOption[]
+  assignees CardAssignee[]
+  channel   Channel        @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@index([channelId, kind, position])
+  @@index([channelId, createdAt])
+  @@index([messageId])
+  @@index([sourceCardId])
+  @@map("cards")
+}
+
+// ───────────────────────────── §2.14 card_assignees ─────────────────────────────
+model CardAssignee {
+  cardId     String   @map("card_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  assignedBy String   @map("assigned_by") @db.Uuid
+  assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamptz(6)
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, userId])
+  @@index([userId])
+  @@map("card_assignees")
+}
+
+// ───────────────────────────── §2.15 vote_options ─────────────────────────────
+model VoteOption {
+  id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cardId   String @map("card_id") @db.Uuid
+  label    String @db.VarChar(80)
+  position Int    @default(0)
+
+  card    Card         @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  ballots VoteBallot[]
+
+  @@unique([cardId, position])
+  @@index([cardId])
+  @@map("vote_options")
+}
+
+// ───────────────────────────── §2.16 vote_ballots ─────────────────────────────
+model VoteBallot {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cardId    String   @map("card_id") @db.Uuid
+  optionId  String   @map("option_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  option VoteOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([cardId, optionId, userId])
+  @@index([cardId])
+  @@index([userId])
+  @@map("vote_ballots")
+}
+
+// ───────────────────────────── §2.17 notifications ─────────────────────────────
+model Notification {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String           @map("user_id") @db.Uuid
+  type       NotificationType
+  channelId  String?          @map("channel_id") @db.Uuid
+  messageId  BigInt?          @map("message_id")
+  cardId     String?          @map("card_id") @db.Uuid
+  title      String           @db.VarChar(120)
+  body       String?          @db.VarChar(300)
+  payload    Json             @default("{}")
+  readAt     DateTime?        @map("read_at") @db.Timestamptz(6)
+  pushedAt   DateTime?        @map("pushed_at") @db.Timestamptz(6)
+  pushStatus PushStatus       @default(pending) @map("push_status")
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ───────────────────────────── §2.18 audit_logs ─────────────────────────────
+model AuditLog {
+  id         BigInt               @id @default(autoincrement())
+  actorId    String?              @map("actor_id") @db.Uuid
+  action     String               @db.VarChar(64)
+  targetKind String?              @map("target_kind") @db.VarChar(32)
+  targetId   String?              @map("target_id")
+  meta       Json                 @default("{}")
+  ip         Unsupported("inet")?
+  createdAt  DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
+
+// ───────────────────────────── Sprint3 AI 配置（单行表）─────────────────────
+// API Key 只存 AES-256-GCM 密文（明文永不回传/落日志）；
+// id 固定为 'default'，由 CHECK 约束保证只有一行。
+model AiSetting {
+  id              String   @id @default("default")
+  baseUrl         String?  @map("base_url")
+  model           String?
+  apiKeyEncrypted String?  @map("api_key_encrypted")
+  updatedBy       String?  @map("updated_by") @db.Uuid
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("ai_settings")
+}
+
+// ───────────────────────────── Sprint4 朋友圈（posts / likes / comments）─────
+model Post {
+  id                 String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId           String         @map("author_id") @db.Uuid
+  /**
+   * 帖子所属面；内部朋友圈与环带帖子必须分开查询
+   */
+  surface            Surface        @default(internal)
+  /**
+   * 版块：moments / bulletin / bounty / daily / telegraph
+   */
+  board              PostBoard      @default(moments)
+  title              String?        @db.VarChar(120)
+  body               String         @db.Text
+  source             PostSource     @default(user)
+  sourceUrl          String?        @map("source_url") @db.VarChar(500)
+  sourceName         String?        @map("source_name") @db.VarChar(80)
+  /**
+   * 仅 telegraph 使用：tech / world / campus / game
+   */
+  category           NewsCategory?
+  /**
+   * 校园热议镜像：一条 daily 帖最多晋升一次
+   */
+  mirroredFromPostId String?        @unique @map("mirrored_from_post_id") @db.Uuid
+  promotionKind      PromotionKind? @map("promotion_kind")
+  promotedBy         String?        @map("promoted_by") @db.Uuid
+  promotedAt         DateTime?      @map("promoted_at") @db.Timestamptz(6)
+  publishedAt        DateTime       @default(now()) @map("published_at") @db.Timestamptz(6)
+  pinnedAt           DateTime?      @map("pinned_at") @db.Timestamptz(6)
+  status             PostStatus     @default(published)
+  moderatedBy        String?        @map("moderated_by") @db.Uuid
+  moderatedAt        DateTime?      @map("moderated_at") @db.Timestamptz(6)
+  moderationReason   String?        @map("moderation_reason") @db.VarChar(200)
+  bountyStatus       BountyStatus?  @map("bounty_status")
+  bountyReward       String?        @map("bounty_reward") @db.VarChar(80)
+  bountyDeadline     DateTime?      @map("bounty_deadline") @db.Timestamptz(6)
+  fileIds            Json           @default("[]") @map("file_ids")
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  deletedAt          DateTime?      @map("deleted_at") @db.Timestamptz(6)
+
+  author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes    PostLike[]
+  comments PostComment[]
+
+  @@index([createdAt(sort: Desc)])
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([surface, board, createdAt(sort: Desc)])
+  @@index([surface, board, publishedAt(sort: Desc)])
+  @@index([surface, board, category, publishedAt(sort: Desc)])
+  @@map("posts")
+}
+
+// ───────────────────────────── Phase E / Sprint5 RSS 新闻塔 ─────────────────────────────
+// RSS 只写入 belt / telegraph 的 Post；rss_items 作为抓取幂等账本。
+model RssSource {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String       @db.VarChar(80)
+  url           String       @db.VarChar(1000)
+  /**
+   * 电文分类：tech / world / campus / game
+   */
+  category      NewsCategory @default(tech)
+  enabled       Boolean      @default(true)
+  createdBy     String?      @map("created_by") @db.Uuid
+  lastFetchedAt DateTime?    @map("last_fetched_at") @db.Timestamptz(6)
+  lastItemCount Int          @default(0) @map("last_item_count")
+  lastError     String?      @map("last_error") @db.Text
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  items RssItem[]
+
+  @@index([enabled, updatedAt])
+  @@map("rss_sources")
+}
+
+model RssItem {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sourceId    String   @map("source_id") @db.Uuid
+  externalId  String   @map("external_id") @db.VarChar(500)
+  title       String   @db.VarChar(200)
+  link        String?  @db.VarChar(1000)
+  publishedAt DateTime @map("published_at") @db.Timestamptz(6)
+  postId      String?  @unique @map("post_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  source RssSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, externalId])
+  @@index([sourceId, publishedAt(sort: Desc)])
+  @@map("rss_items")
+}
+
+model PostLike {
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@index([userId])
+  @@map("post_likes")
+}
+
+model PostComment {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId    String    @map("post_id") @db.Uuid
+  authorId  String    @map("author_id") @db.Uuid
+  body      String    @db.Text
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
+  deletedBy String?   @map("deleted_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@map("post_comments")
+}
+
+// ───────────────────────────── Sprint5 多 Bot（bot_profiles / ai_channel_contexts）
+// Bot 身份复用 users.is_bot=true；bot_profiles 存每个 Bot 的人设/模型/加密 Key。
+model BotProfile {
+  userId          String    @id @map("user_id") @db.Uuid
+  systemPrompt    String    @default("") @map("system_prompt") @db.Text
+  model           String?   @db.VarChar(80)
+  apiKeyEncrypted String?   @map("api_key_encrypted")
+  enabled         Boolean   @default(true)
+  createdBy       String    @map("created_by") @db.Uuid
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdBy])
+  @@map("bot_profiles")
+}
+
+/**
+ * 频道 × Bot 的上下文水位：clear 只写 cleared_at，不删聊天记录
+ */
+model AiChannelContext {
+  channelId String    @map("channel_id") @db.Uuid
+  botId     String    @map("bot_id") @db.Uuid
+  clearedAt DateTime? @map("cleared_at") @db.Timestamptz(6)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@id([channelId, botId])
+  @@map("ai_channel_contexts")
+}
+
+// ───────────────────────────── Phase3 全服公告（单行表）─────────────────────
+// 关闭公告时保留 body、只置 active=false；GET 只返回 active=true 的行。
+model SystemAnnouncement {
+  id        String   @id @default("default")
+  body      String   @db.Text
+  level     String   @default("info") @db.VarChar(16)
+  active    Boolean  @default(true)
+  updatedBy String?  @map("updated_by") @db.Uuid
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("system_announcements")
+}

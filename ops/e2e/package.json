@@ -1,0 +1,28 @@
+{
+  "name": "dijiang-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "帝江号 E2E：真实 Postgres + API/WS 冒烟 + Playwright UI 冒烟（禁止 mock）",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "backend": "node run-backend.mjs",
+    "backend:reset": "node run-backend.mjs --reset",
+    "stop": "node run-backend.mjs --stop",
+    "probe:s3": "node probe-s3.mjs",
+    "pool-check": "node pool-check.mjs",
+    "smoke:api": "node smoke-api.mjs",
+    "smoke:ui": "node smoke-ui.mjs",
+    "smoke:im": "node im-ui-smoke.mjs",
+    "smoke:all": "node smoke-api.mjs && node im-ui-smoke.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1155.0",
+    "@aws-sdk/s3-request-presigner": "^3.1155.0",
+    "embedded-postgres": "^17.5.0-beta.15",
+    "playwright-core": "^1.49.0",
+    "socket.io-client": "^4.8.1"
+  }
+}

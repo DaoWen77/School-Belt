@@ -1,0 +1,8 @@
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  argon2: true
+  esbuild: true
+  prisma: true
+# pnpm 12 起，构建脚本白名单等设置从 package.json 的 pnpm 字段迁移到本文件。
+# 需要放行的原生/引擎安装脚本：Prisma 查询引擎、argon2 原生绑定、esbuild（vitest 依赖）。

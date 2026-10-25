@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-10-23T15:13:37.951Z",
+  "endpoint": "http://127.0.0.1:9000",
+  "bucket": "dijiang",
+  "origin": "http://localhost:3100",
+  "note": "rclone serve s3 的 CORS 由启动参数 --allow-origin 提供；浏览器直传必须通过此预检",
+  "steps": [
+    {
+      "id": "C1",
+      "name": "OPTIONS 预检（Origin: http://localhost:3100 → PUT）",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "allowOrigin": "*",
+        "allowMethods": "COPY, DELETE, GET, HEAD, LOCK, MKCOL, MOVE, OPTIONS, POST, PROPFIND, PROPPATCH, PUT, TRACE, UNLOCK",
+        "allowHeaders": "Authorization, Content-Type, Depth, Destination, If, Lock-Token, Overwrite, Prefer, TimeOut, Translate",
+        "exposeHeaders": null,
+        "maxAge": "86400"
+      }
+    },
+    {
+      "id": "C2",
+      "name": "预签名 PUT（带 Origin）→ 200 且回 CORS 头",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "etag": "\"3a0d2ea96e426294026ef4bbc08be17c\"",
+        "bytes": 35,
+        "allowOrigin": "*",
+        "allowMethods": "POST, GET, OPTIONS, PUT, DELETE, HEAD",
+        "allowHeaders": "Accept, Accept-Encoding, Authorization, Content-Disposition, Content-Length, Content-Type, X-Amz-Date, X-Amz-User-Agent, X-CSRF-Token, x-amz-acl, x-amz-content-sha256, x-amz-meta-filename, x-amz-meta-from, x-amz-meta-private, x-amz-meta-to, x-amz-security-token",
+        "exposeHeaders": "ETag",
+        "maxAge": "86400"
+      }
+    },
+    {
+      "id": "C3",
+      "name": "预签名 GET（带 Origin）→ 字节一致 + CORS 头",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "bytes": 35,
+        "sha256": "e57ffe458b2700b688770ad42d40922cbe6578251e0a94278346968fa1cffdcb",
+        "expectedSha256": "e57ffe458b2700b688770ad42d40922cbe6578251e0a94278346968fa1cffdcb",
+        "byteEqual": true,
+        "allowOrigin": "*",
+        "allowMethods": "POST, GET, OPTIONS, PUT, DELETE, HEAD",
+        "allowHeaders": "Accept, Accept-Encoding, Authorization, Content-Disposition, Content-Length, Content-Type, X-Amz-Date, X-Amz-User-Agent, X-CSRF-Token, x-amz-acl, x-amz-content-sha256, x-amz-meta-filename, x-amz-meta-from, x-amz-meta-private, x-amz-meta-to, x-amz-security-token",
+        "exposeHeaders": "ETag",
+        "maxAge": "86400"
+      }
+    }
+  ],
+  "verdict": "PASS"
+}

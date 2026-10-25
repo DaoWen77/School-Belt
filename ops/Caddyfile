@@ -1,0 +1,112 @@
+# ============================================================================
+# O.M.V 帝江号 · 全域广播 —— Caddy 同源公网反代样例（Phase 2）
+#
+# 拓扑（同一域名）：
+#   浏览器 ──HTTPS/WSS──> Caddy ──/api/*、/socket.io/*──> api:3000（NestJS）
+#                             └──其余请求──────────────> web:3100（Next.js）
+#
+# 关键点：
+# 1) 前端与 API/WS 同源（https://你的域名），因此 CORS 只需要该 origin；
+#    构建前端时设置 NEXT_PUBLIC_API_BASE=https://你的域名（WS 自动同源推导）。
+# 2) X-Forwarded-*：Caddy 默认会设置 X-Forwarded-For/Proto/Host；
+#    后端需 TRUST_PROXY=true 才能正确取客户端 IP（登录限流/审计用）。
+# 3) WS：Caddy 原生支持 Upgrade，不需要手写 Connection 头；
+#    SSE（/api/ai/*）必须关闭响应缓冲（flush_interval -1）。
+# 4) S3 不反代：预签名 URL 的 host/path 都被 SigV4 签名，必须用独立端口/子域
+#    直连 MinIO/S3（S3_PUBLIC_ENDPOINT=https://files.你的域名）。
+# 5) 本机自签：把 email 行注释掉，并在站点块内加 `tls internal`。
+#
+# 环境变量：DOMAIN（默认 localhost）、ACME_EMAIL
+# 上游地址按实际编排修改：compose 用 web:3100；裸机改 127.0.0.1:3100。
+# ============================================================================
+
+{
+	email {$ACME_EMAIL:ops@dijiang.local}
+	# 本机无公网/无域名时：注释 email，并在站点块加一行 `tls internal`
+	# auto_https disable_redirects
+}
+
+{$DOMAIN:localhost} {
+	encode zstd gzip
+
+	# ── 安全响应头（同源前端 + API 共用）─────────────────────────────────
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# 同源部署：允许自身脚本/样式/图片，connect-src 允许同源 REST + WS（wss 同源）
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws: wss:; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+		-Server
+	}
+
+	# ── Socket.IO：WS + 长轮询（Redis adapter 多实例广播）──────────────────
+	@ws path /socket.io /socket.io/*
+	handle @ws {
+		reverse_proxy api:3000 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+			# WS/SSE 长连接不截断；flush_interval -1 立即冲刷
+			flush_interval -1
+			transport http {
+				read_timeout 3600s
+				write_timeout 3600s
+			}
+		}
+	}
+
+	# ── REST API（含 SSE：/api/ai/chat、/api/ai/report 等）────────────────
+	handle /api/* {
+		reverse_proxy api:3000 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+			# SSE / AI 流式响应必须关闭缓冲
+			flush_interval -1
+			transport http {
+				read_timeout 3600s
+				write_timeout 3600s
+			}
+		}
+	}
+
+	# ── 运维探针（/metrics 仅内网）─────────────────────────────────────────
+	handle /healthz* {
+		reverse_proxy api:3000
+	}
+	handle /readyz* {
+		reverse_proxy api:3000
+	}
+	handle /metrics {
+		@private remote_ip 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 127.0.0.1/32 ::1
+		handle @private {
+			reverse_proxy api:3000
+		}
+		respond "metrics restricted" 403
+	}
+
+	# ── 前端（Next.js 生产服务，同源）──────────────────────────────────────
+	# 方案 A（推荐，SSR 可用）：反代 web 容器
+	handle {
+		reverse_proxy web:3100 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+		}
+	}
+
+	# 方案 B（仅当 `next build` 为静态导出时）：直接托管静态目录
+	# root * /srv/web
+	# file_server
+	# try_files {path} /index.html
+
+	# S3/MinIO 刻意不反代：SigV4 会签 host + path，必须独立端口/子域直连。
+	# 例如 S3_PUBLIC_ENDPOINT=https://files.example.com → 该子域单独指向 minio:9000。
+
+	log {
+		output stdout
+		format console
+	}
+}

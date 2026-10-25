@@ -1,0 +1,6 @@
+﻿import { chromium } from 'playwright-core';
+const b=await chromium.launch({channel:'chrome',headless:true});const p=await b.newPage({viewport:{width:1440,height:900}});
+await p.goto('http://localhost:3100/login',{waitUntil:'networkidle'});await p.fill('input[autocomplete=username]','founder');await p.fill('input[type=password]','Dijiang#2026');await p.click('form button[type=submit]');await p.waitForTimeout(2500);await p.goto('http://localhost:3100/settings',{waitUntil:'networkidle'});await p.waitForTimeout(800);
+console.log(await p.evaluate(()=>{const s=(el)=>{const c=getComputedStyle(el);return{overflow:c.overflow,overflowY:c.overflowY,height:c.height,minHeight:c.minHeight,position:c.position}};return{html:s(document.documentElement),body:s(document.body),main:document.querySelector('main')?s(document.querySelector('main')):null,scroll:{doc:document.documentElement.scrollHeight,win:window.innerHeight,body:document.body.scrollHeight},wheel:document.querySelector('main')?.className}}));
+await p.mouse.wheel(0,1200);await p.waitForTimeout(500);console.log('AFTER_WHEEL',await p.evaluate(()=>({doc:document.documentElement.scrollTop,body:document.body.scrollTop,main:document.querySelector('main')?.scrollTop,win:window.scrollY})));
+await b.close();

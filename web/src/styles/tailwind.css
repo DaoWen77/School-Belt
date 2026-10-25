@@ -1,0 +1,53 @@
+/* ==========================================================================
+   tailwind.css · Tailwind v4 入口（不启用 preflight）
+   --------------------------------------------------------------------------
+   只引 theme + utilities，保护 design/ui-endfield 的 .ef-* 样式。
+   颜色直接映射到 tokens.css 的 --ef-*，因此浅色/深色主题自动跟随。
+   ========================================================================== */
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@theme {
+  --color-paper: var(--ef-paper);
+  --color-panel: var(--ef-panel);
+  --color-ink: var(--ef-ink);
+  --color-ink-2: var(--ef-ink-2);
+  --color-line: var(--ef-rule);
+  --color-chip: var(--ef-chip);
+  --color-accent: var(--ef-signal);
+  --color-on-accent: var(--ef-on-signal);
+  --color-danger: var(--ef-danger);
+  --color-chrome: #161616;
+  --color-chrome-fg: #ededed;
+
+  --font-sans: 'Saira', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Heiti SC', sans-serif;
+  --font-display: 'Saira', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Heiti SC', sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Code', Consolas, monospace;
+}
+
+/* 切角：可点击块（甲套规则：圆角=0，切角=可点击） */
+@utility cut-corner {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+
+@utility cut-corner-sm {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+
+@utility cut-corner-tl {
+  clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+}
+
+/* 1px 细线分隔（比 Tailwind 的 border 更淡，用于消息流） */
+@utility hairline-b {
+  border-bottom: 1px solid color-mix(in srgb, var(--ef-ink) 8%, transparent);
+}
+
+/* 隐藏滚动条但保留滚动能力 */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

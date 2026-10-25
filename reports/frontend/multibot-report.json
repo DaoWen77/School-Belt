@@ -1,0 +1,57 @@
+{
+  "shots": {
+    "multibot-admin-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\multibot-admin-1440.png",
+    "multibot-members-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\multibot-members-1440.png",
+    "multibot-bot-reply-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\multibot-bot-reply-1440.png",
+    "multibot-bot-panel-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\multibot-bot-panel-1440.png",
+    "multibot-clear-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\multibot-clear-1440.png",
+    "multibot-summarize-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\multibot-summarize-1440.png",
+    "multibot-roll-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\multibot-roll-1440.png",
+    "multibot-translate-1440.png": "E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend\\multibot-translate-1440.png"
+  },
+  "checks": {
+    "botPanel": {
+      "visible": false,
+      "entries": 2
+    },
+    "botCreated": {
+      "visible": true,
+      "entries": 2
+    },
+    "memberList": {
+      "botVisible": true,
+      "drawerText": "Group / 加人添加到群聊协议官@protocol_officer观测者@bot_agent_45bcd7观测者[BOT]@bot_agent_45bcd7取消加入群聊"
+    },
+    "botChat": {
+      "botBubbles": 9,
+      "text": "协议官\n[DIJIANG/OS]\n13:25\n协议官收到：「@帝江号·协议官 请给出今日行动建议」。建议先确认频道内最新动态，再推进下一步。\n帝\n帝江号·协议官\n[DIJIANG/OS]\n13:25\n协议官收到：「@帝江号·协议官 请给出今日行动建议」。建议先确认频道内最新动态，再推进下一步。\n引用\n发送\n\nENTER 发送 · SHIFT+ENTER 换行\n可拖拽 / 粘贴文件\n\nSprint2 测试音乐\n\n帝江号\n\n0:00\n0:00\n6 首\n音量\n全域播报\n\n公开频道 │ 9 位成员可读 │ 未读 0 条 │ 最后一条 2026.10.24 13:23\n\nINFO / 频道信息\n\n类型\n社区频道\n可见性\n公开\n成员\n9 人\n我的角色\n档案员\n未读\n0 条\n最后活动\n2026.10.24 13:23\n\nMEMBERS / 成员\n\n加人\n9\n问\n[小号] 问道\n@chen\n成员\n[战术规划中] 林测绘\n@lin\n成员\n岳\n[战术规划中] 岳调度\n@yue\n成员\n邱\n邱档案\n@qiu\n成员\n沈\n沈巡检\n@shen\n成员\n安\n安观测\n@an_obs\n成员\n帝\n帝江号·协议官[BOT]\n@dijiang_bot\n成员\n验\n验收协议官\n@bot_agent_e71f83\n成员\n終\n[开发从未停止] 終澪我\n@founder\n档案员\n\nPINNED / 置顶\n\n0\n\n暂无置顶\n\n6 条未读"
+    },
+    "botPicker": {
+      "open": true,
+      "hasBot": true
+    },
+    "botInsert": "@帝江号·协议官 ",
+    "clear": {
+      "text": true,
+      "before": 15,
+      "after": 16
+    },
+    "summarize": {
+      "text": true,
+      "bots": 15
+    },
+    "roll": {
+      "text": "ROLL 1d100 = 66"
+    },
+    "quoteCandidates": 1,
+    "quoteBar": true,
+    "translate": {
+      "text": true,
+      "before": 12,
+      "after": 22
+    }
+  },
+  "errors": [],
+  "pageErrors": [],
+  "failedRequests": []
+}

@@ -1,0 +1,301 @@
+/* ==========================================================================
+   archive.css · 档案室封面 / 详情抽屉
+   无图档案用纯 CSS 网格封面，不依赖任何图片。
+   ========================================================================== */
+
+.archive-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+@media (min-width: 640px) {
+  .archive-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .archive-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.archive-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  text-align: left;
+  color: var(--ef-ink);
+  padding: 0;
+  overflow: hidden;
+}
+
+.archive-card:hover,
+.archive-card:focus-visible {
+  border-color: var(--ef-ink);
+  outline: none;
+}
+
+.archive-card-cover {
+  position: relative;
+  display: block;
+  height: 7.2rem;
+  overflow: hidden;
+  border-bottom: 1px solid var(--ef-rule);
+  background: var(--ef-paper);
+}
+
+.archive-card-body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.55rem 0.65rem 0.6rem;
+}
+
+.archive-card-kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-family: var(--ef-font-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ef-ink-2);
+}
+
+.archive-card-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--ef-font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ef-ink);
+}
+
+.archive-card-deck {
+  display: -webkit-box;
+  min-height: 1.9rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-family: var(--ef-font-text);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--ef-ink-2);
+}
+
+.archive-card-deck.is-empty {
+  opacity: 0.55;
+}
+
+.archive-card-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+  font-family: var(--ef-font-mono);
+  font-size: 8px;
+  color: var(--ef-ink-2);
+  opacity: 0.75;
+}
+
+.archive-cover {
+  position: relative;
+  display: flex;
+  height: 100%;
+  min-height: 7.2rem;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 0.55rem 0.65rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ef-signal) 10%, transparent), transparent 58%),
+    var(--ef-paper);
+  color: var(--ef-ink);
+}
+
+.archive-cover--drawer {
+  height: 13rem;
+  min-height: 13rem;
+  margin-bottom: 0.7rem;
+  border: 1px solid var(--ef-rule);
+}
+
+.archive-cover-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--ef-ink) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ef-ink) 10%, transparent) 1px, transparent 1px);
+  background-size: 1.1rem 1.1rem, 1.1rem 1.1rem;
+  mask-image: linear-gradient(to bottom, black, transparent 92%);
+  pointer-events: none;
+}
+
+.archive-cover-index {
+  position: relative;
+  z-index: 1;
+  font-family: var(--ef-font-mono);
+  font-size: clamp(1.75rem, 5vw, 2.8rem);
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  line-height: 0.85;
+  color: color-mix(in srgb, var(--ef-ink) 72%, transparent);
+}
+
+.archive-cover-mark {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.65rem;
+  z-index: 1;
+  display: grid;
+  height: 1.7rem;
+  width: 1.7rem;
+  place-items: center;
+  border: 1px solid var(--ef-rule);
+  color: var(--ef-signal);
+}
+
+.archive-cover-kind {
+  position: relative;
+  z-index: 1;
+  align-self: flex-start;
+  border: 1px solid var(--ef-rule);
+  padding: 0.15rem 0.35rem;
+  font-family: var(--ef-font-mono);
+  font-size: 7px;
+  letter-spacing: 0.12em;
+  color: var(--ef-ink-2);
+}
+
+.archive-cover-bars {
+  position: absolute;
+  right: 0.65rem;
+  bottom: 0.6rem;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 2rem;
+}
+
+.archive-cover-bars i {
+  display: block;
+  width: 3px;
+  background: var(--ef-signal);
+  opacity: 0.55;
+}
+
+.archive-cover-bars i:nth-child(1) { height: 28%; }
+.archive-cover-bars i:nth-child(2) { height: 52%; }
+.archive-cover-bars i:nth-child(3) { height: 38%; }
+.archive-cover-bars i:nth-child(4) { height: 78%; }
+
+/* 类型换一点色，保持整套纸面语法 */
+.archive-cover[data-kind='idea'] .archive-cover-bars i { background: #9be7d5; }
+.archive-cover[data-kind='artwork'] .archive-cover-bars i { background: #ffb15c; }
+.archive-cover[data-kind='material'] .archive-cover-bars i { background: var(--ef-signal); }
+
+.archive-image {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+}
+
+.archive-image--card {
+  height: 7.2rem;
+}
+
+.archive-image--drawer {
+  height: 13rem;
+  border: 1px solid var(--ef-rule);
+}
+
+.archive-image-loading {
+  display: block;
+  background: var(--ef-chip);
+  animation: archive-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.archive-image-loading--card { height: 7.2rem; }
+.archive-image-loading--drawer { height: 13rem; margin-bottom: 0.7rem; border: 1px solid var(--ef-rule); }
+
+.archive-drawer .archive-drawer-body {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.9rem;
+}
+
+.archive-drawer-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 0.7rem;
+}
+
+.archive-drawer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0.15rem 0 0.7rem;
+  font-family: var(--ef-font-mono);
+  font-size: 9px;
+  color: var(--ef-ink-2);
+}
+
+.archive-read {
+  border-top: 1px solid var(--ef-rule);
+  padding-top: 0.7rem;
+}
+
+.archive-read p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--ef-font-text);
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--ef-ink);
+}
+
+.archive-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  border-top: 1px solid var(--ef-rule);
+  padding-top: 0.7rem;
+}
+
+.archive-edit-body {
+  min-height: 10rem;
+}
+
+.archive-drawer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  border-top: 1px solid var(--ef-rule);
+  padding: 0.75rem 0.9rem max(0.75rem, env(safe-area-inset-bottom, 0px));
+  background: var(--ef-panel);
+}
+
+.archive-drawer-actions .danger {
+  color: var(--ef-danger);
+  border-color: color-mix(in srgb, var(--ef-danger) 45%, var(--ef-rule));
+}
+
+@keyframes archive-pulse {
+  from { opacity: 0.55; }
+  to { opacity: 0.95; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archive-image-loading { animation: none; }
+}
