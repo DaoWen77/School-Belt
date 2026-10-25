@@ -6,6 +6,7 @@ export interface BeltChannel {
   topic: string | null;
   visibility: 'public' | 'private';
   organizationId?: string | null;
+  unread?: number;
 }
 
 export interface BeltMessageCard {

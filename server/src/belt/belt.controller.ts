@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { BeltService } from './belt.service';
@@ -165,6 +166,11 @@ export class BeltChannelsController {
     @Param('messageId') messageId: string,
   ) {
     return this.channels.deleteMessage(user, id, messageId);
+  }
+
+  @Get('search')
+  async search(@CurrentUser() user: AuthUser, @Query('q') q: string) {
+    return this.channels.search(user, q ?? '');
   }
 
   @Get(':id/members')

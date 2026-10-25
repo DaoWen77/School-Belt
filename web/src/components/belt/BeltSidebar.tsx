@@ -40,6 +40,7 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
   const [requestsOpen, setRequestsOpen] = useState(false);
   const [dmSearch, setDmSearch] = useState('');
   const [navSearch, setNavSearch] = useState('');
+  const [searchHits, setSearchHits] = useState<Array<{ id: string; channelId: string; channelName: string; body: string }>>([]);
   const [dmSearchOpen, setDmSearchOpen] = useState(false);
   const [seen, setSeen] = useState<Record<string, string>>({});
   const [dmHandle, setDmHandle] = useState('');
@@ -220,6 +221,30 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
     }
   };
 
+  useEffect(() => {
+    const q = navSearch.trim();
+    if (q.length < 2) {
+      setSearchHits([]);
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void beltApi<{ results: Array<{ id: string; channelId: string; channelName: string; body: string }> }>(
+        `/belt/channels/search?q=${encodeURIComponent(q)}`,
+      )
+        .then((data) => {
+          if (!cancelled) setSearchHits(data.results ?? []);
+        })
+        .catch(() => {
+          if (!cancelled) setSearchHits([]);
+        });
+    }, 280);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [navSearch]);
+
   return (
     <aside className={`belt-rail${mobileOpen ? ' is-open' : ''}`}>
       <div className="belt-rail-label">
@@ -232,6 +257,24 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
         placeholder="搜索频道 / 私聊…"
         aria-label="全局搜索频道与私聊"
       />
+      {searchHits.length > 0 ? (
+        <div className="belt-nav-search-results">
+          {searchHits.map((hit) => (
+            <Link
+              key={hit.id}
+              href={`/belt/channel?channelId=${hit.channelId}`}
+              className="belt-nav-search-hit"
+              onClick={() => {
+                setSearchHits([]);
+                onNavigate?.();
+              }}
+            >
+              <b>{hit.channelName}</b>
+              <span>{hit.body}</span>
+            </Link>
+          ))}
+        </div>
+      ) : null}
 
       <div className="belt-nav-group">
         <button

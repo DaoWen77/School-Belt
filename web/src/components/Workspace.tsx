@@ -1559,7 +1559,7 @@ export function Workspace() {
         ]);
         continue;
       }
-      setUploads((previous) => [...previous, { id: rowId, name: file.name, percent: 0, status: 'uploading', file }]);
+      setUploads((previous) => [...previous, { id: rowId, name: file.name, percent: 0, status: 'uploading', file, previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined }]);
       try {
         const view = await uploadFile(current.id, file, (progress) => {
           setUploads((previous) => previous.map((row) => (row.id === rowId ? { ...row, percent: progress.percent } : row)));

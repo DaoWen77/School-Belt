@@ -113,6 +113,7 @@ export function Composer({
         <ul className="mb-1.5 flex flex-col gap-0.5" aria-label="上传进度">
           {uploads.map((row) => (
             <li key={row.id} className="flex items-center gap-2 border border-line px-2 py-1 text-[10px] text-ink-2">
+              {row.previewUrl ? <img src={row.previewUrl} alt="" className="h-7 w-7 object-cover" /> : null}
               <span className="min-w-0 flex-1 truncate text-ink">{row.name}</span>
               {row.status === 'uploading' ? (
                 <span className="h-1 w-16 bg-chip" aria-hidden="true">

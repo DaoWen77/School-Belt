@@ -18,4 +18,5 @@ export interface UploadRow {
   code?: string;
   message?: string;
   file?: File;
+  previewUrl?: string;
 }

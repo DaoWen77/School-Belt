@@ -14,6 +14,7 @@ export interface BeltChannelView {
   topic: string | null;
   visibility: 'public' | 'private';
   organizationId: string | null;
+  unread?: number;
 }
 
 export interface BeltSenderView {
@@ -77,7 +78,66 @@ export class BeltChannelsService {
       orderBy: [{ position: 'asc' }, { createdAt: 'asc' }],
       select: { id: true, name: true, topic: true, visibility: true, organizationId: true },
     });
-    return { channels };
+    const memberships = await this.prisma.channelMember.findMany({
+      where: { userId: user.id, channelId: { in: channels.map((channel) => channel.id) } },
+      select: { channelId: true, lastReadSeq: true },
+    });
+    const lastRead = new Map(memberships.map((member) => [member.channelId, member.lastReadSeq]));
+    const counts = await Promise.all(
+      channels.map((channel) => {
+        const seq = lastRead.get(channel.id);
+        if (seq === undefined) return Promise.resolve(0);
+        return this.prisma.message.count({
+          where: {
+            channelId: channel.id,
+            deletedAt: null,
+            senderId: { not: user.id },
+            id: { gt: seq },
+          },
+        });
+      }),
+    );
+    return {
+      channels: channels.map((channel, index) => ({ ...channel, unread: counts[index] ?? 0 })),
+    };
+  }
+
+  async search(
+    user: AuthUser,
+    query: string,
+  ): Promise<{ results: Array<{ id: string; channelId: string; channelName: string; body: string; createdAt: string }> }> {
+    const q = query.trim().slice(0, 80);
+    if (q.length < 2) return { results: [] };
+    const channels = await this.prisma.channel.findMany({
+      where: {
+        surface: 'belt',
+        kind: 'channel',
+        archivedAt: null,
+        OR: [{ organizationId: null }, { members: { some: { userId: user.id } } }],
+      },
+      select: { id: true, name: true },
+    });
+    if (channels.length === 0) return { results: [] };
+    const names = new Map(channels.map((channel) => [channel.id, channel.name]));
+    const rows = await this.prisma.message.findMany({
+      where: {
+        channelId: { in: channels.map((channel) => channel.id) },
+        deletedAt: null,
+        body: { contains: q, mode: 'insensitive' },
+      },
+      orderBy: { id: 'desc' },
+      take: 20,
+      select: { id: true, channelId: true, body: true, createdAt: true },
+    });
+    return {
+      results: rows.map((row) => ({
+        id: String(row.id),
+        channelId: row.channelId,
+        channelName: names.get(row.channelId) ?? '频道',
+        body: (row.body ?? '').slice(0, 120),
+        createdAt: row.createdAt.toISOString(),
+      })),
+    };
   }
 
   async members(
