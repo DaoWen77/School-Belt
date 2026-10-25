@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { beltApi, connectBeltSocket, type BeltUser } from '@/lib/beltApi';
 import type { BeltDmConversation } from '@/lib/beltTypes';
@@ -22,6 +23,7 @@ function dayOf(iso: string): string {
 
 /** 私聊主视图：左侧边栏选中会话后，这里只渲染聊天窗口。 */
 export function BeltDirectView({ user, conversationId }: { user: BeltUser; conversationId?: string }) {
+  const router = useRouter();
   const [conversations, setConversations] = useState<BeltDmConversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
@@ -53,7 +55,23 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
   }, []);
 
   useEffect(() => {
-    if (!conversationId) {
+    const startCall = async (mode: 'audio' | 'video') => {
+    if (!selected) return;
+    try {
+      await beltApi(`/belt/conversations/${selected.id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({
+          body: `📡 极光通讯 · ${user.displayName} 发起了${mode === 'video' ? '视频' : '语音'}通讯，点击加入`,
+          clientMsgId: randomUuid(),
+        }),
+      });
+    } catch {
+      /* 本地演示优先 */
+    }
+    router.push(`/belt/rtc/conference?callId=dm-${selected.id}&mode=${mode}`);
+  };
+
+  if (!conversationId) {
       setMessages([]);
       return;
     }
@@ -170,6 +188,22 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
     }
   };
 
+  const startCall = async (mode: 'audio' | 'video') => {
+    if (!selected) return;
+    try {
+      await beltApi(`/belt/conversations/${selected.id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({
+          body: `📡 极光通讯 · ${user.displayName} 发起了${mode === 'video' ? '视频' : '语音'}通讯，点击加入`,
+          clientMsgId: randomUuid(),
+        }),
+      });
+    } catch {
+      /* 本地演示优先 */
+    }
+    router.push(`/belt/rtc/conference?callId=dm-${selected.id}&mode=${mode}`);
+  };
+
   if (!conversationId) {
     return (
       <div className="belt-im-empty-page">
@@ -203,6 +237,12 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
               <small>@{peer?.handle ?? ''} · {selected.surface === 'bridge' ? 'BRIDGE' : 'BELT'}</small>
             </div>
             <div className="belt-im-chat-actions">
+              <button type="button" className="belt-channel-call" aria-label="发起语音通讯" onClick={() => void startCall('audio')}>
+                <span className="belt-call-icon belt-call-audio" /><small>VOICE</small>
+              </button>
+              <button type="button" className="belt-channel-call" aria-label="发起视频通讯" onClick={() => void startCall('video')}>
+                <span className="belt-call-icon belt-call-video" /><small>VIDEO</small>
+              </button>
               <button type="button" className="belt-button" disabled={busy} onClick={() => void clearChat()}>清空</button>
               <button type="button" className="belt-button" disabled={busy} onClick={() => void manageFriend('block')}>拉黑</button>
               <button type="button" className="belt-danger-link" disabled={busy} onClick={() => void manageFriend('remove')}>删好友</button>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { ApiUser, Channel } from '@/lib/types';
 import type { ConnState } from '@/lib/realtime';
 import { InfoIcon, LogoutIcon, MenuIcon, SearchIcon, SettingsIcon } from './icons';
@@ -38,6 +39,7 @@ export function ChatHeader({
   onDetail: () => void;
   onLogout: () => void;
 }) {
+  const router = useRouter();
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [notifOpen, setNotifOpen] = useState(false);
   const [unread, setUnread] = useState(0);
@@ -204,6 +206,23 @@ export function ChatHeader({
           </div>
         ) : null}
       </div>
+
+      <button
+        type="button"
+        onClick={() => router.push('/rtc?mode=audio')}
+        className="hidden items-center gap-1 border border-chrome-fg/25 px-2 py-1 text-[11px] font-semibold text-chrome-fg/85 hover:border-accent hover:text-accent sm:flex"
+        aria-label="语音通话"
+      >
+        <span className="rtc-entry-icon rtc-entry-audio" />
+      </button>
+      <button
+        type="button"
+        onClick={() => router.push('/rtc?mode=video')}
+        className="hidden items-center gap-1 border border-chrome-fg/25 px-2 py-1 text-[11px] font-semibold text-chrome-fg/85 hover:border-accent hover:text-accent sm:flex"
+        aria-label="视频通话"
+      >
+        <span className="rtc-entry-icon rtc-entry-video" />
+      </button>
 
       <button
         type="button"

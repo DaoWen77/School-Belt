@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { beltApi, beltFileUrl, connectBeltSocket, type BeltUser } from '@/lib/beltApi';
 import { resolvePublicUrl } from '@/lib/fileUrl';
 import type { BeltAttachment, BeltChannel, BeltMessage } from '@/lib/beltTypes';
@@ -20,6 +21,7 @@ interface PendingAttachment extends BeltAttachment {
 }
 
 export function BeltChannelView({ user }: { user: BeltUser }) {
+  const router = useRouter();
   const [channel, setChannel] = useState<BeltChannel | null>(null);
   const [messages, setMessages] = useState<BeltMessage[]>([]);
   const [draft, setDraft] = useState('');
@@ -228,6 +230,22 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
     }
   };
 
+  const startCall = async (mode: 'audio' | 'video') => {
+    if (!channel) return;
+    try {
+      await beltApi(`/belt/channels/${channel.id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({
+          body: `📡 极光通讯 · ${user.displayName} 发起了${mode === 'video' ? '视频' : '语音'}通讯，点击加入`,
+          clientMsgId: randomUuid(),
+        }),
+      });
+    } catch {
+      /* 卡片消息失败不阻塞本地会议演示 */
+    }
+    router.push(`/belt/rtc/conference?callId=channel-${channel.id}&mode=${mode}`);
+  };
+
   if (loading) {
     return <div className="belt-panel belt-empty">正在锁定公共频段…</div>;
   }
@@ -244,6 +262,14 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
           <span style={{ color: state === 'online' ? 'var(--ef-signal)' : 'var(--ef-ink-2)' }}>
             {state === 'online' ? 'LIVE' : state === 'connecting' ? 'LINKING' : 'OFFLINE'}
           </span>
+          <button type="button" className="belt-channel-call" aria-label="发起语音通讯" onClick={() => void startCall('audio')}>
+            <span className="belt-call-icon belt-call-audio" />
+            <small>VOICE</small>
+          </button>
+          <button type="button" className="belt-channel-call" aria-label="发起视频通讯" onClick={() => void startCall('video')}>
+            <span className="belt-call-icon belt-call-video" />
+            <small>VIDEO</small>
+          </button>
           <button type="button" className="belt-channel-info-btn" aria-label="频道详情" onClick={() => setInfoOpen(true)}>
             ⓘ
           </button>

@@ -1,0 +1,122 @@
+
+/* 通话入口 */
+.belt-channel-call {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid var(--ef-rule);
+  background: transparent;
+  color: var(--ef-ink-2);
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+}
+
+.belt-channel-call small {
+  font-family: var(--ef-font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+}
+
+.belt-channel-call:hover {
+  border-color: var(--ef-signal);
+  color: var(--ef-signal);
+}
+
+.belt-call-icon {
+  position: relative;
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.belt-call-icon::before,
+.belt-call-icon::after {
+  content: '';
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.belt-call-audio::before {
+  top: 0.05rem;
+  left: 50%;
+  width: 0.28rem;
+  height: 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 0.2rem;
+  transform: translateX(-50%);
+}
+
+.belt-call-audio::after {
+  top: 0.42rem;
+  left: 50%;
+  width: 0.55rem;
+  height: 0.32rem;
+  border: 1px solid currentColor;
+  border-top: 0;
+  border-radius: 0 0 0.3rem 0.3rem;
+  transform: translateX(-50%);
+}
+
+.belt-call-video::before {
+  inset: 0.12rem 0.1rem;
+  border: 1px solid currentColor;
+}
+
+.belt-call-video::after {
+  top: 50%;
+  left: 50%;
+  width: 0.24rem;
+  height: 0.24rem;
+  border: 1px solid currentColor;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.rtc-entry-icon {
+  position: relative;
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  color: currentColor;
+}
+
+.rtc-entry-icon::before,
+.rtc-entry-icon::after {
+  content: '';
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.rtc-entry-audio::before {
+  top: 0.05rem;
+  left: 50%;
+  width: 0.26rem;
+  height: 0.46rem;
+  border: 1px solid currentColor;
+  border-radius: 0.2rem;
+  transform: translateX(-50%);
+}
+
+.rtc-entry-audio::after {
+  top: 0.38rem;
+  left: 50%;
+  width: 0.52rem;
+  height: 0.3rem;
+  border: 1px solid currentColor;
+  border-top: 0;
+  border-radius: 0 0 0.3rem 0.3rem;
+  transform: translateX(-50%);
+}
+
+.rtc-entry-video::before {
+  inset: 0.12rem 0.08rem;
+  border: 1px solid currentColor;
+}
+
+.rtc-entry-video::after {
+  top: 50%;
+  left: 50%;
+  width: 0.22rem;
+  height: 0.22rem;
+  border: 1px solid currentColor;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
