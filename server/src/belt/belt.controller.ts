@@ -16,10 +16,12 @@ import {
   createBeltCommentSchema,
   createBeltPostSchema,
   listBeltPostsQuerySchema,
+  createBeltChannelSchema,
   sendBeltMessageSchema,
   shareBeltPostSchema,
   updateBeltProfileSchema,
   type BeltMessageQuery,
+  type CreateBeltChannelDto,
   type CreateBeltCommentDto,
   type CreateBeltPostDto,
   type ListBeltPostsQuery,
@@ -31,11 +33,13 @@ import {
   avatarPresignSchema,
   beltAttachmentPresignSchema,
   beltAttachmentUploadSchema,
+  beltPostMediaPresignSchema,
   completeSchema,
   fileUrlQuerySchema,
   type AvatarPresignDto,
   type BeltAttachmentPresignDto,
   type BeltAttachmentUploadDto,
+  type BeltPostMediaPresignDto,
   type CompleteDto,
   type FileUrlQuery,
 } from '../files/files.dto';
@@ -54,6 +58,12 @@ export class BeltMeController {
     return this.belt.me(user);
   }
 
+  @Get('stats')
+  @Surface('belt')
+  async stats(@CurrentUser() user: AuthUser) {
+    return this.belt.stats(user);
+  }
+
   @Patch('me')
   @Surface('belt')
   async updateMe(
@@ -69,6 +79,15 @@ export class BeltMeController {
 @Surface('belt')
 export class BeltFilesController {
   constructor(private readonly files: FilesService) {}
+
+  @Post('post-media/presign')
+  @HttpCode(200)
+  async presignPostMedia(
+    @CurrentUser() user: AuthUser,
+    @ZBody(beltPostMediaPresignSchema) dto: BeltPostMediaPresignDto,
+  ) {
+    return this.files.presignBeltPostMedia(user, dto);
+  }
 
   @Post('attachments/presign')
   @HttpCode(200)
@@ -127,6 +146,15 @@ export class BeltChannelsController {
   @Get()
   async list(@CurrentUser() user: AuthUser) {
     return this.channels.list(user);
+  }
+
+  @Post()
+  @HttpCode(201)
+  async createChannel(
+    @CurrentUser() user: AuthUser,
+    @ZBody(createBeltChannelSchema) dto: CreateBeltChannelDto,
+  ) {
+    return { channel: await this.channels.createChannel(user, dto.name, dto.topic ?? null) };
   }
 
   @Delete(':id/messages/:messageId')

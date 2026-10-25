@@ -5,10 +5,12 @@ import {
   createOrganizationSchema,
   joinOrganizationSchema,
   reviewMemberSchema,
+  reviewOrganizationSchema,
   type CreateOrgChannelDto,
   type CreateOrganizationDto,
   type JoinOrganizationDto,
   type ReviewMemberDto,
+  type ReviewOrganizationDto,
 } from './organizations.dto';
 import { CurrentUser, Surface } from '../common/decorators';
 import { ZBody } from '../common/pipes/zod-validation.pipe';
@@ -31,6 +33,22 @@ function uuid(value: string): string {
 @Surface('belt')
 export class BeltOrganizationsController {
   constructor(private readonly organizations: OrganizationsService) {}
+
+  /** 全站 Owner 在环带直接查看待审组织。 */
+  @Get('pending')
+  async pending(@CurrentUser() user: AuthUser) {
+    return this.organizations.listPending(user);
+  }
+
+  @Patch(':id/review')
+  @HttpCode(200)
+  async review(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @ZBody(reviewOrganizationSchema) dto: ReviewOrganizationDto,
+  ) {
+    return { organization: await this.organizations.review(user, uuid(id), dto) };
+  }
 
   @Get('mine')
   async mine(@CurrentUser() user: AuthUser) {

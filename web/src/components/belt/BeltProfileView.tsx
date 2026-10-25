@@ -17,6 +17,7 @@ export function BeltProfileView({ user }: { user: BeltUser }) {
   const [avatarFileId, setAvatarFileId] = useState(user.avatarFileId ?? null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [organizations, setOrganizations] = useState<OrgSummary[]>([]);
+  const [stats, setStats] = useState<{ posts: number; likesReceived: number; commentsReceived: number; recent: Array<{ id: string; title: string; board: string; publishedAt: string }> } | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,7 @@ export function BeltProfileView({ user }: { user: BeltUser }) {
     beltApi<{ organizations: OrgSummary[] }>('/belt/organizations/mine')
       .then((data) => setOrganizations(data.organizations ?? []))
       .catch(() => setOrganizations([]));
+    beltApi<typeof stats>('/belt/stats').then(setStats).catch(() => setStats(null));
   }, []);
 
   const upload = async (file: File) => {
@@ -143,6 +145,35 @@ export function BeltProfileView({ user }: { user: BeltUser }) {
             </button>
           </div>
         </div>
+      </section>
+
+      <section className="belt-panel mt-3">
+        <div className="belt-panel-head">
+          <h2>最近活跃 / ACTIVITY</h2>
+          <span className="belt-hint">{stats ? `${stats.posts} POSTS` : '—'}</span>
+        </div>
+        {stats ? (
+          <>
+            <div className="belt-profile-stats">
+              <span><b>{stats.posts}</b> 发帖</span>
+              <span><b>{stats.likesReceived}</b> 认同</span>
+              <span><b>{stats.commentsReceived}</b> 回波</span>
+            </div>
+            <ul className="belt-ledger">
+              {stats.recent.map((row) => (
+                <li key={row.id} className="belt-row" style={{ gridTemplateColumns: 'minmax(0, 1fr) auto' }}>
+                  <div>
+                    <div className="belt-row-title">{row.title}</div>
+                    <div className="belt-row-meta">{row.board} · {new Date(row.publishedAt).toLocaleDateString()}</div>
+                  </div>
+                  <span className="belt-stamp">ACTIVE</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p className="belt-hint">还没有活跃记录。</p>
+        )}
       </section>
 
       <section className="belt-panel mt-3">

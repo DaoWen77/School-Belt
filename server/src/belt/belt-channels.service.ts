@@ -186,6 +186,29 @@ export class BeltChannelsService {
     }
   }
 
+  /** 环带 Owner 直接新建公开频道（不经过内部 /channels 的 internal 守卫）。 */
+  async createChannel(user: AuthUser, name: string, topic: string | null): Promise<BeltChannelView> {
+    if (user.globalRole !== 'owner' && user.globalRole !== 'admin') {
+      throw new AppError(ErrorCode.FORBIDDEN, '仅 Owner 可新建频道');
+    }
+    const slug = `belt-${randomUUID().slice(0, 8)}`;
+    const channel = await this.prisma.channel.create({
+      data: {
+        name: name.slice(0, 60),
+        slug,
+        topic: topic?.slice(0, 200) ?? null,
+        visibility: 'public',
+        kind: 'channel',
+        surface: 'belt',
+        position: 1000,
+        createdBy: user.id,
+      },
+      select: { id: true, name: true, topic: true, visibility: true, organizationId: true },
+    });
+    this.realtime.emitToBeltChannel?.(channel.id, 'belt:channel:created', { channel });
+    return channel;
+  }
+
   async deleteMessage(user: AuthUser, channelId: string, messageId: string): Promise<{ deleted: true }> {
     const channel = await this.requireChannel(user, channelId);
     if (!/^\d+$/.test(messageId)) throw new AppError(ErrorCode.VALIDATION_FAILED, '消息不存在');

@@ -7,6 +7,7 @@ import type { BeltAttachment, BeltChannel, BeltMessage } from '@/lib/beltTypes';
 import { randomUuid } from '@/lib/uuid';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
 import { BeltAvatar } from './BeltAvatar';
+import { BeltLightbox } from './BeltLightbox';
 
 function clockOf(iso: string): string {
   const date = new Date(iso);
@@ -29,11 +30,20 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
   const [state, setState] = useState<'connecting' | 'online' | 'offline'>('connecting');
   const [error, setError] = useState<string | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ src: string; kind: 'image' | 'video'; title: string } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const bottom = useRef<HTMLDivElement | null>(null);
   const socket = useRef<ReturnType<typeof connectBeltSocket>>(null);
   const fileInput = useRef<HTMLInputElement | null>(null);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const onRefresh = () => {
+      if (channel) void beltApi<{ messages: BeltMessage[] }>(`/belt/channels/${channel.id}/messages?limit=100`).then((page) => setMessages(page.messages)).catch(() => undefined);
+    };
+    window.addEventListener('belt:refresh', onRefresh);
+    return () => window.removeEventListener('belt:refresh', onRefresh);
+  }, [channel?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -288,11 +298,24 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
                   <div className={`belt-message-media kind-${message.attachments[0]?.kind ?? 'file'}`}>
                     {message.attachments.map((attachment) =>
                       attachment.kind === 'image' ? (
-                        <a key={attachment.id} href={attachment.url} target="_blank" rel="noreferrer">
+                        <button
+                          key={attachment.id}
+                          type="button"
+                          className="belt-media-thumb"
+                          onClick={() => setPreview({ src: attachment.url, kind: 'image', title: attachment.originalName })}
+                        >
                           <img src={attachment.url} alt={attachment.originalName} loading="lazy" />
-                        </a>
+                        </button>
                       ) : attachment.kind === 'video' ? (
-                        <video key={attachment.id} src={attachment.url} controls preload="metadata" />
+                        <button
+                          key={attachment.id}
+                          type="button"
+                          className="belt-media-thumb is-video"
+                          onClick={() => setPreview({ src: attachment.url, kind: 'video', title: attachment.originalName })}
+                        >
+                          <video src={attachment.url} preload="metadata" muted playsInline />
+                          <span>▶ PLAY</span>
+                        </button>
                       ) : (
                         <a key={attachment.id} className="belt-file-chip" href={attachment.url} target="_blank" rel="noreferrer">
                           📎 {attachment.originalName}
@@ -375,6 +398,9 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
         </form>
         <p className="belt-hint mt-1">长按/右键自己的信号可撤回 · 支持图片与短视频附件</p>
       </div>
+      {preview ? (
+        <BeltLightbox src={preview.src} kind={preview.kind} title={preview.title} onClose={() => setPreview(null)} />
+      ) : null}
     </section>
   );
 }

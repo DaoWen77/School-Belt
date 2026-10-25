@@ -44,3 +44,10 @@ export type ChannelFilesQuery = z.infer<typeof channelFilesQuerySchema>;
 
 export const beltAttachmentUploadSchema = z.object({ data: z.string().min(1) });
 export type BeltAttachmentUploadDto = z.infer<typeof beltAttachmentUploadSchema>;
+
+export const beltPostMediaPresignSchema = z.object({
+  filename: z.string().trim().min(1).max(255),
+  mime: z.string().trim().min(3).max(120),
+  size: z.coerce.number().int().positive().max(80 * 1024 * 1024),
+});
+export type BeltPostMediaPresignDto = z.infer<typeof beltPostMediaPresignSchema>;

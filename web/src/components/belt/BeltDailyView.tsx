@@ -8,6 +8,7 @@ import type { BeltPost, BeltPostList } from '@/lib/beltTypes';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
 import { BeltAvatar } from './BeltAvatar';
 import { BeltPostComposer } from './BeltPostComposer';
+import { BeltLightbox } from './BeltLightbox';
 
 function clockOf(iso: string): string {
   const date = new Date(iso);
@@ -31,6 +32,7 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
   const [error, setError] = useState<string | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   const load = async () => {
@@ -128,6 +130,11 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
                 <IdentityBadges values={post.author.prefixes} />
               </div>
             </div>
+            {post.coverUrl ? (
+              <button type="button" className="belt-daily-cover" onClick={() => setLightbox(post.coverUrl)}>
+                <img src={post.coverUrl} alt="" loading="lazy" />
+              </button>
+            ) : null}
             <Link href={`/belt/posts/${post.id}`} className="belt-daily-title">
               {post.title || '未命名日常信号'}
             </Link>
@@ -154,6 +161,7 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
         <span className="belt-page-kicker">SCROLL / 滑动查看更多</span>
       </div>
 
+      {lightbox ? <BeltLightbox src={lightbox} kind="image" onClose={() => setLightbox(null)} /> : null}
       <BeltPostComposer
         board="daily"
         open={composerOpen}

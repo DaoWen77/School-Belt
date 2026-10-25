@@ -68,7 +68,7 @@ export class FriendshipsService {
 
   async request(actor: AuthUser, dto: CreateFriendRequestDto): Promise<FriendshipView> {
     const target = await this.prisma.user.findUnique({
-      where: { handle: dto.handle.trim().toLowerCase() },
+      where: { handle: dto.handle.replace(/^@/, '').trim().toLowerCase() },
       select: {
         id: true,
         handle: true,

@@ -114,6 +114,45 @@ export class BeltService implements OnModuleInit {
     };
   }
 
+  /** 个人中心统计：发帖数 / 认同 / 回波 / 最近活跃。 */
+  async stats(user: AuthUser): Promise<{
+    posts: number;
+    likesReceived: number;
+    commentsReceived: number;
+    recent: Array<{ id: string; title: string; board: string; publishedAt: string; likeCount: number; commentCount: number }>;
+  }> {
+    const [posts, likes, comments, recentRows] = await Promise.all([
+      this.prisma.post.count({ where: { authorId: user.id, surface: 'belt', deletedAt: null } }),
+      this.prisma.postLike.count({ where: { post: { authorId: user.id, surface: 'belt', deletedAt: null } } }),
+      this.prisma.postComment.count({ where: { post: { authorId: user.id, surface: 'belt', deletedAt: null }, deletedAt: null } }),
+      this.prisma.post.findMany({
+        where: { authorId: user.id, surface: 'belt', deletedAt: null },
+        orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+        take: 6,
+        select: {
+          id: true,
+          title: true,
+          board: true,
+          publishedAt: true,
+          _count: { select: { likes: true, comments: true } },
+        },
+      }),
+    ]);
+    return {
+      posts,
+      likesReceived: likes,
+      commentsReceived: comments,
+      recent: recentRows.map((row) => ({
+        id: row.id,
+        title: row.title ?? '未命名信号',
+        board: row.board,
+        publishedAt: row.publishedAt.toISOString(),
+        likeCount: row._count.likes,
+        commentCount: row._count.comments,
+      })),
+    };
+  }
+
   async updateMe(user: AuthUser, dto: UpdateBeltProfileDto): Promise<{ user: BeltUserView }> {
     if (dto.avatarFileId) {
       const file = await this.prisma.file.findUnique({

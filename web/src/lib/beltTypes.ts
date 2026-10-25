@@ -51,6 +51,9 @@ export interface BeltPost {
   sourceUrl: string | null;
   sourceName: string | null;
   category: 'tech' | 'world' | 'campus' | 'game' | null;
+  coverUrl: string | null;
+  coverFileId: string | null;
+  coverMime: string | null;
   publishedAt: string;
   pinnedAt: string | null;
   status: 'published' | 'hidden' | 'removed';

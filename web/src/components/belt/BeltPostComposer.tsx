@@ -2,7 +2,9 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { beltApi } from '@/lib/beltApi';
+import { beltApi, beltFileUrl } from '@/lib/beltApi';
+import { resolvePublicUrl } from '@/lib/fileUrl';
+import { BeltLightbox } from './BeltLightbox';
 import type { BeltUser } from '@/lib/beltApi';
 
 type Board = 'bulletin' | 'bounty' | 'daily';
@@ -43,6 +45,11 @@ export function BeltPostComposer({
   const [reward, setReward] = useState('');
   const [deadline, setDeadline] = useState('');
   const [busy, setBusy] = useState(false);
+  const [coverFileId, setCoverFileId] = useState<string | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,6 +62,40 @@ export function BeltPostComposer({
   }, [busy, onClose, open]);
 
   if (!open) return null;
+
+  const uploadCover = async (file: File) => {
+    setUploading(true);
+    setError(null);
+    try {
+      const presign = await beltApi<{ fileId: string; uploadUrl: string; headers?: Record<string, string> }>(
+        '/belt/files/post-media/presign',
+        { method: 'POST', body: JSON.stringify({ filename: file.name, mime: file.type, size: file.size }) },
+      );
+      try {
+        const response = await fetch(resolvePublicUrl(presign.uploadUrl), {
+          method: 'PUT',
+          headers: presign.headers ?? {},
+          body: file,
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        await beltApi(`/belt/files/${presign.fileId}/complete`, { method: 'POST', body: '{}' });
+      } catch {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '');
+          reader.onerror = () => reject(new Error('读取封面失败'));
+          reader.readAsDataURL(file);
+        });
+        await beltApi(`/belt/files/${presign.fileId}/upload`, { method: 'POST', body: JSON.stringify({ data: base64 }) });
+      }
+      setCoverFileId(presign.fileId);
+      setCoverPreview(await beltFileUrl(presign.fileId));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '封面上传失败');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const copy = COPY[board];
   const canPost =
@@ -76,12 +117,15 @@ export function BeltPostComposer({
           ...(board === 'bounty' && deadline
             ? { bountyDeadline: new Date(deadline).toISOString() }
             : {}),
+          ...(coverFileId ? { coverFileId } : {}),
         }),
       });
       setTitle('');
       setBody('');
       setReward('');
       setDeadline('');
+      setCoverFileId(null);
+      setCoverPreview(null);
       onPosted();
       onClose();
     } catch (caught) {
@@ -176,6 +220,39 @@ export function BeltPostComposer({
             </p>
           ) : null}
 
+          <div className="belt-composer-extras">
+            <label className="belt-button belt-upload-label">
+              {uploading ? '封面上传中…' : coverPreview ? '更换封面' : '＋ 封面图片'}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  event.target.value = '';
+                  if (file) void uploadCover(file);
+                }}
+              />
+            </label>
+            {coverPreview ? (
+              <button type="button" className="belt-cover-thumb" onClick={() => setLightbox(coverPreview)}>
+                <img src={coverPreview} alt="封面预览" />
+              </button>
+            ) : null}
+            <button type="button" className="belt-button" onClick={() => setEmojiOpen((value) => !value)}>
+              ☺ 表情
+            </button>
+            {emojiOpen ? (
+              <div className="belt-emoji-grid">
+                {['⚡', '🌐', '🛰️', '🎧', '👾', '💾', '🔮', '🧬', '🕹️', '📡', '🌒', '⚙️', '🔥', '💿', '🚀', '🩸'].map((emoji) => (
+                  <button key={emoji} type="button" onClick={() => setBody((value) => `${value}${emoji}`)}>
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
           <div className="signal-drawer-actions">
             <span className="belt-hint">纯文本 · 不支持附件 · 进入公开环带</span>
             <button
@@ -189,6 +266,7 @@ export function BeltPostComposer({
         </form>
         </aside>
       </div>
+      {lightbox ? <BeltLightbox src={lightbox} kind="image" onClose={() => setLightbox(null)} /> : null}
     </div>,
     document.body,
   );

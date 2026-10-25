@@ -159,6 +159,7 @@ export class RssService {
           const title = this.cleanText(item.title ?? '').slice(0, 120) || '未命名电文';
           const body = this.bodyOf(item, title);
           const link = (item.link ?? '').trim();
+          const coverUrl = this.firstImageOf(item as Record<string, unknown>);
           const publishedAt = this.dateOf(item.isoDate ?? item.pubDate);
           const created = await this.prisma.$transaction(async (tx) => {
             const existing = await tx.rssItem.findUnique({
@@ -177,6 +178,7 @@ export class RssService {
                 sourceUrl: link ? link.slice(0, 500) : source.url.slice(0, 500),
                 sourceName,
                 category: source.category,
+                coverUrl,
                 publishedAt,
                 status: 'published',
               },
@@ -275,6 +277,23 @@ export class RssService {
       '';
     const text = this.cleanText(raw);
     return (text || fallback).slice(0, 200_000);
+  }
+
+  /** content:encoded / content / summary 中第一个 <img src>，只接受 http(s)。 */
+  private firstImageOf(item: Record<string, unknown>): string | null {
+    const candidates = [
+      (item['content:encoded'] as string | undefined) ?? '',
+      (item.content as string | undefined) ?? '',
+      (item.summary as string | undefined) ?? '',
+      (item.description as string | undefined) ?? '',
+    ];
+    for (const html of candidates) {
+      if (!html) continue;
+      const match = /<img[^>]+src=["']([^"']+)["']/i.exec(html);
+      const src = match?.[1]?.trim();
+      if (src && /^https?:\/\//i.test(src)) return src.slice(0, 1000);
+    }
+    return null;
   }
 
   private cleanText(value: string): string {

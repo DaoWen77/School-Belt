@@ -26,6 +26,9 @@ export interface BeltPostView {
   sourceUrl: string | null;
   sourceName: string | null;
   category: 'tech' | 'world' | 'campus' | 'game' | null;
+  coverUrl: string | null;
+  coverFileId: string | null;
+  coverMime: string | null;
   publishedAt: string;
   pinnedAt: string | null;
   status: 'published' | 'hidden' | 'removed';
@@ -56,6 +59,9 @@ const POST_SELECT = {
   sourceUrl: true,
   sourceName: true,
   category: true,
+  coverUrl: true,
+  coverFileId: true,
+  coverMime: true,
   publishedAt: true,
   pinnedAt: true,
   status: true,
@@ -152,6 +158,13 @@ export class BeltPostsService {
         field: 'bountyDeadline',
       });
     }
+    if (dto.coverFileId) {
+      const file = await this.prisma.file.findFirst({
+        where: { id: dto.coverFileId, ownerId: user.id, status: 'ready', kind: 'image' },
+        select: { id: true },
+      });
+      if (!file) throw new AppError(ErrorCode.FILE_NOT_READY, '封面图片未就绪或不属于你');
+    }
     const row = await this.prisma.post.create({
       data: {
         authorId: user.id,
@@ -159,6 +172,9 @@ export class BeltPostsService {
         board: dto.board,
         title: dto.title,
         body: dto.body,
+        coverUrl: dto.coverUrl ?? null,
+        coverFileId: dto.coverFileId ?? null,
+        coverMime: dto.coverMime ?? null,
         source: dto.board === 'bulletin' ? 'official' : 'user',
         publishedAt: new Date(),
         bountyStatus: dto.board === 'bounty' ? 'open' : null,
@@ -347,6 +363,9 @@ export class BeltPostsService {
       sourceUrl: row.sourceUrl,
       sourceName: row.sourceName,
       category: row.category,
+      coverUrl: row.coverUrl,
+      coverFileId: row.coverFileId,
+      coverMime: row.coverMime,
       publishedAt: row.publishedAt.toISOString(),
       pinnedAt: row.pinnedAt?.toISOString() ?? null,
       status: row.status,

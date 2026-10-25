@@ -825,6 +825,11 @@ model Post {
    * 仅 telegraph 使用：tech / world / campus / game
    */
   category           NewsCategory?
+  /** 外链封面（RSS 正文首图） */
+  coverUrl           String?        @map("cover_url") @db.Text
+  /** 站内上传封面（S3 file id） */
+  coverFileId        String?        @map("cover_file_id") @db.Uuid
+  coverMime          String?        @map("cover_mime") @db.VarChar(120)
   /**
    * 校园热议镜像：一条 daily 帖最多晋升一次
    */

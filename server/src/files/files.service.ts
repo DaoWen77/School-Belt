@@ -246,6 +246,43 @@ export class FilesService {
     return this.toView(updated);
   }
 
+  /** 环带发帖媒体（日常/新闻封面）：不绑定频道，本人可上传图片/视频。 */
+  async presignBeltPostMedia(user: AuthUser, dto: { filename: string; mime: string; size: number }) {
+    const mime = normalizeMime(dto.mime);
+    if (!mime.startsWith('image/') && !mime.startsWith('video/')) {
+      throw new AppError(ErrorCode.FILE_TYPE_NOT_ALLOWED, '仅支持图片或短视频');
+    }
+    const policy = checkUpload(mime, dto.size);
+    if (!policy.ok) {
+      throw new AppError(policy.code, policy.message, policy.maxBytes ? { maxBytes: policy.maxBytes } : {});
+    }
+    const ext = /\.([a-zA-Z0-9]{1,8})$/.exec(dto.filename)?.[1]?.toLowerCase() ?? 'bin';
+    const storageKey = `belt-posts/${user.id}/${randomUUID()}.${ext}`;
+    const file = await this.prisma.file.create({
+      data: {
+        ownerId: user.id,
+        channelId: null,
+        bucket: this.s3.bucket,
+        storageKey,
+        originalName: dto.filename.slice(0, 255),
+        mime,
+        kind: policy.kind,
+        sizeBytes: BigInt(dto.size),
+        status: 'pending',
+      },
+    });
+    const uploadUrl = await this.s3.presignPut(storageKey, mime);
+    return {
+      fileId: file.id,
+      uploadUrl,
+      method: 'PUT' as const,
+      headers: { 'content-type': mime },
+      expiresIn: this.s3.presignExpiresSec,
+      kind: policy.kind,
+      maxBytes: policy.policy.maxBytes,
+    };
+  }
+
   /** 环带文件签名 URL：不经过内部 ChannelAccess，公开环带频道/组织成员/文件所有者可读。 */
   async beltUrl(user: AuthUser, fileId: string): Promise<{ url: string; expiresIn: number }> {
     const file = await this.prisma.file.findUnique({ where: { id: fileId } });
@@ -253,7 +290,9 @@ export class FilesService {
     if (file.status !== 'ready') throw new AppError(ErrorCode.FILE_NOT_READY, '文件尚未就绪', { fileId });
     let allowed =
       file.ownerId === user.id ||
-      (file.channelId === null && file.kind === 'image' && file.storageKey.startsWith('avatars/'));
+      (file.channelId === null &&
+        file.kind === 'image' &&
+        (file.storageKey.startsWith('avatars/') || file.storageKey.startsWith('belt-posts/')));
     if (!allowed && file.channelId) {
       const channel = await this.prisma.channel.findFirst({
         where: {

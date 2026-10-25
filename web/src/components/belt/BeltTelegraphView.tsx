@@ -6,6 +6,7 @@ import { beltApi, type BeltUser } from '@/lib/beltApi';
 import type { BeltPost, BeltPostList } from '@/lib/beltTypes';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
 import { BeltPostComposer } from './BeltPostComposer';
+import { BeltAvatar } from './BeltAvatar';
 
 function dateOf(iso: string): string {
   const date = new Date(iso);
@@ -174,6 +175,11 @@ export function BeltTelegraphView({ user }: { user: BeltUser }) {
                 {post.pinnedAt ? <span className="belt-stamp">PINNED</span> : null}
               </div>
 
+              {post.coverUrl ? (
+                <Link href={`/belt/posts/${post.id}`} className="belt-bento-cover">
+                  <img src={post.coverUrl} alt="" loading="lazy" />
+                </Link>
+              ) : null}
               <Link href={`/belt/posts/${post.id}`} className="belt-bento-link">
                 <h2 className="belt-bento-title">{post.title || '未命名信号'}</h2>
                 <p className="belt-bento-deck">{post.body.replace(/\s+/g, ' ').slice(0, official ? 260 : 150)}</p>
@@ -181,6 +187,7 @@ export function BeltTelegraphView({ user }: { user: BeltUser }) {
 
               <div className="belt-bento-foot">
                 <span className="belt-bento-author">
+                  <BeltAvatar fileId={post.author.avatarFileId} name={post.author.displayName} size="sm" />
                   <IdentityBadges values={post.author.prefixes} scan={official} />
                   <b>{post.author.displayName}</b>
                   <span>@{post.author.handle}</span>

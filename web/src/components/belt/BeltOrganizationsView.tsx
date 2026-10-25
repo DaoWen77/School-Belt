@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { beltApi, type BeltUser } from '@/lib/beltApi';
+import { BeltAvatar } from './BeltAvatar';
+import { IdentityBadges } from '@/components/im/IdentityBadges';
 
 interface OrgChannel {
   id: string;
@@ -18,6 +20,8 @@ interface OrgMember {
   displayName: string;
   role: string;
   status: string;
+  avatarFileId?: string | null;
+  prefixes?: string[];
   requestNote: string | null;
   requestedAt: string;
 }
@@ -32,6 +36,7 @@ interface OrgView {
   myStatus: string | null;
   memberCount: number;
   channels?: OrgChannel[];
+  members?: OrgMember[];
   pendingRequests?: OrgMember[];
 }
 
@@ -82,6 +87,7 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
       setName('');
       setSummary('');
       setNotice('组织申请已提交，等待全站 Owner 审批。');
+      window.dispatchEvent(new CustomEvent('belt:refresh'));
       await load();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '组织申请失败');
@@ -100,6 +106,7 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
         body: JSON.stringify({ action, ...(action === 'reject' ? { reason: '暂不接收' } : {}) }),
       });
       setNotice(action === 'approve' ? '已通过加入申请。' : '已拒绝加入申请。');
+      window.dispatchEvent(new CustomEvent('belt:refresh'));
       await load();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '审批失败');
@@ -122,6 +129,7 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
       setChannelName((previous) => ({ ...previous, [orgId]: '' }));
       setChannelTopic((previous) => ({ ...previous, [orgId]: '' }));
       setNotice('私有频道已创建。');
+      window.dispatchEvent(new CustomEvent('belt:refresh'));
       await load();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '创建频道失败');
@@ -178,6 +186,27 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
               <span>{org.status}</span>
               <span>{org.channels?.length ?? 0} channels</span>
             </div>
+
+            {org.members?.length ? (
+              <div className="belt-org-members">
+                <p className="belt-page-kicker">MEMBERS / 成员</p>
+                <ul className="belt-ledger">
+                  {org.members.map((member) => (
+                    <li key={member.userId} className="belt-row" style={{ gridTemplateColumns: 'auto minmax(0, 1fr) auto' }}>
+                      <BeltAvatar fileId={member.avatarFileId} name={member.displayName} size="sm" />
+                      <div>
+                        <div className="belt-row-title">{member.displayName}</div>
+                        <div className="belt-row-meta">@{member.handle}</div>
+                      </div>
+                      <div className="belt-row-side">
+                        <span className="belt-stamp">{member.role}</span>
+                        <IdentityBadges values={member.prefixes ?? []} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
             {org.channels?.length ? (
               <ul className="belt-ledger mt-2">

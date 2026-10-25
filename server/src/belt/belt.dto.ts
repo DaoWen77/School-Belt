@@ -17,6 +17,9 @@ export const createBeltPostSchema = z
     body: z.string().trim().min(1).max(8000),
     bountyReward: z.string().trim().max(80).optional(),
     bountyDeadline: z.string().datetime().optional(),
+    coverFileId: z.string().uuid().optional(),
+    coverUrl: z.string().url().max(1000).optional(),
+    coverMime: z.string().trim().max(120).optional(),
   })
   .superRefine((value, ctx) => {
     if (value.board !== 'bounty' && (value.bountyReward || value.bountyDeadline)) {
@@ -55,3 +58,16 @@ export type CreateBeltCommentDto = z.infer<typeof createBeltCommentSchema>;
 
 export const shareBeltPostSchema = z.object({ channelId: z.string().uuid().optional() });
 export type ShareBeltPostDto = z.infer<typeof shareBeltPostSchema>;
+
+export const createBeltChannelSchema = z.object({
+  name: z.string().trim().min(1).max(60),
+  topic: z.string().trim().max(200).optional(),
+});
+export type CreateBeltChannelDto = z.infer<typeof createBeltChannelSchema>;
+
+export const beltPostMediaPresignSchema = z.object({
+  filename: z.string().trim().min(1).max(255),
+  mime: z.string().trim().min(3).max(120),
+  size: z.coerce.number().int().positive().max(80 * 1024 * 1024),
+});
+export type BeltPostMediaPresignDto = z.infer<typeof beltPostMediaPresignSchema>;

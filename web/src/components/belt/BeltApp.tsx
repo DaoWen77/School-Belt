@@ -14,6 +14,8 @@ import { BeltTelegraphView } from './BeltTelegraphView';
 import { BeltProfileView } from './BeltProfileView';
 import { BeltOrganizationsView } from './BeltOrganizationsView';
 import { BeltDailyView } from './BeltDailyView';
+import { BeltSidebar } from './BeltSidebar';
+import { BeltInbox } from './BeltInbox';
 
 export type BeltView =
   | 'channel'
@@ -55,6 +57,7 @@ function clockOf(date: Date): string {
 export function BeltApp({ view, postId }: { view: BeltView; postId?: string }) {
   const router = useRouter();
   const [user, setUser] = useState<BeltUser | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [booting, setBooting] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [clock, setClock] = useState(() => clockOf(new Date()));
@@ -158,6 +161,7 @@ export function BeltApp({ view, postId }: { view: BeltView; postId?: string }) {
             <Link href="/belt/access" className="belt-header-link">
               登入 O.M.V 帝江号
             </Link>
+            <BeltInbox isOwner={user.globalRole === 'owner' || user.globalRole === 'admin'} onChanged={() => setRefreshKey((value) => value + 1)} />
             <IdentityBadges values={user.prefixes ?? []} scan />
             <span className="belt-hint">@{user.handle}</span>
             <button type="button" className="belt-button" onClick={logout}>
@@ -167,29 +171,13 @@ export function BeltApp({ view, postId }: { view: BeltView; postId?: string }) {
         </header>
 
         <div className="belt-shell-body">
-          <aside className="belt-rail">
-            <p className="belt-rail-label">Band Index / 频段索引</p>
-            <nav className="belt-rail-nav" aria-label="环带版块">
-              {NAV.map((item) => (
-                <Link
-                  key={item.key}
-                  href={item.href}
-                  className="belt-rail-link"
-                  aria-current={view === item.key ? 'page' : undefined}
-                >
-                  <span className="belt-rail-index">{item.index}</span>
-                  <span>{item.label}</span>
-                  <span className="belt-rail-meta">{item.en}</span>
-                </Link>
-              ))}
-            </nav>
-            <div className="belt-rail-foot">
-              <p>O.M.V EXTERNAL PUBLIC RELAY</p>
-              <p>LINK <span className="signal">STABLE</span></p>
-              <p>PACKET LOSS 0.0%</p>
-              <p>IDENTITY {user.isInternal ? 'INTERNAL' : 'EXTERNAL'}</p>
-            </div>
-          </aside>
+          <BeltSidebar
+            user={user}
+            activeView={view}
+            activeChannelId={typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('channelId') : null}
+            activeConversationId={typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('conversationId') : null}
+            refreshKey={refreshKey}
+          />
 
           <main className="belt-main" key={view}>
             <div className="belt-main-inner motion-view">

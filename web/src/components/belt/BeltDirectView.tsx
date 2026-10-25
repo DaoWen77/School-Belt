@@ -36,6 +36,17 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
 
   selectedRef.current = selected;
 
+  const open = async (conversation: BeltDmConversation) => {
+    setSelected(conversation);
+    setError(null);
+    try {
+      const data = await beltApi<{ messages: Message[] }>(`/belt/conversations/${conversation.id}/messages`);
+      setMessages(data.messages ?? []);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : '私聊读取失败');
+    }
+  };
+
   const load = async () => {
     try {
       const [friendData, dmData] = await Promise.all([
@@ -57,7 +68,17 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
   };
 
   useEffect(() => {
-    void load();
+    const wanted = new URLSearchParams(window.location.search).get('conversationId');
+    void load().then(() => {
+      if (!wanted) return;
+      setTimeout(() => {
+        setConversations((current) => {
+          const found = current.find((row) => row.id === wanted);
+          if (found) void open(found);
+          return current;
+        });
+      }, 0);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -88,28 +109,18 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
     bottom.current?.scrollIntoView({ block: 'end' });
   }, [messages.length]);
 
-  const open = async (conversation: BeltDmConversation) => {
-    setSelected(conversation);
-    setError(null);
-    try {
-      const data = await beltApi<{ messages: Message[] }>(`/belt/conversations/${conversation.id}/messages`);
-      setMessages(data.messages ?? []);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : '私聊读取失败');
-    }
-  };
-
   const request = async () => {
-    if (!handle.trim() || busy) return;
+    const normalized = handle.replace(/^@/, '').trim().toLowerCase();
+    if (!normalized || busy) return;
     setBusy(true);
     setError(null);
     setNotice(null);
     try {
       await beltApi('/belt/friendships/requests', {
         method: 'POST',
-        body: JSON.stringify({ handle: handle.trim(), ...(note.trim() ? { note: note.trim() } : {}) }),
+        body: JSON.stringify({ handle: normalized, ...(note.trim() ? { note: note.trim() } : {}) }),
       });
-      setNotice(`已向 @${handle.trim()} 发出链路申请。对方同意后才会生成私聊。`);
+      setNotice(`已向 @${normalized} 发出链路申请。对方同意后才会生成私聊。`);
       setHandle('');
       setNote('');
       await load();
@@ -236,7 +247,7 @@ export function BeltDirectView({ user }: { user: BeltUser }) {
         <div className="belt-form-row">
           <label className="belt-field">
             <span>精确 handle</span>
-            <input className="belt-input" value={handle} onChange={(event) => setHandle(event.target.value)} placeholder="外环呼号" aria-label="好友 handle" />
+            <input className="belt-input" value={handle} onChange={(event) => setHandle(event.target.value)} placeholder="外环呼号（可带 @）" aria-label="好友 handle" autoCapitalize="none" />
           </label>
           <label className="belt-field">
             <span>附言</span>
