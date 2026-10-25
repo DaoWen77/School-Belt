@@ -32,6 +32,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
   const [busy, setBusy] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [incoming, setIncoming] = useState<{ callId: string; mode: string; caller: string } | null>(null);
   const socket = useRef<ReturnType<typeof connectBeltSocket>>(null);
   const bottom = useRef<HTMLDivElement | null>(null);
 
@@ -55,23 +56,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
   }, []);
 
   useEffect(() => {
-    const startCall = async (mode: 'audio' | 'video') => {
-    if (!selected) return;
-    try {
-      await beltApi(`/belt/conversations/${selected.id}/messages`, {
-        method: 'POST',
-        body: JSON.stringify({
-          body: `📡 极光通讯 · ${user.displayName} 发起了${mode === 'video' ? '视频' : '语音'}通讯，点击加入`,
-          clientMsgId: randomUuid(),
-        }),
-      });
-    } catch {
-      /* 本地演示优先 */
-    }
-    router.push(`/belt/rtc?callId=dm-${selected.id}&mode=${mode}`);
-  };
-
-  if (!conversationId) {
+    if (!conversationId) {
       setMessages([]);
       return;
     }
@@ -101,6 +86,10 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
         setMessages((previous) =>
           previous.some((message) => message.id === data.message!.id) ? previous : [...previous, data.message!],
         );
+        if (data.message.senderId !== user.id && data.message.body?.startsWith('AURORA_CALL:')) {
+          const [, callId, mode, caller] = data.message.body.split(':');
+          if (callId) setIncoming({ callId, mode: mode || 'audio', caller: decodeURIComponent(caller || '成员') });
+        }
       },
     );
     return () => {
@@ -190,18 +179,24 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
 
   const startCall = async (mode: 'audio' | 'video') => {
     if (!selected) return;
+    const callId = `dm-${selected.id.slice(0, 8)}-${Date.now().toString(36)}`;
+    const roster = [
+      { id: user.id, name: user.displayName, initials: user.displayName.slice(0, 2), role: 'CALLER', avatarFileId: user.avatarFileId ?? null, status: 'connected', self: true },
+      { id: selected.peer.id, name: selected.peer.displayName, initials: selected.peer.displayName.slice(0, 2), role: 'CALLEE', avatarFileId: selected.peer.avatarFileId ?? null, status: 'calling', self: false },
+    ];
+    sessionStorage.setItem('belt.rtc.roster', JSON.stringify(roster));
     try {
       await beltApi(`/belt/conversations/${selected.id}/messages`, {
         method: 'POST',
         body: JSON.stringify({
-          body: `📡 极光通讯 · ${user.displayName} 发起了${mode === 'video' ? '视频' : '语音'}通讯，点击加入`,
+          body: `AURORA_CALL:${callId}:${mode}:${encodeURIComponent(user.displayName)}:${selected.peer.id}`,
           clientMsgId: randomUuid(),
         }),
       });
     } catch {
-      /* 本地演示优先 */
+      /* 卡片失败不阻塞直呼 */
     }
-    router.push(`/belt/rtc?callId=dm-${selected.id}&mode=${mode}`);
+    router.push(`/belt/rtc?callId=${callId}&mode=${mode}`);
   };
 
   if (!conversationId) {
@@ -282,6 +277,17 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
                           <strong>{message.card.title}</strong>
                           <em>阅读全文 →</em>
                         </a>
+                      ) : message.body?.startsWith('AURORA_CALL:') ? (
+                        (() => {
+                          const [, callId, mode, caller] = message.body.split(':');
+                          return (
+                            <a className="belt-call-card" href={`/belt/rtc?callId=${callId}&mode=${mode || 'audio'}`}>
+                              <span>📡 AURORA CALL · 极光通讯</span>
+                              <strong>{decodeURIComponent(caller || '对方')} 邀请你加入通讯</strong>
+                              <em>点击加入 →</em>
+                            </a>
+                          );
+                        })()
                       ) : (
                         <p>{message.body}</p>
                       )}

@@ -46,19 +46,26 @@ export function installRtcNamespace(
   rtc.on('connection', (socket: Socket) => {
     const user = socket.data.user as AuthUser;
 
-    socket.on('rtc:join', (payload: SignalPayload, ack?: (value: unknown) => void) => {
+    socket.on('rtc:join', async (payload: SignalPayload, ack?: (value: unknown) => void) => {
       const callId = typeof payload?.callId === 'string' ? payload.callId.slice(0, 120) : '';
       if (!callId) {
         ack?.({ ok: false, error: 'callId required' });
         return;
       }
       void socket.join(ROOM(callId));
-      const peers = [...(rtc.adapter.rooms.get(ROOM(callId)) ?? [])].filter((id) => id !== socket.id);
+      const roomSockets = await rtc.in(ROOM(callId)).fetchSockets();
+      const peers = roomSockets
+        .filter((item) => item.id !== socket.id && item.data.user)
+        .map((item) => {
+          const peerUser = item.data.user as AuthUser;
+          return { id: peerUser.id, handle: peerUser.handle, displayName: peerUser.displayName };
+        });
       socket.emit('rtc:peers', { callId, peers });
       socket.to(ROOM(callId)).emit('rtc:peer-joined', {
         callId,
         from: user.id,
         handle: user.handle,
+        displayName: user.displayName,
       });
       ack?.({ ok: true, callId });
     });

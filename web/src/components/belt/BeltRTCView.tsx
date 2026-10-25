@@ -43,6 +43,8 @@ export function BeltRTCView() {
   const [activeId, setActiveId] = useState('');
   const [iceState, setIceState] = useState<string>('new');
   const [iceErrorOpen, setIceErrorOpen] = useState(false);
+  const [linkState, setLinkState] = useState('NEW');
+  const [natNotice, setNatNotice] = useState(false);
 
   const localStream = useRef<MediaStream | null>(null);
   const cameraStream = useRef<MediaStream | null>(null);
@@ -56,6 +58,8 @@ export function BeltRTCView() {
   const waveRef = useRef<HTMLCanvasElement | null>(null);
   const localVideo = useRef<HTMLVideoElement | null>(null);
   const remoteVideo = useRef<HTMLVideoElement | null>(null);
+  const remoteAudio = useRef<HTMLAudioElement | null>(null);
+  const pendingIce = useRef<RTCIceCandidateInit[]>([]);
   const raf = useRef<number>(0);
   const callId = useRef<string>('');
 
@@ -235,6 +239,21 @@ export function BeltRTCView() {
     };
   }, [hasRemote, people]);
 
+  // 把远端流绑定到始终存在的 audio 与当前 video（避免 audio 模式时 ref 为空）
+  useEffect(() => {
+    if (!hasRemote) return;
+    const stream = remoteStream.current;
+    if (!stream) return;
+    if (remoteAudio.current) {
+      remoteAudio.current.srcObject = stream;
+      void remoteAudio.current.play().catch(() => undefined);
+    }
+    if (remoteVideo.current) {
+      remoteVideo.current.srcObject = stream;
+      void remoteVideo.current.play().catch(() => undefined);
+    }
+  }, [hasRemote, mode]);
+
   // 信令 + WebRTC
   useEffect(() => {
     if (!streamReady) return;
@@ -268,19 +287,39 @@ export function BeltRTCView() {
     });
 
     pc.ontrack = (event) => {
-      event.streams[0]?.getTracks().forEach((track) => {
+      const inbound = event.streams[0] ?? new MediaStream([event.track]);
+      inbound.getTracks().forEach((track) => {
         if (!remote.getTracks().some((existing) => existing.id === track.id)) remote.addTrack(track);
       });
-      if (remoteVideo.current) {
-        remoteVideo.current.srcObject = remote;
-        void remoteVideo.current.play().catch(() => undefined);
-      }
+      const attach = () => {
+        if (remoteAudio.current) {
+          remoteAudio.current.srcObject = remote;
+          void remoteAudio.current.play().catch(() => undefined);
+        }
+        if (remoteVideo.current) {
+          remoteVideo.current.srcObject = remote;
+          void remoteVideo.current.play().catch(() => undefined);
+        }
+      };
+      attach();
+      if (event.track.kind === 'video') setMode('video');
       setHasRemote(true);
       setStatus('对端媒体已接入');
     };
 
     pc.onicecandidate = (event) => {
       if (event.candidate) s.emit('rtc:ice', { callId: callId.current, candidate: event.candidate });
+    };
+
+    const flushIce = async () => {
+      const queued = pendingIce.current.splice(0);
+      for (const candidate of queued) {
+        try {
+          await pc.addIceCandidate(candidate);
+        } catch {
+          /* ignore malformed candidate */
+        }
+      }
     };
 
     let iceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -300,10 +339,15 @@ export function BeltRTCView() {
         setIceState('failed');
       } else if (state === 'checking') {
         setIceState('checking');
+        setLinkState('CONNECTING');
+        setNatNotice(false);
         if (!iceTimer) {
           iceTimer = setTimeout(() => {
+            setNatNotice(true);
+          }, 10_000);
+          setTimeout(() => {
             setIceState((current) => (current === 'connected' || current === 'completed' ? current : 'failed'));
-          }, 12_000);
+          }, 30_000);
         }
       } else if (state === 'disconnected') {
         setIceState('checking');
@@ -311,7 +355,13 @@ export function BeltRTCView() {
     };
 
     pc.onconnectionstatechange = () => {
-      if (pc.connectionState === 'failed') setIceState('failed');
+      const state = pc.connectionState;
+      setLinkState(state.toUpperCase());
+      if (state === 'connecting') setLinkState('CONNECTING');
+      if (state === 'connected') setLinkState('CONNECTED');
+      if (state === 'failed') setLinkState('FAILED');
+      if (state === 'disconnected') setLinkState('DISCONNECTED');
+      if (state === 'failed') setIceState('failed');
     };
 
     pc.onnegotiationneeded = async () => {
@@ -330,17 +380,35 @@ export function BeltRTCView() {
       s.emit('rtc:join', { callId: callId.current });
     });
 
-    s.on('rtc:peers', (payload: { peers?: string[] }) => {
+    s.on('rtc:peers', (payload: { peers?: Array<{ id: string; handle?: string; displayName?: string }> }) => {
       if (!payload?.peers?.length) return;
       hasPeer = true;
-      setPeople((previous) =>
-        previous.map((person) => (payload.peers!.includes(person.id) ? { ...person, status: 'connected' } : person)),
-      );
+      setPeople((previous) => {
+        const next = [...previous];
+        for (const peer of payload.peers!) {
+          const index = next.findIndex((person) => person.id === peer.id);
+          if (index >= 0) {
+            next[index] = { ...next[index], status: 'connected' };
+          } else {
+            const name = peer.displayName || peer.handle || '对端';
+            next.push({
+              id: peer.id,
+              name,
+              initials: name.slice(0, 2),
+              role: 'PEER',
+              status: 'connected',
+              self: false,
+            });
+          }
+        }
+        return next;
+      });
     });
 
     s.on('rtc:offer', async (payload: { sdp: RTCSessionDescriptionInit }) => {
       try {
         await pc.setRemoteDescription(payload.sdp);
+        await flushIce();
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         s.emit('rtc:answer', { callId: callId.current, sdp: pc.localDescription });
@@ -351,18 +419,28 @@ export function BeltRTCView() {
 
     s.on('rtc:answer', async (payload: { sdp: RTCSessionDescriptionInit }) => {
       try {
-        if (pc.signalingState === 'have-local-offer') await pc.setRemoteDescription(payload.sdp);
+        if (pc.signalingState === 'have-local-offer') {
+          await pc.setRemoteDescription(payload.sdp);
+          await flushIce();
+        }
       } catch {
         /* ignore */
       }
     });
 
-    s.on('rtc:peer-joined', async (payload: { from?: string }) => {
+    s.on('rtc:peer-joined', async (payload: { from?: string; handle?: string; displayName?: string }) => {
       hasPeer = true;
       if (payload?.from) {
-        setPeople((previous) =>
-          previous.map((person) => (person.id === payload.from ? { ...person, status: 'connected' } : person)),
-        );
+        setPeople((previous) => {
+          const index = previous.findIndex((person) => person.id === payload.from);
+          if (index >= 0) {
+            const next = [...previous];
+            next[index] = { ...next[index], status: 'connected' };
+            return next;
+          }
+          const name = payload.displayName || payload.handle || '对端';
+          return [...previous, { id: payload.from!, name, initials: name.slice(0, 2), role: 'PEER', status: 'connected', self: false }];
+        });
       }
       if (pc.signalingState === 'stable') {
         try {
@@ -383,6 +461,11 @@ export function BeltRTCView() {
     });
 
     s.on('rtc:ice', async (payload: { candidate: RTCIceCandidateInit }) => {
+      if (!payload?.candidate) return;
+      if (!pc.remoteDescription) {
+        pendingIce.current.push(payload.candidate);
+        return;
+      }
       try {
         await pc.addIceCandidate(payload.candidate);
       } catch {
@@ -494,6 +577,7 @@ export function BeltRTCView() {
 
   return (
     <div className="rtc2">
+      <audio ref={remoteAudio} autoPlay playsInline className="hidden" />
       <div className="rtc2-bg" aria-hidden="true">
         <img src="/rtc-bg.jpg" alt="" />
         <span className="rtc2-bg-veil" />
@@ -507,8 +591,9 @@ export function BeltRTCView() {
         <p className="rtc2-call-tag">INTERNAL CALL</p>
         <div className="rtc2-head-right">
           <span className={`rtc2-ice rtc2-ice-${iceState}`}>
-            {iceState === 'connected' ? '● [P2P LINK ESTABLISHED]' : iceState === 'failed' ? '● [P2P LINK FAILED]' : '○ [P2P NEGOTIATING]'}
+            ● [{linkState}]
           </span>
+          {natNotice && linkState !== 'CONNECTED' ? <span className="rtc2-nat-notice">正在进行 NAT 穿透，请稍候</span> : null}
           <p className="rtc2-header-meta">{status}</p>
         </div>
       </header>
@@ -560,7 +645,7 @@ export function BeltRTCView() {
               <div className="rtc2-video-wrap">
                 <video
                   ref={remoteVideo}
-                  muted={false}
+                  muted
                   playsInline
                   autoPlay
                   className={`rtc2-video-main${!hasRemote && !sharing ? ' is-hidden' : ''}`}
@@ -576,6 +661,20 @@ export function BeltRTCView() {
             </div>
           </div>
         </main>
+
+        <aside className="rtc2-db" aria-label="远端音量频谱">
+          <span className="rtc2-db-label">DB</span>
+          <div className="rtc2-db-bars">
+            {levels.slice(0, 22).map((level, index) => (
+              <i
+                key={index}
+                className={level > 0.62 ? 'is-hot' : level > 0.34 ? 'is-mid' : ''}
+                style={{ height: `${Math.max(3, level * 100)}%` }}
+              />
+            ))}
+          </div>
+          <span className="rtc2-db-value">-{Math.round(12 + (1 - levels[10]) * 30)}</span>
+        </aside>
       </div>
 
       <footer className="rtc2-controls">

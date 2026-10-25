@@ -1,7 +1,7 @@
 
 /* 多人会议化布局与放大比例 */
 .rtc2-stage {
-  grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr);
+  grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr) 4.2rem;
 }
 
 .rtc2-left {
@@ -152,5 +152,68 @@
   .rtc2-control {
     width: 4.2rem;
     min-height: 4rem;
+  }
+}
+
+
+.rtc2-db {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  padding-left: 0.5rem;
+}
+
+.rtc2-db-label,
+.rtc2-db-value {
+  color: rgba(244, 245, 238, 0.32);
+  font-family: var(--ef-font-mono, monospace);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+.rtc2-db-bars {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2px;
+  border-block: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.35rem 0;
+}
+
+.rtc2-db-bars i {
+  flex: 1;
+  max-width: 4px;
+  background: rgba(244, 245, 238, 0.18);
+  transition: height 90ms linear;
+}
+
+.rtc2-db-bars i.is-mid {
+  background: rgba(255, 250, 0, 0.75);
+  box-shadow: 0 0 4px rgba(255, 250, 0, 0.25);
+}
+
+.rtc2-db-bars i.is-hot {
+  background: #ff4b3e;
+  box-shadow: 0 0 6px rgba(255, 75, 62, 0.4);
+}
+
+.rtc2-nat-notice {
+  color: #fffa00;
+  font-family: var(--ef-font-mono, monospace);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 900px) {
+  .rtc2-stage {
+    grid-template-columns: 1fr;
+  }
+  .rtc2-db {
+    display: none;
   }
 }

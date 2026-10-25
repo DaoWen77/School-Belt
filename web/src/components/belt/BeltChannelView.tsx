@@ -98,8 +98,11 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
           previous.some((item) => item.id === message.id) ? previous : [...previous, message],
         );
         if (message.senderId !== user.id && message.body?.startsWith('AURORA_CALL:')) {
-          const [, callId, mode, caller] = message.body.split(':');
-          if (callId) setIncoming({ callId, mode: mode || 'audio', caller: decodeURIComponent(caller || '成员') });
+          const [, callId, mode, caller, invitees] = message.body.split(':');
+          const invited = invitees ? invitees.split(',').filter(Boolean) : [];
+          if (callId && (invited.length === 0 || invited.includes(user.id))) {
+            setIncoming({ callId, mode: mode || 'audio', caller: decodeURIComponent(caller || '成员') });
+          }
         }
       },
       setState,
@@ -289,7 +292,7 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
       await beltApi(`/belt/channels/${channel.id}/messages`, {
         method: 'POST',
         body: JSON.stringify({
-          body: `AURORA_CALL:${callId}:${invite.mode}:${encodeURIComponent(user.displayName)}`,
+          body: `AURORA_CALL:${callId}:${invite.mode}:${encodeURIComponent(user.displayName)}:${invite.selected.join(',')}`,
           clientMsgId: randomUuid(),
         }),
       });
@@ -389,7 +392,11 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
                 ) : null}
                 {message.body?.startsWith('AURORA_CALL:') ? (
                   (() => {
-                    const [, callId, mode] = message.body.split(':');
+                    const [, callId, mode, , invitees] = message.body.split(':');
+                    const invited = invitees ? invitees.split(',').filter(Boolean) : [];
+                    if (invited.length > 0 && !invited.includes(user.id)) {
+                      return <p className="belt-message-body">📡 极光通讯邀请已发送给指定成员</p>;
+                    }
                     return (
                       <a className="belt-call-card" href={`/belt/rtc?callId=${callId}&mode=${mode || 'audio'}`}>
                         <span>📡 AURORA CALL · 极光通讯</span>
