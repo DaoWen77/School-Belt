@@ -13,14 +13,10 @@ export interface RtcPerson {
   name: string;
   initials: string;
   role: string;
+  avatarFileId?: string | null;
+  status?: 'connected' | 'calling';
+  self?: boolean;
 }
-
-const ROSTER: RtcPerson[] = [
-  { id: 'fiona', name: 'FIONA', initials: 'FN', role: 'CALLER' },
-  { id: 'relay', name: 'R-07', initials: '07', role: 'RELAY' },
-  { id: 'observer', name: 'OBSERVER', initials: 'OB', role: 'OBSERVER' },
-  { id: 'lin', name: 'LIN', initials: 'LN', role: 'MEMBER' },
-];
 
 function formatTime(ms: number): string {
   const total = Math.floor(ms);
@@ -43,8 +39,8 @@ export function BeltRTCView() {
   const [status, setStatus] = useState('等待授权…');
   const [streamReady, setStreamReady] = useState(false);
   const [levels, setLevels] = useState<number[]>(() => Array.from({ length: 34 }, () => 0.04));
-  const [people, setPeople] = useState<RtcPerson[]>(ROSTER.slice(0, 2));
-  const [activeId, setActiveId] = useState('fiona');
+  const [people, setPeople] = useState<RtcPerson[]>([]);
+  const [activeId, setActiveId] = useState('');
   const [iceState, setIceState] = useState<string>('new');
   const [iceErrorOpen, setIceErrorOpen] = useState(false);
 
@@ -126,25 +122,24 @@ export function BeltRTCView() {
   }, []);
 
   useEffect(() => {
-    const demo = Number(new URLSearchParams(window.location.search).get('demo') || '2');
-    const count = demo >= 4 ? 4 : demo >= 3 ? 3 : 2;
-    setPeople(ROSTER.slice(0, count));
-    setActiveId(ROSTER[0].id);
+    try {
+      const raw = sessionStorage.getItem('belt.rtc.roster');
+      if (!raw) return;
+      const roster = JSON.parse(raw) as RtcPerson[];
+      if (Array.isArray(roster) && roster.length > 0) {
+        setPeople(roster);
+        const firstConnected = roster.find((person) => person.status === 'connected');
+        if (firstConnected) setActiveId(firstConnected.id);
+      }
+    } catch {
+      setPeople([]);
+    }
   }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setElapsed((value) => value + 100), 100);
     return () => clearInterval(timer);
   }, []);
-
-  useEffect(() => {
-    if (people.length < 2) return;
-    const timer = setInterval(() => {
-      const next = people[Math.floor(Math.random() * people.length)];
-      setActiveId((current) => (Math.random() < 0.4 ? current : next.id));
-    }, 1100);
-    return () => clearInterval(timer);
-  }, [people]);
 
   // 真实波形 + 频谱：无声音时几乎归零
   useEffect(() => {
@@ -186,6 +181,9 @@ export function BeltRTCView() {
       let sum = 0;
       for (let i = 0; i < freqData.length; i += 1) sum += freqData[i];
       const loudness = sum / freqData.length / 255;
+      if (loudness > 0.16) {
+        setActiveId((current) => current || people.find((person) => person.self)?.id || current);
+      }
       setLevels((previous) =>
         previous.map((value, index) => {
           const target = Math.max(0.02, Math.min(1, loudness * 2.4 + Math.abs(Math.sin(index * 0.7 + Date.now() / 380)) * loudness * 0.5));
@@ -208,7 +206,34 @@ export function BeltRTCView() {
     };
     raf.current = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf.current);
-  }, []);
+  }, [people]);
+
+  // 远端音轨真实音量：谁说话谁高亮
+  useEffect(() => {
+    if (!hasRemote) return;
+    const ctx = audioContext.current;
+    const stream = remoteStream.current;
+    if (!ctx || !stream) return;
+    const analyserNode = ctx.createAnalyser();
+    analyserNode.fftSize = 512;
+    analyserNode.smoothingTimeConstant = 0.75;
+    const source = ctx.createMediaStreamSource(stream);
+    source.connect(analyserNode);
+    const data = new Uint8Array(analyserNode.frequencyBinCount);
+    const remotePerson = people.find((person) => !person.self);
+    const timer = setInterval(() => {
+      analyserNode.getByteFrequencyData(data);
+      let sum = 0;
+      for (let i = 0; i < data.length; i += 1) sum += data[i];
+      const loudness = sum / data.length / 255;
+      if (loudness > 0.18 && remotePerson) setActiveId(remotePerson.id);
+    }, 180);
+    return () => {
+      clearInterval(timer);
+      source.disconnect();
+      analyserNode.disconnect();
+    };
+  }, [hasRemote, people]);
 
   // 信令 + WebRTC
   useEffect(() => {
@@ -225,6 +250,7 @@ export function BeltRTCView() {
     const turnUrl = process.env.NEXT_PUBLIC_TURN_URL || 'turn:openrelay.metered.ca:80';
     const turnUser = process.env.NEXT_PUBLIC_TURN_USERNAME || 'openrelayproject';
     const turnCredential = process.env.NEXT_PUBLIC_TURN_CREDENTIAL || 'openrelayproject';
+    let hasPeer = false;
     const pc = new RTCPeerConnection({
       // 局域网 host candidate 优先；STUN 打洞次之；公共 TURN 只做兜底。
       iceServers: [
@@ -289,6 +315,7 @@ export function BeltRTCView() {
     };
 
     pc.onnegotiationneeded = async () => {
+      if (!hasPeer) return;
       try {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -301,6 +328,14 @@ export function BeltRTCView() {
     s.on('connect', () => {
       setStatus((value) => (value.includes('仅音频') ? value : '信令已连接'));
       s.emit('rtc:join', { callId: callId.current });
+    });
+
+    s.on('rtc:peers', (payload: { peers?: string[] }) => {
+      if (!payload?.peers?.length) return;
+      hasPeer = true;
+      setPeople((previous) =>
+        previous.map((person) => (payload.peers!.includes(person.id) ? { ...person, status: 'connected' } : person)),
+      );
     });
 
     s.on('rtc:offer', async (payload: { sdp: RTCSessionDescriptionInit }) => {
@@ -320,6 +355,31 @@ export function BeltRTCView() {
       } catch {
         /* ignore */
       }
+    });
+
+    s.on('rtc:peer-joined', async (payload: { from?: string }) => {
+      hasPeer = true;
+      if (payload?.from) {
+        setPeople((previous) =>
+          previous.map((person) => (person.id === payload.from ? { ...person, status: 'connected' } : person)),
+        );
+      }
+      if (pc.signalingState === 'stable') {
+        try {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          s.emit('rtc:offer', { callId: callId.current, sdp: pc.localDescription });
+        } catch {
+          /* ignore */
+        }
+      }
+    });
+
+    s.on('rtc:peer-left', (payload: { from?: string }) => {
+      if (!payload?.from) return;
+      setPeople((previous) =>
+        previous.map((person) => (person.id === payload.from ? { ...person, status: 'calling' } : person)),
+      );
     });
 
     s.on('rtc:ice', async (payload: { candidate: RTCIceCandidateInit }) => {
@@ -457,11 +517,13 @@ export function BeltRTCView() {
         <aside className="rtc2-left">
           <div className={`rtc2-avatars is-${people.length > 4 ? 'scroll' : people.length > 2 ? 'grid' : 'duo'}`}>
             {people.map((person) => {
-              const speaking = person.id === activeId;
+              const connected = person.status !== 'calling';
+              const speaking = connected && person.id === activeId;
               return (
-                <div key={person.id} className={`rtc2-avatar${speaking ? ' is-active' : ''}`}>
+                <div key={person.id} className={`rtc2-avatar${speaking ? ' is-active' : ''}${connected ? '' : ' is-calling'}`}>
                   <span>{person.initials}</span>
                   <small>{person.name}</small>
+                  {!connected ? <i className="rtc2-avatar-calling">呼叫中</i> : null}
                   {speaking ? <i className="rtc2-avatar-live">LIVE</i> : null}
                 </div>
               );
@@ -469,8 +531,8 @@ export function BeltRTCView() {
           </div>
           <div className="rtc2-identity">
             <p className="rtc2-eyebrow">COMMUNICATION LINK · {people.length} PARTIES</p>
-            <h1 key={activeId} className="rtc2-speaker-name">
-              {people.find((person) => person.id === activeId)?.name ?? '—'}
+            <h1 key={activeId || 'waiting'} className="rtc2-speaker-name">
+              {people.find((person) => person.id === activeId)?.name ?? '等待发言'}
             </h1>
             <p className="rtc2-band">M10 FM MK H</p>
             <p className="rtc2-timer">{formatTime(elapsed)}</p>

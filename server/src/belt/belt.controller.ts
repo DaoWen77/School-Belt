@@ -167,6 +167,11 @@ export class BeltChannelsController {
     return this.channels.deleteMessage(user, id, messageId);
   }
 
+  @Get(':id/members')
+  async members(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.channels.members(user, id);
+  }
+
   @Get(':id/messages')
   async messages(
     @CurrentUser() user: AuthUser,

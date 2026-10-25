@@ -1,0 +1,95 @@
+
+/* 真实成员：呼叫中状态与频道卡片 */
+.rtc2-avatar.is-calling {
+  opacity: 0.55;
+}
+
+.rtc2-avatar.is-calling > span {
+  border-style: dashed;
+  border-color: rgba(255, 255, 255, 0.22);
+  animation: rtc-calling-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes rtc-calling-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  50% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05); }
+}
+
+.rtc2-avatar-calling {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #0a0b07;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 6px;
+  letter-spacing: 0.08em;
+  padding: 0.05rem 0.18rem;
+}
+
+.belt-call-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border: 1px solid rgba(255, 250, 0, 0.45);
+  background: rgba(255, 250, 0, 0.04);
+  padding: 0.65rem 0.8rem;
+  text-decoration: none;
+}
+
+.belt-call-card span {
+  color: var(--ef-signal, #fffa00);
+  font-family: var(--ef-font-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+}
+
+.belt-call-card strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.belt-call-card em {
+  color: var(--ef-signal, #fffa00);
+  font-family: var(--ef-font-mono);
+  font-size: 9px;
+  font-style: normal;
+  letter-spacing: 0.1em;
+}
+
+.belt-incoming-call {
+  position: fixed;
+  z-index: 250;
+  right: 1rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  border: 1px solid #fffa00;
+  background: #0a0c08;
+  color: #fffa00;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  box-shadow: 0 0 40px rgba(255, 250, 0, 0.12);
+  font-family: var(--ef-font-mono, monospace);
+}
+
+.belt-incoming-call b {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.belt-incoming-call span {
+  color: rgba(255, 250, 0, 0.6);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+@media (max-width: 767px) {
+  .belt-incoming-call {
+    right: 0.6rem;
+    bottom: calc(4.8rem + env(safe-area-inset-bottom));
+    left: 0.6rem;
+  }
+}

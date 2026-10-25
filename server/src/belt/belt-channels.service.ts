@@ -80,6 +80,43 @@ export class BeltChannelsService {
     return { channels };
   }
 
+  async members(
+    user: AuthUser,
+    channelId: string,
+  ): Promise<{ members: Array<{ userId: string; handle: string; displayName: string; avatarFileId: string | null }> }> {
+    const channel = await this.requireChannel(user, channelId);
+    const explicit = await this.prisma.channelMember.findMany({
+      where: { channelId },
+      select: {
+        userId: true,
+        user: { select: { id: true, handle: true, displayName: true, avatarFileId: true } },
+      },
+    });
+    const members = explicit
+      .filter((row) => row.user.handle !== 'dijiang_bot')
+      .map((row) => ({
+        userId: row.user.id,
+        handle: row.user.handle,
+        displayName: row.user.displayName,
+        avatarFileId: row.user.avatarFileId,
+      }));
+    if (members.length > 0) return { members };
+    const rows = await this.prisma.user.findMany({
+      where: { accountOrigin: 'belt', status: 'active', handle: { not: 'dijiang_bot' } },
+      orderBy: { displayName: 'asc' },
+      take: 100,
+      select: { id: true, handle: true, displayName: true, avatarFileId: true },
+    });
+    return {
+      members: rows.map((row) => ({
+        userId: row.id,
+        handle: row.handle,
+        displayName: row.displayName,
+        avatarFileId: row.avatarFileId,
+      })),
+    };
+  }
+
   async messages(
     user: AuthUser,
     channelId: string,
