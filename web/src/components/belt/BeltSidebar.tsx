@@ -17,6 +17,7 @@ interface Props {
   activeConversationId?: string | null;
   refreshKey?: number;
   mobileOpen?: boolean;
+  onNavigate?: () => void;
 }
 
 const SYSTEM_LINKS = [
@@ -31,13 +32,14 @@ const SYSTEM_LINKS = [
  * 环带 Discord 式融合侧栏：
  * 频道（含组织私有） / 私聊 / 系统页面，三组可折叠，点击直接切主视图。
  */
-export function BeltSidebar({ user, activeView, activeChannelId, activeConversationId, refreshKey = 0, mobileOpen = false }: Props) {
+export function BeltSidebar({ user, activeView, activeChannelId, activeConversationId, refreshKey = 0, mobileOpen = false, onNavigate }: Props) {
   const [channels, setChannels] = useState<OrgChannel[]>([]);
   const [conversations, setConversations] = useState<BeltDmConversation[]>([]);
   const [friends, setFriends] = useState<BeltFriendView[]>([]);
   const [incoming, setIncoming] = useState<BeltFriendView[]>([]);
   const [requestsOpen, setRequestsOpen] = useState(false);
   const [dmSearch, setDmSearch] = useState('');
+  const [navSearch, setNavSearch] = useState('');
   const [dmSearchOpen, setDmSearchOpen] = useState(false);
   const [seen, setSeen] = useState<Record<string, string>>({});
   const [dmHandle, setDmHandle] = useState('');
@@ -88,6 +90,10 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
     () => channels.filter((channel) => !channel.organizationId),
     [channels],
   );
+  const navQuery = navSearch.trim().toLowerCase();
+  const visiblePublicChannels = navQuery
+    ? publicChannels.filter((channel) => channel.name.toLowerCase().includes(navQuery))
+    : publicChannels;
   const orgGroups = useMemo(() => {
     const map = new Map<string, OrgChannel[]>();
     for (const channel of channels) {
@@ -120,12 +126,12 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
   };
 
   const filteredDms = useMemo(() => {
-    const query = dmSearch.trim().toLowerCase();
+    const query = (dmSearch || navSearch).trim().toLowerCase();
     if (!query) return conversations;
     return conversations.filter((row) =>
       `${row.peer.displayName} ${row.peer.handle}`.toLowerCase().includes(query),
     );
-  }, [conversations, dmSearch]);
+  }, [conversations, dmSearch, navSearch]);
 
   const createChannel = async () => {
     if (!name.trim() || busy) return;
@@ -190,6 +196,13 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
       <div className="belt-rail-label">
         <span>O.M.V / 外环导航</span>
       </div>
+      <input
+        className="belt-input belt-nav-search"
+        value={navSearch}
+        onChange={(event) => setNavSearch(event.target.value)}
+        placeholder="搜索频道 / 私聊…"
+        aria-label="全局搜索频道与私聊"
+      />
 
       <div className="belt-nav-group">
         <button
@@ -203,10 +216,11 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
         </button>
         {open.channels ? (
           <div className="belt-nav-group-body">
-            {publicChannels.map((channel) => (
+            {visiblePublicChannels.map((channel) => (
               <Link
                 key={channel.id}
                 className="belt-rail-link"
+                onClick={() => onNavigate?.()}
                 aria-current={activeChannelId === channel.id ? 'page' : undefined}
                 href={`/belt/channel?channelId=${channel.id}`}
               >
@@ -214,13 +228,19 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
                 <span className="truncate">{channel.name}</span>
               </Link>
             ))}
-            {orgGroups.map(([orgName, list]) => (
+            {orgGroups.map(([orgName, list]) => {
+              const matches = navQuery
+                ? list.filter((channel) => `${orgName} ${channel.name}`.toLowerCase().includes(navQuery))
+                : list;
+              if (matches.length === 0) return null;
+              return (
               <div key={orgName} className="belt-nav-org">
                 <p className="belt-nav-org-title">{orgName}</p>
-                {list.map((channel) => (
+                {matches.map((channel) => (
                   <Link
                     key={channel.id}
                     className="belt-rail-link"
+                    onClick={() => onNavigate?.()}
                     aria-current={activeChannelId === channel.id ? 'page' : undefined}
                     href={`/belt/channel?channelId=${channel.id}`}
                   >
@@ -229,7 +249,8 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
                   </Link>
                 ))}
               </div>
-            ))}
+              );
+            })}
 
             {isOwner ? (
               creating ? (
@@ -324,7 +345,10 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
                     className="belt-rail-link belt-nav-dm"
                     aria-current={activeConversationId === conversation.id ? 'page' : undefined}
                     href={`/belt/direct/${conversation.id}`}
-                    onClick={() => markSeen(conversation.id)}
+                    onClick={() => {
+                      onNavigate?.();
+                      markSeen(conversation.id);
+                    }}
                   >
                     <BeltAvatar fileId={conversation.peer.avatarFileId} name={conversation.peer.displayName} size="sm" />
                     <span className="truncate">{conversation.peer.displayName}</span>
@@ -384,6 +408,7 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
               <Link
                 key={item.view}
                 className="belt-rail-link"
+                onClick={() => onNavigate?.()}
                 aria-current={activeView === item.view ? 'page' : undefined}
                 href={item.href}
               >

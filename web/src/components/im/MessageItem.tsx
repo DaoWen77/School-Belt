@@ -311,7 +311,7 @@ export function MessageItem(props: MessageItemProps) {
       onTouchMove={onTouchMove}
       onTouchEnd={clearPress}
       onTouchCancel={clearPress}
-      className={`motion-message motion-message-in im-msg group relative flex touch-pan-y gap-2.5 px-3 md:px-5 ${grouped ? 'mt-0.5' : 'mt-2.5'} ${
+      className={`motion-message motion-message-in im-msg group relative flex touch-pan-y select-none gap-2.5 px-3 md:select-text md:px-5 ${grouped ? 'mt-0.5' : 'mt-2.5'} ${
         focused ? 'bg-accent/10 outline outline-1 outline-accent' : ''
       } ${message.pending ? 'opacity-60' : ''}`}
     >

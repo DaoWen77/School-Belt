@@ -112,11 +112,13 @@ export function Workspace() {
   const [botPickerOpen, setBotPickerOpen] = useState(false);
   const [focusMessageId, setFocusMessageId] = useState<string | null>(null);
   const [sudoPrank, setSudoPrank] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
   const [typingPeople, setTypingPeople] = useState<Record<string, string>>({});
   const [onlineIds, setOnlineIds] = useState<Set<string>>(() => new Set());
 
   const rtRef = useRef<Realtime | null>(null);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sendingRef = useRef(false);
   const typingCleanup = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const meRef = useRef<ApiUser | null>(null);
   const messagesRef = useRef<Message[]>([]);
@@ -1306,7 +1308,17 @@ export function Workspace() {
 
   const totalUnread = channels.reduce((sum, channel) => sum + (channel.unread ?? 0), 0) + conversations.reduce((sum, conversation) => sum + (conversation.unreadCount ?? 0), 0);
 
+  const handleChannelDeleted = useCallback((channelId: string) => {
+    setChannels((previous) => previous.filter((channel) => channel.id !== channelId));
+    if (selectionRef.current?.id === channelId) {
+      const next = channels.find((channel) => channel.id !== channelId);
+      if (next) select({ id: next.id, kind: 'channel' });
+      else setSelection(null);
+    }
+  }, [channels, select]);
+
   const sendFromComposer = () => {
+    if (sendingRef.current) return;
     const body = draft.trim();
     if (!body && pendingAttachments.length === 0) return;
     const command = parseStartCommand(body);
@@ -1500,7 +1512,12 @@ export function Workspace() {
       : null;
     setDraft('');
     setPendingAttachments([]);
-    const sending = sendMessage(body, undefined, attachments, replyTo);
+    sendingRef.current = true;
+    setSendingMessage(true);
+    const sending = sendMessage(body, undefined, attachments, replyTo).finally(() => {
+      sendingRef.current = false;
+      setSendingMessage(false);
+    });
     if (replyTo) void sending.then(() => setQuotedMessage(null));
     if (aiKind) {
       void sending.then(() => startAi(aiKind, body, matchedBot ?? null)).catch(() => {
@@ -1730,6 +1747,7 @@ export function Workspace() {
         draft={draft}
         onDraftChange={setDraft}
         onSend={sendFromComposer}
+        sendingMessage={sendingMessage}
         pendingAttachments={pendingAttachments}
         onRemoveAttachment={removeAttachment}
         uploads={uploads}
@@ -1758,6 +1776,7 @@ export function Workspace() {
         onLeave={() => void leaveGroup()}
         onDeleteFriend={deleteFriendLink}
         onSaveAnnouncement={saveAnnouncement}
+        onChannelDeleted={handleChannelDeleted}
         onDissolve={dissolveGroup}
         onJumpMessage={jumpToMessage}
         sudoPrank={sudoPrank}

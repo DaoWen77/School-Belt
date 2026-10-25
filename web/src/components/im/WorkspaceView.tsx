@@ -63,6 +63,7 @@ export interface WorkspaceViewProps {
   draft: string;
   onDraftChange: (value: string) => void;
   onSend: () => void;
+  sendingMessage?: boolean;
   pendingAttachments: Attachment[];
   onRemoveAttachment: (fileId: string) => void;
   uploads: UploadRow[];
@@ -93,6 +94,7 @@ export interface WorkspaceViewProps {
   onLeave: () => void;
   onDeleteFriend: () => Promise<void> | void;
   onSaveAnnouncement: (text: string) => Promise<void>;
+  onChannelDeleted: (channelId: string) => void;
   onDissolve: () => Promise<void>;
   onJumpMessage: (channelId: string, messageId: string) => void;
   sudoPrank: boolean;
@@ -145,6 +147,7 @@ export function WorkspaceView(props: WorkspaceViewProps) {
     draft,
     onDraftChange,
     onSend,
+    sendingMessage = false,
     pendingAttachments,
     onRemoveAttachment,
     uploads,
@@ -173,6 +176,7 @@ export function WorkspaceView(props: WorkspaceViewProps) {
     onLeave,
     onDeleteFriend,
     onSaveAnnouncement,
+    onChannelDeleted,
     onDissolve,
     onJumpMessage,
     sudoPrank,
@@ -421,6 +425,7 @@ export function WorkspaceView(props: WorkspaceViewProps) {
                 draft={draft}
                 onDraftChange={onDraftChange}
                 onSend={onSend}
+                disabled={sendingMessage}
                 pendingAttachments={pendingAttachments}
                 onRemoveAttachment={onRemoveAttachment}
                 uploads={uploads}
@@ -479,6 +484,7 @@ export function WorkspaceView(props: WorkspaceViewProps) {
         onLeave={onLeave}
         onDeleteFriend={onDeleteFriend}
         onSaveAnnouncement={onSaveAnnouncement}
+        onChannelDeleted={onChannelDeleted}
         onDissolve={onDissolve}
       />
 

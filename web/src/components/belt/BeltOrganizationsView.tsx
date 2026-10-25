@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { beltApi, type BeltUser } from '@/lib/beltApi';
 import { BeltAvatar } from './BeltAvatar';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
@@ -61,9 +61,39 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
   const [summary, setSummary] = useState('');
   const [orgPublic, setOrgPublic] = useState(true);
   const [orgJoinType, setOrgJoinType] = useState<'open' | 'apply' | 'invite'>('apply');
+  const draftLoaded = useRef(false);
   const [channelName, setChannelName] = useState<Record<string, string>>({});
   const [channelTopic, setChannelTopic] = useState<Record<string, string>>({});
   const [inviteHandle, setInviteHandle] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem('dj.org-apply-draft');
+      if (raw) {
+        const draft = JSON.parse(raw) as { name?: string; summary?: string; isPublic?: boolean; joinType?: 'open' | 'apply' | 'invite' };
+        if (typeof draft.name === 'string') setName(draft.name);
+        if (typeof draft.summary === 'string') setSummary(draft.summary);
+        if (typeof draft.isPublic === 'boolean') setOrgPublic(draft.isPublic);
+        if (draft.joinType) setOrgJoinType(draft.joinType);
+      }
+    } catch {
+      /* ignore */
+    } finally {
+      draftLoaded.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!draftLoaded.current) return;
+    const timer = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem('dj.org-apply-draft', JSON.stringify({ name, summary, isPublic: orgPublic, joinType: orgJoinType }));
+      } catch {
+        /* ignore */
+      }
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [name, summary, orgPublic, orgJoinType]);
 
   const load = useCallback(async () => {
     try {
@@ -94,6 +124,9 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
       setName('');
       setSummary('');
       setNotice('组织申请已提交，等待全站 Owner 审批。');
+      window.localStorage.removeItem('dj.org-apply-draft');
+      setName('');
+      setSummary('');
       window.dispatchEvent(new CustomEvent('belt:refresh'));
       await load();
     } catch (caught) {

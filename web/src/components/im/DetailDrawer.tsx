@@ -31,6 +31,7 @@ export function DetailDrawer({
   onLeave,
   onDeleteFriend,
   onSaveAnnouncement,
+  onChannelDeleted,
   onDissolve,
 }: {
   open: boolean;
@@ -52,6 +53,7 @@ export function DetailDrawer({
   onLeave: () => void;
   onDeleteFriend: () => Promise<void> | void;
   onSaveAnnouncement: (text: string) => Promise<void>;
+  onChannelDeleted?: (channelId: string) => void;
   onDissolve: () => Promise<void>;
 }) {
   const [announcementEditing, setAnnouncementEditing] = useState(false);
@@ -64,6 +66,7 @@ export function DetailDrawer({
   const [dissolveInput, setDissolveInput] = useState('');
   const [dissolving, setDissolving] = useState(false);
   const [dissolveError, setDissolveError] = useState<string | null>(null);
+  const [deletingChannel, setDeletingChannel] = useState(false);
   const [friendBusy, setFriendBusy] = useState(false);
   const [friendError, setFriendError] = useState<string | null>(null);
 
@@ -164,11 +167,16 @@ export function DetailDrawer({
   const deleteChannel = async () => {
     if (!channel) return;
     if (!window.confirm(`删除频道「${channel.name}」？此操作不可撤销。`)) return;
+    if (deletingChannel) return;
+    setDeletingChannel(true);
     try {
       await api(`/channels/${channel.id}`, { method: 'DELETE' });
-      window.location.reload();
+      onChannelDeleted?.(channel.id);
+      onClose();
     } catch {
       /* 保持页面 */
+    } finally {
+      setDeletingChannel(false);
     }
   };
 
@@ -487,7 +495,7 @@ export function DetailDrawer({
               <p className="mb-1.5 font-sans text-[9px] font-semibold uppercase tracking-[0.16em] text-ink-2">Manage / 频道管理</p>
               <div className="flex flex-wrap gap-1.5">
                 <button type="button" className={secondary} onClick={() => void renameChannel()}>改名频道</button>
-                <button type="button" className="cut-corner-sm border border-danger px-2.5 py-1 text-[11px] text-danger" onClick={() => void deleteChannel()}>删除频道</button>
+                <button type="button" className="cut-corner-sm border border-danger px-2.5 py-1 text-[11px] text-danger" disabled={deletingChannel} onClick={() => void deleteChannel()}>{deletingChannel ? '删除中…' : '删除频道'}</button>
               </div>
             </section>
           ) : null}

@@ -33,7 +33,6 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
   const [busy, setBusy] = useState(false);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [incoming, setIncoming] = useState<{ callId: string; mode: string; caller: string } | null>(null);
   const socket = useRef<ReturnType<typeof connectBeltSocket>>(null);
   const bottom = useRef<HTMLDivElement | null>(null);
 
@@ -87,10 +86,6 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
         setMessages((previous) =>
           previous.some((message) => message.id === data.message!.id) ? previous : [...previous, data.message!],
         );
-        if (data.message.senderId !== user.id && data.message.body?.startsWith('AURORA_CALL:')) {
-          const [, callId, mode, caller] = data.message.body.split(':');
-          if (callId) setIncoming({ callId, mode: mode || 'audio', caller: decodeURIComponent(caller || '成员') });
-        }
       },
     );
     return () => {
