@@ -24,6 +24,25 @@ export class DeviceService {
     private readonly s3: S3Service,
   ) {}
 
+  /** 内网仪表盘：当前用户的推送设备列表。 */
+  async listMine(user: AuthUser): Promise<{
+    devices: Array<{ id: string; name: string; platform: string; lastActiveAt: string | null }>;
+  }> {
+    const rows = await this.prisma.device.findMany({
+      where: { userId: user.id },
+      orderBy: { lastActiveAt: { sort: 'desc', nulls: 'last' } },
+      select: { id: true, name: true, platform: true, lastActiveAt: true },
+    });
+    return {
+      devices: rows.map((row) => ({
+        id: row.id,
+        name: row.name,
+        platform: row.platform,
+        lastActiveAt: row.lastActiveAt?.toISOString() ?? null,
+      })),
+    };
+  }
+
   async createBindCode(user: AuthUser): Promise<{ code: string; expires_at: string }> {
     await this.prisma.deviceBindCode.updateMany({
       where: { userId: user.id, usedAt: null },

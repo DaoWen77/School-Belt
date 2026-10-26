@@ -40,6 +40,7 @@ export class AppConfig {
       this.cachedCors = buildCorsPolicy(this.env.CORS_ORIGINS, {
         autoLan: this.env.LAN_ORIGINS_AUTO,
         ports: [3100, 3000],
+        tunnelOrigins: this.env.TUNNEL_ORIGINS,
       });
     }
     return this.cachedCors;

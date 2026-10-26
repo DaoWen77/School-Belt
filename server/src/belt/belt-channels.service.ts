@@ -7,6 +7,7 @@ import { ErrorCode } from '../common/errors/error-codes';
 import type { AuthUser } from '../common/types/context';
 import { BeltRealtimeService } from './belt-realtime.service';
 import { S3Service } from '../files/s3.service';
+import { BeltCommandService } from './belt-command.service';
 
 export interface BeltChannelView {
   id: string;
@@ -62,6 +63,7 @@ export class BeltChannelsService {
     private readonly identity: IdentityService,
     private readonly realtime: BeltRealtimeService,
     private readonly s3: S3Service,
+    private readonly commands: BeltCommandService,
   ) {}
 
   async list(user: AuthUser): Promise<{ channels: BeltChannelView[] }> {
@@ -209,6 +211,13 @@ export class BeltChannelsService {
     attachmentIds?: string[],
   ): Promise<BeltMessageView> {
     const channel = await this.requireChannel(user, channelId);
+    // 斜杠指令拦截（/ping /task /poll /report /help）：命中则转成指令回显文本。
+    if (body) {
+      const command = await this.commands.intercept(user, channel.id, body);
+      if (command.handled) {
+        body = command.reply ?? '';
+      }
+    }
     const id = clientMsgId ?? randomUUID();
     const fileIds = [...new Set(attachmentIds ?? [])];
     if (!body && fileIds.length === 0) {

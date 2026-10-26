@@ -15,6 +15,7 @@ import { BeltProfileView } from './BeltProfileView';
 import { BeltOrganizationsView } from './BeltOrganizationsView';
 import { BeltDailyView } from './BeltDailyView';
 import { BeltSidebar } from './BeltSidebar';
+import { BeltAnnouncement } from './BeltAnnouncement';
 import { BeltInbox } from './BeltInbox';
 import { BeltMobileTabs } from './BeltMobileTabs';
 
@@ -176,6 +177,8 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
             </button>
           </div>
         </header>
+
+        <BeltAnnouncement />
 
         <div className="belt-shell-body">
           <BeltSidebar

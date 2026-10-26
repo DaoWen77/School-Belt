@@ -1,0 +1,9 @@
+{
+  "additionalFiles": "",
+  "compiler.optimization_flags": "-Os",
+  "customBuildProperties": "build.warn_data_percentage=75",
+  "fqbn": "esp32:esp32:esp32s3",
+  "hardwareFolders": "H:\\物联网编程\\Ardunio\\Ardunio tools\\data\\packages",
+  "otherLibrariesFolders": "H:\\物联网编程\\Ardunio\\Ardunio tools\\user\\libraries",
+  "sketchLocation": "E:\\项目\\O.M.V帝江号全域广播\\firmware\\i2c_scan"
+}

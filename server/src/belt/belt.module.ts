@@ -9,6 +9,7 @@ import {
 } from './belt.controller';
 import { BeltService } from './belt.service';
 import { BeltChannelsService } from './belt-channels.service';
+import { BeltCommandService } from './belt-command.service';
 import { BeltPostsService } from './belt-posts.service';
 import { BeltWsAuthService } from './belt-ws-auth.service';
 import { BeltWsGateway } from './belt-ws.gateway';
@@ -19,6 +20,7 @@ import { BeltWsGateway } from './belt-ws.gateway';
   providers: [
     BeltService,
     BeltChannelsService,
+    BeltCommandService,
     BeltPostsService,
     BeltWsAuthService,
     BeltWsGateway,

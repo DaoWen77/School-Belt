@@ -4894,3 +4894,42 @@ button.belt-row[data-active='true'] .belt-row-deck {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+
+/* ── 外网顶部全服公告 ─────────────────────────────────────────── */
+.belt-announcement {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border-bottom: 1px solid var(--ef-signal);
+  background: color-mix(in srgb, var(--ef-signal) 10%, var(--ef-paper));
+  padding: 0.45rem 0.9rem;
+  color: var(--ef-ink);
+}
+
+.belt-announcement-kicker {
+  flex: 0 0 auto;
+  color: var(--ef-signal);
+  font-family: var(--ef-font-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.belt-announcement p {
+  min-width: 0;
+  margin: 0;
+  flex: 1 1 auto;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.belt-announcement button {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--ef-ink-2);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}

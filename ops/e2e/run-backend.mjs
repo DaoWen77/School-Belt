@@ -39,6 +39,27 @@ import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
 const SERVER_DIR = path.join(ROOT, 'server');
+
+// 极简 .env 加载：server/.env 里的 KEY=VALUE 仅在 process.env 未设置时兜底。
+// 不覆盖外部注入的环境变量（显式 TUNNEL_ORIGINS=... node run-backend.mjs 优先）。
+function loadEnvFile(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return;
+    const text = fs.readFileSync(filePath, 'utf8');
+    for (const rawLine of text.split(/\r?\n/)) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith('#')) continue;
+      const eq = line.indexOf('=');
+      if (eq <= 0) continue;
+      const key = line.slice(0, eq).trim();
+      const value = line.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+      if (key && process.env[key] === undefined) process.env[key] = value;
+    }
+  } catch {
+    // .env 缺失/损坏不影响编排器本身
+  }
+}
+loadEnvFile(path.join(SERVER_DIR, '.env'));
 const REPORTS_DIR = path.join(ROOT, 'reports', 'e2e');
 const PGDATA_DIR = path.join(REPORTS_DIR, 'pgdata');
 const RUN_JSON = path.join(REPORTS_DIR, 'run.json');

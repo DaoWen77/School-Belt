@@ -153,6 +153,21 @@ export class BeltService implements OnModuleInit {
     };
   }
 
+  /** 外网顶部公告：直接读 system_announcements 当前 active 行。 */
+  async announcement(): Promise<{ announcement: { id: string; body: string; level: string } | null }> {
+    const rows = await this.prisma.$queryRaw<Array<{ body: string; level: string }>>`
+      SELECT body, level FROM system_announcements
+      WHERE id = 'default' AND active = true
+      LIMIT 1
+    `;
+    const row = rows[0];
+    return {
+      announcement: row
+        ? { id: 'default', body: row.body, level: row.level }
+        : null,
+    };
+  }
+
   async updateMe(user: AuthUser, dto: UpdateBeltProfileDto): Promise<{ user: BeltUserView }> {
     if (dto.avatarFileId) {
       const file = await this.prisma.file.findUnique({

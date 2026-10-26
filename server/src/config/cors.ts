@@ -33,6 +33,11 @@ export interface CorsPolicyOptions {
   autoLan?: boolean;
   /** 自动追加时使用的端口，默认 [3100, 3000] */
   ports?: readonly number[];
+  /**
+   * 受信隧道域名（env TUNNEL_ORIGINS，逗号分隔，支持 `*.host.tld`）。
+   * 隧道控制台每次分配的端口不可预知，所以这里对任意端口放行 http/https。
+   */
+  tunnelOrigins?: string;
 }
 
 const ORIGIN_ENTRY = /^(https?):\/\/([^/:?#\s]+)(?::(\d{1,5}|\*))?$/;
@@ -72,9 +77,16 @@ function compileWildcardHost(host: string): string {
   }
 
   if (host.startsWith('*.')) {
-    const suffix = host.slice(1); // ".local"
-    if (!suffix.endsWith('.local')) {
-      throw new Error(`CORS_ORIGINS 通配 host 只允许 *.local：${host}`);
+    // 子域通配：*.local（mDNS）与公网隧道域名（如 *.ofalias.net）都允许。
+    // 前缀必须是带点分的合法域名，不能是裸 TLD，避免 `*.com` 这类过宽规则。
+    const suffix = host.slice(1); // ".local" / ".ofalias.net"
+    const labels = suffix.slice(1).split('.');
+    const validDomain =
+      suffix.split('.').length >= 3 &&
+      labels.every((label) => /^[a-z0-9-]{1,63}$/i.test(label)) &&
+      labels[labels.length - 1] !== '';
+    if (!validDomain) {
+      throw new Error(`CORS_ORIGINS 通配 host 只允许 *.local 或 *.host.tld：${host}`);
     }
     return `[a-z0-9-]+${escapeRegex(suffix)}`;
   }
@@ -102,6 +114,26 @@ function compileWildcardHost(host: string): string {
 
 function normalizeOrigin(origin: string): string {
   return origin.trim().replace(/\/+$/, '').toLowerCase();
+}
+
+/** 隧道域名（精确或 *.host.tld）→ 匹配任意端口的 http/https origin 正则。 */
+function compileTunnelHost(rawHost: string): RegExp | null {
+  const host = rawHost.trim().toLowerCase();
+  if (!host) return null;
+  if (!/^[a-z0-9-.*]+$/.test(host)) {
+    throw new Error(`TUNNEL_ORIGINS 非法条目 "${rawHost}"：只接受域名或 *.host.tld`);
+  }
+  let hostPattern: string;
+  if (host.startsWith('*.')) {
+    const suffix = host.slice(1); // ".ofalias.net"
+    if (suffix.split('.').length < 3) {
+      throw new Error(`TUNNEL_ORIGINS 通配必须形如 *.host.tld：${rawHost}`);
+    }
+    hostPattern = `[a-z0-9-]+${escapeRegex(suffix)}`;
+  } else {
+    hostPattern = escapeRegex(host);
+  }
+  return new RegExp(`^https?://${hostPattern}(:\\d{1,5})?$`, 'i');
 }
 
 function parseEntry(rawEntry: string): { exact?: string; pattern?: RegExp } {
@@ -169,6 +201,12 @@ export function buildCorsPolicy(rawOrigins: string, options: CorsPolicyOptions =
         lanOrigins.push(origin);
       }
     }
+  }
+
+  // 受信隧道域名：TCP 隧道每次分配的端口不可预知，因此任意端口放行 http/https。
+  for (const entry of (options.tunnelOrigins ?? '').split(',')) {
+    const pattern = compileTunnelHost(entry.trim());
+    if (pattern) patterns.push(pattern);
   }
 
   const exactList = [...exact];

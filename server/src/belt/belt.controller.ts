@@ -59,6 +59,12 @@ export class BeltMeController {
     return this.belt.me(user);
   }
 
+  @Get('announcement')
+  @Surface('belt')
+  async announcement() {
+    return this.belt.announcement();
+  }
+
   @Get('stats')
   @Surface('belt')
   async stats(@CurrentUser() user: AuthUser) {

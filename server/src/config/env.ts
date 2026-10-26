@@ -44,6 +44,13 @@ export const envSchema = z.object({
       'http://localhost:3100,http://localhost:3000,http://127.0.0.1:3100,http://127.0.0.1:3000',
     ),
   /**
+   * 内网穿透公网域名（TCP 隧道），逗号分隔、支持 `*.host.tld` 子域通配。
+   * 为了控制放大面，只对受信隧道域名放行：任意端口 + http/https 都接受，
+   * 因为穿透控制台分配的公网端口每次可能不同，无法预先枚举。
+   * 留空 = 不放行任何公网隧道域名（默认安全）。
+   */
+  TUNNEL_ORIGINS: z.string().default(''),
+  /**
    * 局域网 origin 自动探测：CORS_ORIGINS 未显式给出私网地址时，
    * 自动追加 http://<本机私网IP>:3100 与 :3000（换 WiFi/IP 后无需改配置）。
    */

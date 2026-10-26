@@ -1,5 +1,5 @@
-import { Workspace } from '@/components/Workspace';
+import { Dashboard } from '@/components/Dashboard';
 
 export default function HomePage() {
-  return <Workspace />;
+  return <Dashboard />;
 }

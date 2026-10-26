@@ -10,6 +10,12 @@ import type { AuthUser } from '../common/types/context';
 export class DeviceController {
   constructor(private readonly device: DeviceService) {}
 
+  /** 内网仪表盘：我的推送设备列表。 */
+  @Get()
+  async list(@CurrentUser() user: AuthUser) {
+    return this.device.listMine(user);
+  }
+
   /** 用户登录后生成一次性 6 位绑定码（10 分钟）。 */
   @Post('bind-code')
   @Surface('bridge')
