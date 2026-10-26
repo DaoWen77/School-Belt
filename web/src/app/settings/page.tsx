@@ -12,6 +12,7 @@ import { OrgSettings } from '@/components/OrgSettings';
 import { FriendsSettings } from '@/components/FriendsSettings';
 import { RssSettings } from '@/components/RssSettings';
 import { IdentitySettings } from '@/components/im/IdentitySettings';
+import { ServerSettings } from '@/components/ServerSettings';
 import { Phase3Settings } from '@/components/Phase3Settings';
 import { precheckFile, uploadFile } from '@/lib/upload';
 import { invalidateFileUrl } from '@/lib/fileUrl';
@@ -937,6 +938,8 @@ export default function SettingsPage() {
             <span>localStorage + 内存</span>
           </div>
         </section>
+
+        <ServerSettings />
 
         <section className={panel}>
           <p className={heading}>Known limitations / 已知限制</p>
