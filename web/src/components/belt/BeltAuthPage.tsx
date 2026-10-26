@@ -5,6 +5,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { beltApi, BeltApiError, type BeltAuthResult } from '@/lib/beltApi';
 import { beltSession } from '@/lib/beltSession';
+import { ServerSettings } from '@/components/ServerSettings';
 
 export function BeltAuthPage({ mode }: { mode: 'login' | 'register' }) {
   const router = useRouter();
@@ -128,6 +129,10 @@ export function BeltAuthPage({ mode }: { mode: 'login' | 'register' }) {
             )}
             <span>·</span>
             <span>内部账号请从舰内入口【接入文明环带】进入。</span>
+          </div>
+
+          <div className="mt-3">
+            <ServerSettings variant="belt" />
           </div>
         </div>
       </div>
