@@ -9,5 +9,6 @@ import { BotsService } from './bots.service';
 @Module({
   controllers: [AiController, BotsController, ChannelBotsController],
   providers: [AiCryptoService, AiConfigService, AiChatService, BotsService],
+  exports: [AiConfigService, BotsService],
 })
 export class AiModule {}

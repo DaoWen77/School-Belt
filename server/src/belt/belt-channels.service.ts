@@ -8,6 +8,7 @@ import type { AuthUser } from '../common/types/context';
 import { BeltRealtimeService } from './belt-realtime.service';
 import { S3Service } from '../files/s3.service';
 import { BeltCommandService } from './belt-command.service';
+import { BeltBotService } from './belt-bot.service';
 
 export interface BeltChannelView {
   id: string;
@@ -64,6 +65,7 @@ export class BeltChannelsService {
     private readonly realtime: BeltRealtimeService,
     private readonly s3: S3Service,
     private readonly commands: BeltCommandService,
+    private readonly bots: BeltBotService,
   ) {}
 
   async list(user: AuthUser): Promise<{ channels: BeltChannelView[] }> {
@@ -279,6 +281,8 @@ export class BeltChannelsService {
       });
       const view = (await this.views([row]))[0]!;
       this.realtime.emitToBeltChannel(channel.id, 'belt:message', view);
+      // Bot 驻场：@Bot 呼号触发异步回复，不阻塞发送链路。
+      void this.bots.maybeReply(user, channel.id, body).catch(() => undefined);
       return view;
     } catch (error) {
       if (PrismaService.isUniqueViolation(error)) {
