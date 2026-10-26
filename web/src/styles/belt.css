@@ -4933,3 +4933,72 @@ button.belt-row[data-active='true'] .belt-row-deck {
   font-size: 1.1rem;
   line-height: 1;
 }
+
+
+/* ── 环带代码块 / 图表卡片 ─────────────────────────────────────── */
+.belt-code-block {
+  margin: 0.3rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--ef-rule);
+  background: #050604;
+  padding: 0.5rem 0.6rem;
+}
+
+.belt-code-block code {
+  color: #b8ff8a;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+.belt-chart-card {
+  display: flex;
+  max-width: 26rem;
+  flex-direction: column;
+  gap: 0.4rem;
+  border: 1px solid var(--ef-rule);
+  border-left: 3px solid #00ffff;
+  background: color-mix(in srgb, #00ffff 4%, var(--ef-panel));
+  padding: 0.55rem 0.65rem;
+}
+
+.belt-chart-card strong {
+  font-family: var(--ef-font-display);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.belt-chart-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.belt-chart-bar-row {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) 2.4rem;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--ef-font-mono);
+  font-size: 9px;
+  color: var(--ef-ink-2);
+}
+
+.belt-chart-track {
+  height: 0.7rem;
+  background: #050604;
+  border: 1px solid var(--ef-rule);
+}
+
+.belt-chart-track i {
+  display: block;
+  height: 100%;
+  background: var(--ef-signal);
+}
+
+.belt-chart-bar-row b {
+  text-align: right;
+  color: var(--ef-ink);
+}

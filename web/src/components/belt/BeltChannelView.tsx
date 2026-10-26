@@ -17,6 +17,29 @@ function clockOf(iso: string): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+/** 简单代码块高亮：按 ``` 围栏切分，代码段渲染为 pre/code。 */
+function renderBeltBody(body: string) {
+  const parts = body.split(/(```[a-zA-Z0-9+.-]*\n?)/);
+  const nodes: Array<unknown> = [];
+  let inCode = false;
+  let index = 0;
+  for (const part of parts) {
+    if (part.startsWith('```')) {
+      inCode = !inCode;
+      continue;
+    }
+    if (!part) continue;
+    nodes.push(
+      inCode ? (
+        <pre key={index++} className="belt-code-block"><code>{part}</code></pre>
+      ) : (
+        <p key={index++} className="belt-message-body">{part}</p>
+      ),
+    );
+  }
+  return <>{nodes}</>;
+}
+
 interface PendingAttachment extends BeltAttachment {
   pending?: boolean;
 }
@@ -317,12 +340,37 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
                   ) : null}
                 </div>
                 {message.card ? (
-                  <a className="belt-share-card" href={message.card.data?.url ?? `/belt/posts/${message.card.data?.postId ?? ''}`}>
-                    <span className="belt-share-card-kicker">NEWS SHARE · {message.card.data?.sourceName ?? '环带电文'}</span>
-                    <strong>{message.card.title}</strong>
-                    {message.card.body ? <span>{message.card.body}</span> : null}
-                    <em>阅读全文 →</em>
-                  </a>
+                  message.card.data?.points?.length ? (
+                    (() => {
+                      const card = message.card!;
+                      const points = card.data!.points!;
+                      const max = Math.max(...points.map((p) => p.value), 1);
+                      return (
+                        <div className="belt-chart-card">
+                          <span className="belt-share-card-kicker">CHART · {card.data!.chartType ?? 'bar'}</span>
+                          <strong>{card.title}</strong>
+                          <div className="belt-chart-bars">
+                            {points.map((point) => (
+                              <div key={point.name} className="belt-chart-bar-row">
+                                <span>{point.name}</span>
+                                <div className="belt-chart-track">
+                                  <i style={{ width: `${Math.max(4, (point.value / max) * 100)}%` }} />
+                                </div>
+                                <b>{point.value}</b>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <a className="belt-share-card" href={message.card.data?.url ?? `/belt/posts/${message.card.data?.postId ?? ''}`}>
+                      <span className="belt-share-card-kicker">NEWS SHARE · {message.card.data?.sourceName ?? '环带电文'}</span>
+                      <strong>{message.card.title}</strong>
+                      {message.card.body ? <span>{message.card.body}</span> : null}
+                      <em>阅读全文 →</em>
+                    </a>
+                  )
                 ) : null}
                 {message.body?.startsWith('AURORA_CALL:') ? (
                   (() => {
@@ -339,7 +387,7 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
                       </a>
                     );
                   })()
-                ) : message.body ? <p className="belt-message-body">{message.body}</p> : null}
+                ) : message.body ? renderBeltBody(message.body) : null}
                 {message.attachments?.length ? (
                   <div className={`belt-message-media kind-${message.attachments[0]?.kind ?? 'file'}`}>
                     {message.attachments.map((attachment) =>

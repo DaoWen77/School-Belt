@@ -65,7 +65,66 @@ export class BeltCommandService {
       return { handled: true, reply: `投票已发起：${arg.slice(0, 120)}` };
     }
 
+    if (command === '/chart') {
+      if (!arg) return { handled: true, reply: '用法：/chart 标题|标签=数值,标签=数值' };
+      const sep = arg.indexOf('|');
+      const title = (sep >= 0 ? arg.slice(0, sep) : '环带图表').trim().slice(0, 120);
+      const dataPart = (sep >= 0 ? arg.slice(sep + 1) : arg).trim();
+      const points = dataPart
+        .split(',')
+        .map((piece) => piece.trim())
+        .filter(Boolean)
+        .map((piece) => {
+          const eq = piece.lastIndexOf('=');
+          if (eq <= 0) return null;
+          const name = piece.slice(0, eq).trim().slice(0, 40);
+          const value = Number(piece.slice(eq + 1).trim());
+          return Number.isFinite(value) ? { name, value } : null;
+        })
+        .filter((point): point is { name: string; value: number } => Boolean(point))
+        .slice(0, 8);
+      if (points.length === 0) return { handled: true, reply: '用法：/chart 标题|标签=数值,标签=数值' };
+      await this.createChartCard(user, channelId, title, points);
+      return { handled: true, reply: `图表已生成：${title}` };
+    }
+
     return { handled: false };
+  }
+
+  private async createChartCard(
+    user: AuthUser,
+    channelId: string,
+    title: string,
+    points: Array<{ name: string; value: number }>,
+  ): Promise<void> {
+    await this.prisma.withTransaction(async (tx) => {
+      const card = await tx.card.create({
+        data: {
+          channelId,
+          kind: 'chart',
+          title,
+          body: '由 /chart 指令创建',
+          data: { chartType: 'bar', points },
+          status: 'open',
+          createdBy: user.id,
+        },
+        select: { id: true },
+      });
+      await tx.message.create({
+        data: {
+          channelId,
+          senderId: user.id,
+          kind: 'card',
+          body: title,
+          clientMsgId: randomUUID(),
+          cardId: card.id,
+        },
+      });
+      await tx.channel.update({
+        where: { id: channelId },
+        data: { lastMessageAt: new Date() },
+      });
+    });
   }
 
   private async createCard(user: AuthUser, channelId: string, kind: 'task' | 'vote', title: string): Promise<void> {

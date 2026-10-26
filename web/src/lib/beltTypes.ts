@@ -13,7 +13,15 @@ export interface BeltMessageCard {
   id: string;
   title: string;
   body: string | null;
-  data: { type?: string; postId?: string; url?: string; sourceName?: string | null; category?: string | null } | null;
+  data: {
+    type?: string;
+    postId?: string;
+    url?: string;
+    sourceName?: string | null;
+    category?: string | null;
+    chartType?: 'line' | 'bar';
+    points?: Array<{ name: string; value: number }>;
+  } | null;
 }
 
 export interface BeltAttachment {
