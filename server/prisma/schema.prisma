@@ -262,6 +262,14 @@ model User {
   createdAt             DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt             DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
   lastSeenAt            DateTime?  @map("last_seen_at") @db.Timestamptz(6)
+  /**
+   * 经验值（模块二）；总计单调递增，违规扣分只减 EXP、不改历史流水
+   */
+  exp                   Int        @default(0)
+  /**
+   * 等级缓存，由 exp 派生（levelOf(exp)），写入 EXP 流水时重算
+   */
+  level                 Int        @default(0)
 
   settings              UserSetting?
   devices               Device[]
@@ -279,6 +287,18 @@ model User {
   friendshipsReceived   Friendship[]         @relation("FriendshipAddressee")
   deviceBindCodes       DeviceBindCode[]
   deviceTokens          DeviceToken[]
+  followsMade           Follow[]             @relation("FollowFollower")
+  followsReceived       Follow[]             @relation("FollowFollowing")
+  expLogs               ExpLog[]
+  clerkApplications     ClerkApplication[]
+  clerkReviews          ClerkApplication[]   @relation("ClerkReviewer")
+  reportsFiled          Report[]             @relation("ReportReporter")
+  reportsAgainst        Report[]             @relation("ReportSubject")
+  reportsResolved       Report[]             @relation("ReportResolver")
+  moderationVotes       ModerationVote[]
+  tasksCreated          Task[]               @relation("TaskCreator")
+  tasksTaken            Task[]               @relation("TaskTaker")
+  servicesOffered       Service[]
 
   @@index([status])
   @@index([isInternal])
@@ -983,4 +1003,200 @@ model SystemAnnouncement {
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("system_announcements")
+}
+
+// ───────────────────────────── 模块一/二：社交、EXP 与风纪 ─────────────────────────────
+// 迁移 SQL：prisma/migrations/0025_social（手写，Prisma 只用于类型安全访问）。
+
+enum ExpReason {
+  post
+  comment
+  like_received
+  task_done
+  daily_login
+  admin
+}
+
+enum ClerkApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum ReportTarget {
+  post
+  comment
+}
+
+enum ReportReason {
+  spam
+  harassment
+  porn
+  illegal
+  other
+}
+
+enum ReportStatus {
+  open
+  resolved
+  dismissed
+}
+
+enum ModerationVerdict {
+  violation
+  clear
+}
+
+/// 委托状态（个人主页 Tab2；模块五扩展完整委托流程）
+enum CommissionStatus {
+  open
+  in_progress
+  submitted
+  completed
+  cancelled
+}
+
+enum ServiceStatus {
+  open
+  paused
+  closed
+}
+
+/// 关注关系：单向，一对用户只有一行
+model Follow {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  followerId  String   @map("follower_id") @db.Uuid
+  followingId String   @map("following_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  follower  User @relation("FollowFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("FollowFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+/// EXP 流水：idempotency_key 唯一，重复发放静默跳过
+model ExpLog {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  delta          Int
+  reason         ExpReason
+  /// 幂等键里的对象类型（post / comment / report / login …）
+  refType        String?   @map("ref_type") @db.VarChar(24)
+  refId          String?   @map("ref_id") @db.Uuid
+  /// 幂等键：`post:<id>`、`report:<id>`、`login:<userId>:<YYYY-MM-DD>`
+  idempotencyKey String    @unique @map("idempotency_key") @db.VarChar(120)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("exp_logs")
+}
+
+/// 风纪委员申请：Lv4+ 且 30 天无违规才可提交
+model ClerkApplication {
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String                 @map("user_id") @db.Uuid
+  status             ClerkApplicationStatus @default(pending)
+  reason             String                 @db.VarChar(200)
+  snapshotLevel      Int                    @map("snapshot_level")
+  snapshotViolations Int                    @map("snapshot_violations")
+  reviewedBy         String?                @map("reviewed_by") @db.Uuid
+  reviewedAt         DateTime?              @map("reviewed_at") @db.Timestamptz(6)
+  reviewNote         String?                @map("review_note") @db.VarChar(200)
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("ClerkReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@map("clerk_applications")
+}
+
+/// 举报工单：targetId 指向 posts / post_comments，故不建多态外键
+model Report {
+  id             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporterId     String             @map("reporter_id") @db.Uuid
+  targetType     ReportTarget       @map("target_type")
+  targetId       String             @map("target_id") @db.Uuid
+  /// 被举报内容的作者（投票回避与 30 天违规统计都用它）
+  subjectUserId  String             @map("subject_user_id") @db.Uuid
+  reason         ReportReason
+  detail         String?            @db.VarChar(500)
+  status         ReportStatus       @default(open)
+  verdict        ModerationVerdict?
+  voteCount      Int                @default(0) @map("vote_count")
+  /// 作者本身是风纪委员时双倍扣分
+  doublePenalty  Boolean            @default(false) @map("double_penalty")
+  resolvedBy     String?            @map("resolved_by") @db.Uuid
+  resolvedAt     DateTime?          @map("resolved_at") @db.Timestamptz(6)
+  penaltyApplied Boolean            @default(false) @map("penalty_applied")
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  reporter User             @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  subject  User             @relation("ReportSubject", fields: [subjectUserId], references: [id], onDelete: Cascade)
+  resolver User?            @relation("ReportResolver", fields: [resolvedBy], references: [id], onDelete: SetNull)
+  votes    ModerationVote[]
+
+  @@index([status, createdAt])
+  @@index([subjectUserId, resolvedAt])
+  @@index([targetType, targetId])
+  @@map("reports")
+}
+
+/// 风纪委众包投票：一单一人一票
+model ModerationVote {
+  id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reportId  String            @map("report_id") @db.Uuid
+  voterId   String            @map("voter_id") @db.Uuid
+  verdict   ModerationVerdict
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  voter  User   @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@unique([reportId, voterId])
+  @@map("moderation_votes")
+}
+
+/// 委托（个人主页 Tab2 只读展示；模块五再扩展流程字段）
+model Task {
+  id          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  creatorId   String           @map("creator_id") @db.Uuid
+  title       String           @db.VarChar(120)
+  description String           @db.Text
+  priceCents  Int              @map("price_cents")
+  deadline    DateTime?        @db.Timestamptz(6)
+  status      CommissionStatus @default(open)
+  takerId     String?          @map("taker_id") @db.Uuid
+  editedAt    DateTime?        @map("edited_at") @db.Timestamptz(6)
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  creator User  @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  taker   User? @relation("TaskTaker", fields: [takerId], references: [id], onDelete: SetNull)
+
+  @@index([creatorId, status])
+  @@index([status, createdAt])
+  @@map("tasks")
+}
+
+/// 服务（个人主页 Tab3）
+model Service {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String        @map("user_id") @db.Uuid
+  title       String        @db.VarChar(120)
+  description String        @db.Text
+  priceCents  Int?          @map("price_cents")
+  status      ServiceStatus @default(open)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("services")
 }

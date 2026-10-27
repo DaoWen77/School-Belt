@@ -14,7 +14,7 @@ export function BeltAvatar({
 }: {
   fileId?: string | null;
   name: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   neon?: boolean;
 }) {
   const [url, setUrl] = useState<string | null>(null);

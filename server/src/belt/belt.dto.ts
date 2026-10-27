@@ -13,7 +13,7 @@ export type ListBeltPostsQuery = z.infer<typeof listBeltPostsQuerySchema>;
 export const createBeltPostSchema = z
   .object({
     board: z.enum(['bulletin', 'bounty', 'daily']),
-    title: z.string().trim().min(1).max(120),
+    title: z.string().trim().max(120).optional(),
     body: z.string().trim().min(1).max(8000),
     bountyReward: z.string().trim().max(80).optional(),
     bountyDeadline: z.string().datetime().optional(),

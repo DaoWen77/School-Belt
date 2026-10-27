@@ -216,6 +216,26 @@ export class BeltChannelsService {
     // 斜杠指令拦截（/ping /task /poll /report /help）：命中则转成指令回显文本。
     if (body) {
       const command = await this.commands.intercept(user, channel.id, body);
+      // 建卡型指令（/task /poll /chart）已自行落卡并发消息：回传那条卡片消息，不再追加回显。
+      if (command.handled && command.createdCard) {
+        const [row] = await this.prisma.message.findMany({
+          where: { channelId: channel.id, deletedAt: null },
+          orderBy: { id: 'desc' },
+          take: 1,
+          select: {
+            id: true,
+            channelId: true,
+            senderId: true,
+            kind: true,
+            body: true,
+            cardId: true,
+            createdAt: true,
+          },
+        });
+        const [view] = await this.views(row ? [row] : []);
+        if (!view) throw new AppError(ErrorCode.VALIDATION_FAILED, '指令消息未落库');
+        return view;
+      }
       if (command.handled) {
         body = command.reply ?? '';
       }

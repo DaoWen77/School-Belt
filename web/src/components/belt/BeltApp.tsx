@@ -12,6 +12,7 @@ import { BeltPostDetail } from './BeltPostDetail';
 import { BeltDirectView } from './BeltDirectView';
 import { BeltTelegraphView } from './BeltTelegraphView';
 import { BeltProfileView } from './BeltProfileView';
+import { BeltModerationView } from './BeltModerationView';
 import { BeltOrganizationsView } from './BeltOrganizationsView';
 import { BeltDailyView } from './BeltDailyView';
 import { BeltSidebar } from './BeltSidebar';
@@ -28,7 +29,9 @@ export type BeltView =
   | 'direct'
   | 'profile'
   | 'organizations'
-  | 'post';
+  | 'post'
+  | 'user'
+  | 'moderation';
 
 const NAV: Array<{ key: BeltView; index: string; label: string; en: string; href: string }> = [
   { key: 'channel', index: '01', label: '环带频道', en: 'CHANNEL', href: '/belt/channel' },
@@ -50,13 +53,25 @@ const PAGE_META: Record<BeltView, { title: string; en: string; copy: string }> =
   profile: { title: '个人中心', en: 'PROFILE', copy: '外环身份资料 · 头像与组织状态' },
   organizations: { title: '组织中心', en: 'ORGANIZATIONS', copy: '加入组织 · Owner 审批与私有频道' },
   post: { title: '帖子详情', en: 'TRANSMISSION', copy: '信号正文与回波' },
+  user: { title: '干员档案', en: 'DOSSIER', copy: '外环身份 · 关注链路与发布记录' },
+  moderation: { title: '风纪工位', en: 'TRIBUNAL', copy: '工单池 · 众包投票与风纪委员审批' },
 };
 
 function clockOf(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: string; chatId?: string }) {
+export function BeltApp({
+  view,
+  postId,
+  chatId,
+  handle,
+}: {
+  view: BeltView;
+  postId?: string;
+  chatId?: string;
+  handle?: string;
+}) {
   const router = useRouter();
   const [user, setUser] = useState<BeltUser | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -64,13 +79,18 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
   const [booting, setBooting] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [clock, setClock] = useState(() => clockOf(new Date()));
+  const [canModerate, setCanModerate] = useState(false);
 
   const path =
     view === 'post' && postId
       ? `/belt/posts/${postId}`
       : view === 'telegraph'
         ? '/belt/dispatch'
-        : NAV.find((item) => item.key === view)?.href ?? '/belt/channel';
+        : view === 'user'
+          ? `/belt/u/${encodeURIComponent(handle ?? '')}`
+          : view === 'moderation'
+            ? '/belt/moderation'
+            : NAV.find((item) => item.key === view)?.href ?? '/belt/channel';
 
   useEffect(() => {
     const timer = setInterval(() => setClock(clockOf(new Date())), 30_000);
@@ -107,6 +127,26 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
   useEffect(() => {
     setMobileNav(false);
   }, [view, chatId]);
+
+  // 风纪入口可见性：owner/admin 直接可见，风纪委员需向 /belt/moderation/me 求证，失败静默隐藏。
+  useEffect(() => {
+    if (!user) return;
+    if (user.globalRole === 'owner' || user.globalRole === 'admin') {
+      setCanModerate(true);
+      return;
+    }
+    let cancelled = false;
+    beltApi<{ isClerk?: boolean; isOwner?: boolean }>('/belt/moderation/me')
+      .then((data) => {
+        if (!cancelled) setCanModerate(Boolean(data.isClerk || data.isOwner));
+      })
+      .catch(() => {
+        if (!cancelled) setCanModerate(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const meta = useMemo(() => PAGE_META[view], [view]);
 
@@ -166,9 +206,15 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
             <span>{clock}</span>
           </div>
           <div className="belt-header-actions">
-            <Link href="/belt/access" className="belt-header-link">
-              登入 O.M.V 帝江号
-            </Link>
+            {(user.prefixes ?? []).includes('[极光科技]') ? (
+              <Link href="/belt/access" className="belt-header-link is-return">
+                返回帝江号 →
+              </Link>
+            ) : (
+              <Link href="/belt/access" className="belt-header-link">
+                门禁校验
+              </Link>
+            )}
             <BeltInbox isOwner={user.globalRole === 'owner' || user.globalRole === 'admin'} onChanged={() => setRefreshKey((value) => value + 1)} />
             <IdentityBadges values={user.prefixes ?? []} scan />
             <span className="belt-hint">@{user.handle}</span>
@@ -178,7 +224,9 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
           </div>
         </header>
 
-        <BeltAnnouncement />
+        <header className="belt-header">
+          <BeltAnnouncement />
+        </header>
 
         <div className="belt-shell-body">
           <BeltSidebar
@@ -189,6 +237,7 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
             activeConversationId={chatId ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('conversationId') : null)}
             refreshKey={refreshKey}
             onNavigate={() => setMobileNav(false)}
+            canModerate={canModerate}
           />
 
           {mobileNav ? (
@@ -218,6 +267,10 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
                 <BeltDailyView user={user} />
               ) : view === 'profile' ? (
                 <BeltProfileView user={user} />
+              ) : view === 'user' ? (
+                <BeltProfileView user={user} handle={handle} />
+              ) : view === 'moderation' ? (
+                <BeltModerationView user={user} />
               ) : view === 'organizations' ? (
                 <BeltOrganizationsView user={user} />
               ) : view === 'post' && postId ? (
@@ -233,7 +286,7 @@ export function BeltApp({ view, postId, chatId }: { view: BeltView; postId?: str
             </div>
           </main>
         </div>
-        <BeltMobileTabs activeView={view} />
+        <BeltMobileTabs activeView={view} canModerate={canModerate} />
       </div>
     </div>
   );

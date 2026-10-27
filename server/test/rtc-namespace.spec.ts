@@ -7,6 +7,8 @@ interface FakeNamespace {
   name: string;
   middlewares: ((socket: unknown, next: (err?: Error) => void) => void)[];
   use(fn: (socket: unknown, next: (err?: Error) => void) => void): void;
+  /** installRtcNamespace 在注册中间件后还会挂 connection 处理器，测试只关心中间件 */
+  on(event: string, handler: unknown): void;
 }
 
 function fakeServer(): { server: Server; namespace: FakeNamespace } {
@@ -15,6 +17,9 @@ function fakeServer(): { server: Server; namespace: FakeNamespace } {
     middlewares: [],
     use(fn) {
       this.middlewares.push(fn);
+    },
+    on() {
+      // 连接事件本轮不测
     },
   };
   const server = {

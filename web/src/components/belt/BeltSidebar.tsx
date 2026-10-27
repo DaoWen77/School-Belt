@@ -18,6 +18,8 @@ interface Props {
   refreshKey?: number;
   mobileOpen?: boolean;
   onNavigate?: () => void;
+  /** 风纪入口仅对 isClerk / owner / admin 可见；由 BeltApp 统一求证后传入。 */
+  canModerate?: boolean;
 }
 
 const SYSTEM_LINKS = [
@@ -26,13 +28,14 @@ const SYSTEM_LINKS = [
   { view: 'bounty', label: '悬赏委托', en: 'BOUNTY', href: '/belt/bounty' },
   { view: 'organizations', label: '组织中心', en: 'ORGS', href: '/belt/organizations' },
   { view: 'profile', label: '个人中心', en: 'PROFILE', href: '/belt/profile' },
+  { view: 'settings', label: '设置', en: 'SETTINGS', href: '/belt/settings' },
 ];
 
 /**
  * 环带 Discord 式融合侧栏：
  * 频道（含组织私有） / 私聊 / 系统页面，三组可折叠，点击直接切主视图。
  */
-export function BeltSidebar({ user, activeView, activeChannelId, activeConversationId, refreshKey = 0, mobileOpen = false, onNavigate }: Props) {
+export function BeltSidebar({ user, activeView, activeChannelId, activeConversationId, refreshKey = 0, mobileOpen = false, onNavigate, canModerate = false }: Props) {
   const [channels, setChannels] = useState<OrgChannel[]>([]);
   const [conversations, setConversations] = useState<BeltDmConversation[]>([]);
   const [friends, setFriends] = useState<BeltFriendView[]>([]);
@@ -489,6 +492,18 @@ export function BeltSidebar({ user, activeView, activeChannelId, activeConversat
                 <span className="belt-rail-meta">{item.en}</span>
               </Link>
             ))}
+            {canModerate ? (
+              <Link
+                className="belt-rail-link"
+                onClick={() => onNavigate?.()}
+                aria-current={activeView === 'moderation' ? 'page' : undefined}
+                href="/belt/moderation"
+              >
+                <span className="belt-rail-index">·</span>
+                <span>风纪工位</span>
+                <span className="belt-rail-meta">TRIBUNAL</span>
+              </Link>
+            ) : null}
           </div>
         ) : null}
       </div>

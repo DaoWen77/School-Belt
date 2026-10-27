@@ -103,7 +103,8 @@ export function BeltPostComposer({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!canPost || !title.trim() || !body.trim() || busy) return;
+    // 干员日常 = 朋友圈：可只发纯文字，标题留空后端取正文首行。
+    if (!canPost || (board !== 'daily' && !title.trim()) || !body.trim() || busy) return;
     setBusy(true);
     setError(null);
     try {
@@ -167,9 +168,9 @@ export function BeltPostComposer({
               value={title}
               maxLength={120}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder={board === 'bounty' ? '例如：回收外环测绘浮标' : '一句话标题'}
+              placeholder={board === 'bounty' ? '例如：回收外环测绘浮标' : '一句话标题（可留空）'}
               autoFocus
-              required
+              required={board !== 'daily'}
             />
           </label>
 
@@ -258,7 +259,7 @@ export function BeltPostComposer({
             <button
               type="submit"
               className="belt-button is-signal signal-publish"
-              disabled={busy || !canPost || !title.trim() || !body.trim()}
+              disabled={busy || !canPost || (board !== 'daily' && !title.trim()) || !body.trim()}
             >
               {busy ? '发射中…' : '发布新信号'}
             </button>

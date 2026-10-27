@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { FilesModule } from '../files/files.module';
 import { AiModule } from '../ai/ai.module';
+import { SocialModule } from '../social/social.module';
 import {
   BeltChannelsController,
   BeltFilesController,
@@ -17,7 +18,7 @@ import { BeltWsAuthService } from './belt-ws-auth.service';
 import { BeltWsGateway } from './belt-ws.gateway';
 
 @Module({
-  imports: [AuthModule, FilesModule, AiModule],
+  imports: [AuthModule, FilesModule, AiModule, SocialModule],
   controllers: [BeltMeController, BeltChannelsController, BeltPostsController, BeltFilesController],
   providers: [
     BeltService,

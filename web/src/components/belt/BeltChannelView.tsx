@@ -10,6 +10,7 @@ import { IdentityBadges } from '@/components/im/IdentityBadges';
 import { BeltAvatar } from './BeltAvatar';
 import { BeltLightbox } from './BeltLightbox';
 import { notifyRtcDisabled } from '@/lib/rtcDisabled';
+import { parseBeltCommand, type BeltCommand } from '@/lib/commands';
 
 function clockOf(iso: string): string {
   const date = new Date(iso);
@@ -18,26 +19,59 @@ function clockOf(iso: string): string {
 }
 
 /** 简单代码块高亮：按 ``` 围栏切分，代码段渲染为 pre/code。 */
+/** ```lang 代码块 → 极简语法高亮（关键字/字符串/注释/数字）。 */
+function highlight(code: string): string {
+  const escape = (value: string) =>
+    value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const keywords =
+    /\b(const|let|var|function|return|if|else|for|while|import|from|export|class|new|await|async|interface|type|def|print|SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|true|false|null|None)\b/g;
+  return escape(code)
+    .replace(/(&quot;.*?&quot;|'[^'\n]*'|`[^`]*`)/g, '<span class="belt-code-str">$1</span>')
+    .replace(/(\/\/[^\n]*|#[^\n]*)/g, '<span class="belt-code-comment">$1</span>')
+    .replace(keywords, '<span class="belt-code-kw">$1</span>')
+    .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="belt-code-num">$1</span>');
+}
+
 function renderBeltBody(body: string) {
-  const parts = body.split(/(```[a-zA-Z0-9+.-]*\n?)/);
-  const nodes: Array<unknown> = [];
+  const parts = body.split(/```[a-zA-Z0-9+.-]*\n?/);
   let inCode = false;
   let index = 0;
-  for (const part of parts) {
-    if (part.startsWith('```')) {
-      inCode = !inCode;
-      continue;
-    }
-    if (!part) continue;
-    nodes.push(
-      inCode ? (
-        <pre key={index++} className="belt-code-block"><code>{part}</code></pre>
-      ) : (
-        <p key={index++} className="belt-message-body">{part}</p>
-      ),
-    );
-  }
-  return <>{nodes}</>;
+  return (
+    <>
+      {parts.map((part) => {
+        if (index % 2 === 0 && !part) {
+          index += 1;
+          return null;
+        }
+        const code = inCode;
+        inCode = !inCode;
+        const key = index++;
+        return !part ? null : code ? (
+          <pre key={key} className="belt-code-block">
+            <code dangerouslySetInnerHTML={{ __html: highlight(part) }} />
+          </pre>
+        ) : (
+          <p key={key} className="belt-message-body">{part}</p>
+        );
+      })}
+    </>
+  );
+}
+
+const COMMAND_LABELS: Record<BeltCommand['kind'], string> = {
+  help: '列出全部斜杠指令',
+  ping: '探测环带链路',
+  report: '生成本频道近 7 天简报',
+  task: '创建任务卡',
+  poll: '发起投票卡',
+  chart: '生成可视化图表卡片',
+};
+
+function commandLabel(command: BeltCommand | null): string | null {
+  if (!command) return null;
+  const detail =
+    'title' in command ? `「${command.title}」` : 'topic' in command && command.topic ? `「${command.topic}」` : '';
+  return `${command.kind.toUpperCase()} · ${COMMAND_LABELS[command.kind]}${detail} → Enter 执行`;
 }
 
 interface PendingAttachment extends BeltAttachment {
@@ -200,6 +234,7 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
     }
   };
 
+  const commandHint = commandLabel(parseBeltCommand(draft));
   const send = async (event?: FormEvent) => {
     event?.preventDefault();
     const body = draft.trim();
@@ -483,19 +518,24 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
             value={draft}
             maxLength={4000}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="输入信号..."
+            placeholder="输入信号…  /ping /task /poll /report /chart"
             aria-label="环带频道消息"
           />
           <button type="submit" className="belt-button is-signal" disabled={sending || uploading || (!draft.trim() && attachments.length === 0)}>
             {sending ? '发射中…' : 'TRANSMIT'}
           </button>
         </form>
+        {commandHint ? (
+          <p className="belt-hint mt-1" aria-live="polite">
+            ⌘ {commandHint}
+          </p>
+        ) : null}
         <div className="belt-composer-hint mt-1">
           <button type="button" aria-label="输入提示" onClick={() => setHintOpen((value) => !value)}>
             ?
           </button>
           <span>输入提示</span>
-          {hintOpen ? <div className="belt-composer-hint-pop">长按 / 右键自己的消息可撤回 · 支持图片与短视频 · Enter 发送</div> : null}
+          {hintOpen ? <div className="belt-composer-hint-pop">长按 / 右键自己的消息可撤回 · 支持图片与短视频 · 斜杠指令 /ping /task /poll /report /chart · ```代码块``` 自动高亮 · Enter 发送</div> : null}
         </div>
       </div>
       {infoOpen ? (

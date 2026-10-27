@@ -200,6 +200,11 @@
     backdrop-filter: blur(12px);
   }
 
+  /* 风纪入口对风纪委员 / Founder 可见时多一格 */
+  .belt-mobile-tabs.is-wide {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
   .belt-mobile-tab {
     display: flex;
     min-height: 3.75rem;

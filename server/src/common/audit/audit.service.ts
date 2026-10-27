@@ -40,6 +40,10 @@ export const AuditAction = {
   FRIEND_BLOCK: 'friendship.block',
   FRIEND_REMOVE: 'friendship.remove',
   DM_CREATE: 'friendship.dm.create',
+  // 模块二：风纪
+  CLERK_REVIEW: 'moderation.clerk.review',
+  REPORT_RESOLVE: 'moderation.report.resolve',
+  USER_TAGS_UPDATE: 'user.tags.update',
 } as const;
 export type AuditAction = (typeof AuditAction)[keyof typeof AuditAction];
 

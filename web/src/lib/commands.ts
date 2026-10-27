@@ -66,3 +66,46 @@ export const COMMAND_PATTERNS = {
   translate: TRANSLATE_RE,
   roll: ROLL_RE,
 } as const;
+
+export type BeltCommand =
+  | { kind: 'help' }
+  | { kind: 'ping' }
+  | { kind: 'report'; topic: string }
+  | { kind: 'task'; title: string }
+  | { kind: 'poll'; title: string }
+  | { kind: 'chart'; title: string; points: Array<{ name: string; value: number }> };
+
+/** 环带斜杠指令解析（纯函数）：/task /poll /report /ping /help /chart。 */
+export function parseBeltCommand(raw: string): BeltCommand | null {
+  const text = raw.trim();
+  if (!text.startsWith('/')) return null;
+  const [head = '', ...rest] = text.split(/\s+/);
+  const arg = rest.join(' ').trim().slice(0, 120);
+  switch (head.toLowerCase()) {
+    case '/ping':
+      return { kind: 'ping' };
+    case '/help':
+      return { kind: 'help' };
+    case '/report':
+      return { kind: 'report', topic: arg };
+    case '/task':
+      return arg ? { kind: 'task', title: arg } : { kind: 'help' };
+    case '/poll':
+      return arg ? { kind: 'poll', title: arg } : { kind: 'help' };
+    case '/chart': {
+      const sep = arg.indexOf('|');
+      const title = (sep >= 0 ? arg.slice(0, sep) : '环带图表').trim().slice(0, 120);
+      const points = (sep >= 0 ? arg.slice(sep + 1) : '')
+        .split(',')
+        .map((piece) => piece.trim())
+        .map((piece) => {
+          const eq = piece.lastIndexOf('=');
+          return eq > 0 ? { name: piece.slice(0, eq).trim(), value: Number(piece.slice(eq + 1)) } : null;
+        })
+        .filter((point): point is { name: string; value: number } => !!point?.name && Number.isFinite(point.value));
+      return { kind: 'chart', title, points };
+    }
+    default:
+      return null;
+  }
+}

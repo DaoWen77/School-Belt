@@ -15,6 +15,7 @@
  * 幂等：handle/slug/dm_key 复用；若频道/会话已有消息、文件、卡片则跳过对应段落。
  */
 import { PrismaClient } from '@prisma/client';
+import { levelOf } from '../social/level';
 import { argon2id, hash } from 'argon2';
 import { dmKeyOf, dmSlugOf } from '../conversations/conversation-rules';
 
@@ -163,6 +164,7 @@ async function main(): Promise<void> {
   });
 
   const userMap = await seedUsers(passwordHash);
+  await seedSocial(passwordHash, userMap);
   const channelMap = await seedChannels(userMap);
   await seedRssSources(userMap.get('founder'));
   await seedConversations(userMap);
@@ -668,6 +670,218 @@ async function seedConversationMessages(
       data: { lastMessageAt: lastCreatedAt },
     });
   }
+}
+
+/** ── 模块一/二演示数据：风纪委 / 创作者 / 候选委员，外加委托、服务与一张 open 工单（幂等） ── */
+const SOCIAL_USERS = [
+  { handle: 'clerk1', displayName: '风纪一号', tags: ['风纪委员'], exp: 320 },
+  { handle: 'creator', displayName: '委托主', tags: ['教师'], exp: 640 },
+  { handle: 'applicant', displayName: '候选风纪', tags: [], exp: 305 },
+] as const;
+
+async function seedSocial(passwordHash: string, userMap: Map<string, string>): Promise<void> {
+  for (const item of SOCIAL_USERS) {
+    const row = await prisma.user.upsert({
+      where: { handle: item.handle },
+      create: {
+        handle: item.handle,
+        displayName: item.displayName,
+        passwordHash,
+        globalRole: 'member',
+        accountOrigin: 'belt',
+        tags: [...item.tags],
+        exp: item.exp,
+        level: levelOf(item.exp),
+        lastSeenAt: new Date(),
+      },
+      update: {
+        displayName: item.displayName,
+        tags: [...item.tags],
+        exp: item.exp,
+        level: levelOf(item.exp),
+      },
+      select: { id: true },
+    });
+    await prisma.userSetting.upsert({
+      where: { userId: row.id },
+      create: { userId: row.id },
+      update: {},
+    });
+    userMap.set(item.handle, row.id);
+  }
+
+  const creator = userMap.get('creator');
+  const clerk = userMap.get('clerk1');
+  const applicant = userMap.get('applicant');
+  if (!creator || !clerk || !applicant) return;
+
+  // 关注关系（个人主页计数与 isFollowing）
+  for (const [followerId, followingId] of [
+    [creator, clerk],
+    [applicant, creator],
+    [creator, applicant],
+  ] as const) {
+    await prisma.follow.upsert({
+      where: { followerId_followingId: { followerId, followingId } },
+      create: { followerId, followingId },
+      update: {},
+    });
+  }
+
+  // 环带电文（个人主页 Tab1）
+  const posts = [
+    {
+      index: 9101,
+      authorId: creator,
+      board: 'daily' as const,
+      title: '外环静默期随笔',
+      body: '外环静默期的第三夜，中继塔的灯还亮着。',
+    },
+    {
+      index: 9102,
+      authorId: creator,
+      board: 'bounty' as const,
+      title: '求一份航拍原片校色',
+      body: '第三次航拍的原片需要统一色温，预算 200 元。',
+    },
+    {
+      index: 9103,
+      authorId: clerk,
+      board: 'daily' as const,
+      title: '本周治理通告',
+      body: '本周共受理 12 张工单，其中 3 张已结案。',
+    },
+  ];
+  for (const post of posts) {
+    await prisma.post.upsert({
+      where: { id: seedUuid(post.index) },
+      create: {
+        id: seedUuid(post.index),
+        authorId: post.authorId,
+        surface: 'belt',
+        board: post.board,
+        title: post.title,
+        body: post.body,
+        source: 'user',
+        publishedAt: new Date(),
+      },
+      update: { title: post.title, body: post.body },
+    });
+  }
+
+  // 委托（Tab2）与服务（Tab3）
+  const commissions = [
+    { index: 9121, title: '航拍原片校色', description: '12 条 4K 原片统一色温', priceCents: 20000, status: 'open' as const },
+    { index: 9122, title: '中继塔巡检记录整理', description: '把纸质记录录入系统', priceCents: 8000, status: 'in_progress' as const },
+  ];
+  for (const item of commissions) {
+    await prisma.task.upsert({
+      where: { id: seedUuid(item.index) },
+      create: {
+        id: seedUuid(item.index),
+        creatorId: creator,
+        title: item.title,
+        description: item.description,
+        priceCents: item.priceCents,
+        status: item.status,
+      },
+      update: { title: item.title, status: item.status },
+    });
+  }
+
+  const services = [
+    { index: 9131, owner: 'clerk1', title: '测绘数据处理', description: '航测原片拼接与出图', priceCents: 50000 },
+    { index: 9132, owner: 'clerk1', title: '环带导览讲解', description: '每小时一次，含中继塔内部', priceCents: null },
+    { index: 9133, owner: 'creator', title: '环带摄影跟拍', description: '半天跟拍，含精修 20 张', priceCents: 30000 },
+  ];
+  for (const item of services) {
+    await prisma.service.upsert({
+      where: { id: seedUuid(item.index) },
+      create: {
+        id: seedUuid(item.index),
+        userId: item.owner === 'creator' ? creator : clerk,
+        title: item.title,
+        description: item.description,
+        priceCents: item.priceCents,
+      },
+      update: { title: item.title },
+    });
+  }
+
+  // 工单池首屏：3 张 open 工单（不同帖子 / 不同举报人）
+  const qiu = userMap.get('qiu');
+  const reports = [
+    {
+      index: 9141,
+      reporterId: applicant,
+      targetId: seedUuid(9101),
+      reason: 'spam' as const,
+      detail: '该电文重复发布三次，疑似刷屏。',
+    },
+    {
+      index: 9142,
+      reporterId: qiu ?? applicant,
+      targetId: seedUuid(9102),
+      reason: 'harassment' as const,
+      detail: '回波区出现指向性嘲讽，请求复核。',
+    },
+    {
+      index: 9143,
+      reporterId: clerk,
+      targetId: seedUuid(9101),
+      reason: 'illegal' as const,
+      detail: '正文夹带可疑外链，疑似引流。',
+    },
+  ];
+  for (const item of reports) {
+    await prisma.report.upsert({
+      where: { id: seedUuid(item.index) },
+      create: {
+        id: seedUuid(item.index),
+        reporterId: item.reporterId,
+        targetType: 'post',
+        targetId: item.targetId,
+        subjectUserId: creator,
+        reason: item.reason,
+        detail: item.detail,
+        status: 'open',
+      },
+      update: {},
+    });
+  }
+
+  // 获赞数演示：给 creator 的帖子补真实点赞（主页「获赞」不再是 0）
+  const likeUsers = [userMap.get('founder'), qiu, clerk, applicant].filter((id): id is string => Boolean(id));
+  for (const [postId, likers] of [
+    [seedUuid(9101), likeUsers],
+    [seedUuid(9102), likeUsers.slice(0, 2)],
+  ] as const) {
+    for (const userId of likers) {
+      await prisma.postLike.upsert({
+        where: { postId_userId: { postId, userId } },
+        create: { postId, userId },
+        update: {},
+      });
+    }
+    const likeCount = await prisma.postLike.count({ where: { postId } });
+    console.log(`[seed] 帖子 ${postId.slice(0, 4)} 点赞 ${likeCount}`);
+  }
+
+  // 候选委员的待审申请（Founder 审批页）
+  await prisma.clerkApplication.upsert({
+    where: { id: seedUuid(9151) },
+    create: {
+      id: seedUuid(9151),
+      userId: applicant,
+      status: 'pending',
+      reason: '常驻环带三年，愿意参与内容治理与工单复核。',
+      snapshotLevel: levelOf(305),
+      snapshotViolations: 0,
+    },
+    update: {},
+  });
+
+  console.log('[seed] 社交/风纪演示数据就绪（clerk1 / creator / applicant）');
 }
 
 /** 生成稳定的 uuid v4（种子可重复，client_msg_id 幂等键不冲突） */

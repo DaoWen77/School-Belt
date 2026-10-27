@@ -38,6 +38,10 @@ export const ErrorCode = {
   // 多 Bot（Sprint5）
   BOT_NOT_FOUND: 'BOT_NOT_FOUND',
   BOT_DISABLED: 'BOT_DISABLED',
+  // 模块一/二：社交与风纪
+  USER_NOT_FOUND: 'USER_NOT_FOUND',
+  REPORT_NOT_FOUND: 'REPORT_NOT_FOUND',
+  REPORT_CONFLICT: 'REPORT_CONFLICT',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -82,6 +86,9 @@ export const ERROR_HTTP_STATUS: Readonly<Record<ErrorCode, number>> = {
   INTERNAL: 500,
   BOT_NOT_FOUND: 404,
   BOT_DISABLED: 403,
+  USER_NOT_FOUND: 404,
+  REPORT_NOT_FOUND: 404,
+  REPORT_CONFLICT: 409,
 };
 
 /** 面向界面的中文默认文案（契约 §0：代码英文、文案中文） */
@@ -119,4 +126,7 @@ export const ERROR_DEFAULT_MESSAGE: Readonly<Record<ErrorCode, string>> = {
   INTERNAL: '服务内部错误',
   BOT_NOT_FOUND: 'Bot 不存在或未加入该频道',
   BOT_DISABLED: 'Bot 已禁用',
+  USER_NOT_FOUND: '用户不存在',
+  REPORT_NOT_FOUND: '工单不存在',
+  REPORT_CONFLICT: '工单状态冲突',
 };

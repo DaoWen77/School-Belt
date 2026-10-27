@@ -35,6 +35,8 @@ import { PostsModule } from './posts/posts.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { BeltModule } from './belt/belt.module';
+import { SocialModule } from './social/social.module';
+import { ModerationModule } from './moderation/moderation.module';
 import { FriendshipsModule } from './friendships/friendships.module';
 import { RssModule } from './rss/rss.module';
 import { DeviceModule } from './device/device.module';
@@ -77,6 +79,8 @@ import { WsModule } from './ws/ws.module';
     AnnouncementsModule,
     OrganizationsModule,
     BeltModule,
+    SocialModule,
+    ModerationModule,
     FriendshipsModule,
     RssModule,
     DeviceModule,

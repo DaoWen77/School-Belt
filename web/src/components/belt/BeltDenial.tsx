@@ -8,7 +8,7 @@ const SNOW = [
   '0x2A 0x00 ERR\r\nTRACE /relay/07\r\n0x00 0x00 0x00\r\nPURGE 0x1A\r\nLINK CUT\r\n0xFF 0x00\r\nNO SIGNAL\r\n0x7F',
 ];
 
-export function BeltDenial({ onDone }: { onDone: () => void }) {
+export function BeltDenial({ onDone, reason }: { onDone: () => void; reason?: string }) {
   const [count, setCount] = useState(3);
 
   useEffect(() => {
@@ -33,9 +33,13 @@ export function BeltDenial({ onDone }: { onDone: () => void }) {
         </p>
         <h1>PROTOCOL DENIED</h1>
         <p>
-          协议拒绝：未授权链路
-          <br />
-          [极光科技] 身份标签缺失
+          {reason ?? (
+            <>
+              协议拒绝：未授权链路
+              <br />
+              [极光科技] 身份标签缺失
+            </>
+          )}
         </p>
         <div className="belt-denial-count">
           LINK PURGE IN <b>0{count}</b> … 强制断开

@@ -6,6 +6,7 @@ import { IdentityService } from '../common/identity/identity.service';
 import { AppError } from '../common/errors/app-error';
 import { ErrorCode } from '../common/errors/error-codes';
 import { clampLimit, decodeKeyCursor, encodeKeyCursor } from '../common/utils/cursor';
+import { ExpService, type ExpReason } from '../social/exp.service';
 import type { AuthUser } from '../common/types/context';
 import type { BeltBoard, CreateBeltPostDto } from './belt.dto';
 
@@ -82,6 +83,7 @@ export class BeltPostsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly identity: IdentityService,
+    private readonly exp: ExpService,
   ) {}
 
   async list(
@@ -170,7 +172,8 @@ export class BeltPostsService {
         authorId: user.id,
         surface: 'belt',
         board: dto.board,
-        title: dto.title,
+        // 【干员日常】允许像朋友圈一样只发纯文字：缺标题时取正文首行。
+        title: (dto.title?.trim() || dto.body.trim().split(/\r?\n/)[0] || '未命名日常信号').slice(0, 120),
         body: dto.body,
         coverUrl: dto.coverUrl ?? null,
         coverFileId: dto.coverFileId ?? null,
@@ -184,6 +187,7 @@ export class BeltPostsService {
       select: POST_SELECT,
     });
     const prefixes = await this.authorPrefixes([row]);
+    await this.awardQuietly(row.author.id, 'post', 'post', row.id, `post:${row.id}`);
     return this.toView(row, user, new Set(), prefixes);
   }
 
@@ -193,6 +197,13 @@ export class BeltPostsService {
       data: [{ postId: post.id, userId: user.id }],
       skipDuplicates: true,
     });
+    await this.awardQuietly(
+      post.authorId,
+      'like_received',
+      'post',
+      post.id,
+      `like:${post.id}:${user.id}`,
+    );
     return { liked: true, likeCount: await this.prisma.postLike.count({ where: { postId: post.id } }) };
   }
 
@@ -234,6 +245,7 @@ export class BeltPostsService {
         author: { select: { id: true, handle: true, displayName: true, avatarFileId: true } },
       },
     });
+    await this.awardQuietly(row.author.id, 'comment', 'comment', row.id, `comment:${row.id}`);
     return (await this.commentViews([row]))[0]!;
   }
 
@@ -327,6 +339,21 @@ export class BeltPostsService {
       throw new AppError(ErrorCode.VALIDATION_FAILED, '帖子不存在', { postId: id });
     }
     return id;
+  }
+
+  /** EXP 钩子：奖励失败只 warn，绝不影响发帖/评论/点赞主流程 */
+  private async awardQuietly(
+    userId: string,
+    reason: ExpReason,
+    refType: string,
+    refId: string,
+    idempotencyKey: string,
+  ): Promise<void> {
+    try {
+      await this.exp.award(userId, reason, { refType, refId, idempotencyKey });
+    } catch (error) {
+      this.logger.warn(`EXP 钩子失败（${reason}）：${(error as Error).message}`);
+    }
   }
 
   private async likedSet(viewer: AuthUser | null, postIds: string[]): Promise<Set<string>> {

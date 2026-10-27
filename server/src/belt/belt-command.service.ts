@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../common/prisma/prisma.service';
 import type { AuthUser } from '../common/types/context';
 
@@ -8,6 +9,8 @@ export interface BeltCommandResult {
   handled: boolean;
   /** 直接回显的文本（/ping /report /help） */
   reply?: string;
+  /** 已自行落卡并写入频道消息（/task /poll /chart），调用方不再追加回显 */
+  createdCard?: boolean;
 }
 
 /**
@@ -56,13 +59,13 @@ export class BeltCommandService {
     if (command === '/task') {
       if (!arg) return { handled: true, reply: '用法：/task <任务标题>' };
       await this.createCard(user, channelId, 'task', arg.slice(0, 120));
-      return { handled: true, reply: `任务已创建：${arg.slice(0, 120)}` };
+      return { handled: true, createdCard: true };
     }
 
     if (command === '/poll') {
       if (!arg) return { handled: true, reply: '用法：/poll <投票题目>' };
       await this.createCard(user, channelId, 'vote', arg.slice(0, 120));
-      return { handled: true, reply: `投票已发起：${arg.slice(0, 120)}` };
+      return { handled: true, createdCard: true };
     }
 
     if (command === '/chart') {
@@ -84,58 +87,28 @@ export class BeltCommandService {
         .filter((point): point is { name: string; value: number } => Boolean(point))
         .slice(0, 8);
       if (points.length === 0) return { handled: true, reply: '用法：/chart 标题|标签=数值,标签=数值' };
-      await this.createChartCard(user, channelId, title, points);
-      return { handled: true, reply: `图表已生成：${title}` };
+      await this.createCard(user, channelId, 'chart', title, { chartType: 'bar', points });
+      return { handled: true, createdCard: true };
     }
 
     return { handled: false };
   }
 
-  private async createChartCard(
+  private async createCard(
     user: AuthUser,
     channelId: string,
+    kind: 'task' | 'vote' | 'chart',
     title: string,
-    points: Array<{ name: string; value: number }>,
+    data: Prisma.InputJsonValue = kind === 'vote' ? { options: ['赞成', '反对'] } : {},
   ): Promise<void> {
-    await this.prisma.withTransaction(async (tx) => {
-      const card = await tx.card.create({
-        data: {
-          channelId,
-          kind: 'chart',
-          title,
-          body: '由 /chart 指令创建',
-          data: { chartType: 'bar', points },
-          status: 'open',
-          createdBy: user.id,
-        },
-        select: { id: true },
-      });
-      await tx.message.create({
-        data: {
-          channelId,
-          senderId: user.id,
-          kind: 'card',
-          body: title,
-          clientMsgId: randomUUID(),
-          cardId: card.id,
-        },
-      });
-      await tx.channel.update({
-        where: { id: channelId },
-        data: { lastMessageAt: new Date() },
-      });
-    });
-  }
-
-  private async createCard(user: AuthUser, channelId: string, kind: 'task' | 'vote', title: string): Promise<void> {
     await this.prisma.withTransaction(async (tx) => {
       const card = await tx.card.create({
         data: {
           channelId,
           kind,
           title,
-          body: kind === 'task' ? '由 /task 指令创建' : '由 /poll 指令创建',
-          data: kind === 'vote' ? { options: ['赞成', '反对'] } : {},
+          body: `由 /${kind} 指令创建`,
+          data,
           status: 'open',
           ...(kind === 'task' ? { taskStatus: 'todo' } : {}),
           createdBy: user.id,

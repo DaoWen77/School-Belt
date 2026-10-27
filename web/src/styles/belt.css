@@ -5002,3 +5002,606 @@ button.belt-row[data-active='true'] .belt-row-deck {
   text-align: right;
   color: var(--ef-ink);
 }
+
+/* 代码块极简高亮（关键字 / 字符串 / 注释 / 数字） */
+.belt-code-kw { color: #00ffff; }
+.belt-code-str { color: #ffd479; }
+.belt-code-comment { color: #6d7f6d; font-style: italic; }
+.belt-code-num { color: #ff7ad9; }
+
+/* 环带顶栏「返回帝江号」门禁入口 */
+.belt-header-link.is-return {
+  border-color: var(--ef-signal);
+  color: var(--ef-signal);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   模块一：外环个人主页（收纳式档案）
+   模块二：风纪工位（工单池 / 投票 / 审批）
+   ========================================================================== */
+
+/* 个人主页头像超大号 */
+.belt-avatar-xl {
+  width: 5rem;
+  height: 5rem;
+  font-size: 1.9rem;
+}
+
+/* ── 个人主页：单卡片收纳 ───────────────────────────────── */
+.belt-uf-card {
+  border: 1px solid var(--ef-rule);
+  background:
+    linear-gradient(135deg, rgba(255, 250, 0, 0.05), transparent 42%),
+    var(--ef-panel);
+  padding: 1rem;
+}
+
+.belt-uf-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.belt-uf-id {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+
+.belt-uf-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.belt-uf-name {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--ef-font-display);
+  font-size: clamp(1.35rem, 4vw, 2rem);
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.belt-uf-level {
+  flex: 0 0 auto;
+  border: 1px solid var(--ef-signal);
+  color: var(--ef-signal);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 0.1rem 0.4rem;
+}
+
+.belt-uf-handle {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+}
+
+.belt-uf-status {
+  margin-left: 0.45rem;
+  color: var(--ef-signal);
+}
+
+.belt-uf-badges {
+  margin-top: 0.35rem;
+}
+
+.belt-uf-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.belt-uf-notice {
+  margin-bottom: 0.6rem;
+}
+
+/* ⋯ 收纳菜单 */
+.belt-menu {
+  position: relative;
+}
+
+.belt-menu-trigger {
+  min-width: 2.2rem;
+  letter-spacing: 0.12em;
+}
+
+.belt-menu-pop {
+  position: absolute;
+  z-index: 130;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 9.5rem;
+  max-width: min(16rem, calc(100vw - 2rem));
+  border: 1px solid var(--ef-signal);
+  background: var(--ef-panel);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  padding: 0.3rem;
+}
+
+.belt-menu-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ef-ink);
+  cursor: pointer;
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.belt-menu-item:hover,
+.belt-menu-item:focus-visible {
+  background: var(--ef-chip);
+  color: var(--ef-signal);
+}
+
+/* 三计数 */
+.belt-uf-counts {
+  display: flex;
+  margin-top: 0.85rem;
+  border-top: 1px solid var(--ef-rule);
+  border-bottom: 1px solid var(--ef-rule);
+}
+
+.belt-uf-counts > div {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.2rem;
+}
+
+.belt-uf-counts b {
+  font-family: var(--ef-font-mono);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.belt-uf-counts span {
+  color: var(--ef-ink-2);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+/* 三 Tab */
+.belt-uf-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.8rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.belt-uf-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.belt-uf-tab {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 0.35rem;
+  appearance: none;
+  border: 1px solid var(--ef-rule);
+  background: transparent;
+  color: var(--ef-ink-2);
+  cursor: pointer;
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 0.65rem;
+  white-space: nowrap;
+}
+
+.belt-uf-tab small {
+  font-size: 8px;
+  opacity: 0.55;
+  letter-spacing: 0.1em;
+}
+
+.belt-uf-tab em {
+  color: var(--ef-signal);
+  font-style: normal;
+}
+
+.belt-uf-tab.is-active {
+  border-color: var(--ef-signal);
+  background: rgba(255, 250, 0, 0.08);
+  color: var(--ef-signal);
+}
+
+.belt-uf-body {
+  margin-top: 0.75rem;
+}
+
+/* 帖子行 */
+.belt-uf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.belt-uf-row {
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+}
+
+.belt-uf-row:hover {
+  border-color: var(--ef-signal);
+}
+
+.belt-uf-row-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.7rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.belt-uf-row-main b {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.belt-uf-row-main small {
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+}
+
+.belt-uf-more {
+  margin-top: 0.6rem;
+}
+
+/* 委托 / 服务卡片 */
+.belt-uf-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.belt-uf-item {
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  padding: 0.7rem 0.75rem;
+}
+
+.belt-uf-item > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.belt-uf-item > header b {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.belt-uf-item p {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.belt-uf-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  margin-top: 0.4rem;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+}
+
+.belt-uf-skeleton {
+  min-height: 6rem;
+}
+
+/* 编辑资料抽屉里的头像行 */
+.belt-uf-edit-avatar {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0.6rem 0;
+}
+
+/* 认证标签勾选 */
+.belt-uf-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.6rem 0;
+}
+
+.belt-uf-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--ef-rule);
+  cursor: pointer;
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+  padding: 0.4rem 0.6rem;
+}
+
+.belt-uf-tag input {
+  accent-color: var(--ef-signal);
+  margin: 0;
+}
+
+/* ── 通用弹窗（皮带/风纪共用；既有 belt-modal-* 类此前无样式） ── */
+.belt-modal-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.68);
+  padding: 1rem;
+}
+
+.belt-modal {
+  width: min(30rem, 100%);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  border: 1px solid var(--ef-signal);
+  background: var(--ef-panel);
+  padding: 1rem;
+}
+
+.belt-modal h2 {
+  margin: 0.2rem 0 0.4rem;
+  overflow-wrap: anywhere;
+  font-family: var(--ef-font-display);
+  font-size: 1.2rem;
+}
+
+.belt-modal .belt-field {
+  margin-top: 0.6rem;
+}
+
+.belt-modal textarea.belt-input {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.belt-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.belt-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── 风纪工位 ──────────────────────────────────────────── */
+.belt-mod-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  padding: 0.7rem 0.8rem;
+}
+
+.belt-mod-head-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.belt-mod-role {
+  font-family: var(--ef-font-display);
+  font-size: 1rem;
+}
+
+.belt-mod-pending {
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+}
+
+.belt-mod-pending b {
+  color: var(--ef-signal);
+  font-size: 1rem;
+}
+
+.belt-mod-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.belt-mod-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.belt-mod-card {
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  padding: 0.8rem;
+}
+
+.belt-mod-card.is-closed {
+  opacity: 0.72;
+}
+
+.belt-mod-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.belt-mod-kicker {
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.belt-mod-title {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.belt-mod-body {
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--ef-ink-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.belt-mod-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  margin-top: 0.45rem;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+}
+
+.belt-mod-warn {
+  margin: 0.45rem 0 0;
+  color: #ff8a7a;
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+}
+
+.belt-mod-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.belt-button.belt-mod-vote.is-violation {
+  border-color: #ff5a48;
+  color: #ff8a7a;
+}
+
+.belt-button.belt-mod-vote.is-clear {
+  border-color: #00ffff;
+  color: #8ff9f9;
+}
+
+.belt-button.belt-mod-vote[aria-pressed='true'] {
+  background: var(--ef-chip);
+}
+
+.belt-mod-reasons {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  color: #ff8a7a;
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.belt-mod-applications {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.belt-mod-application {
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-chip);
+  padding: 0.6rem 0.7rem;
+}
+
+.belt-mod-application > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.belt-mod-application p {
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.belt-mod-application small {
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 9px;
+}
+
+@media (max-width: 480px) {
+  .belt-avatar-xl {
+    width: 4rem;
+    height: 4rem;
+    font-size: 1.5rem;
+  }
+
+  .belt-uf-card {
+    padding: 0.8rem;
+  }
+
+  /* 三 Tab 等分，避免在 390px 被裁切 */
+  .belt-uf-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.2rem;
+    overflow: visible;
+  }
+
+  .belt-uf-tab {
+    justify-content: center;
+    font-size: 10px;
+    padding: 0.4rem 0.3rem;
+  }
+
+  .belt-uf-tab small {
+    display: none;
+  }
+
+  .belt-uf-counts b {
+    font-size: 0.95rem;
+  }
+
+  .belt-mod-head {
+    padding: 0.6rem;
+  }
+}

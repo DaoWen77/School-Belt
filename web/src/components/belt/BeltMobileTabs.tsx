@@ -9,11 +9,14 @@ const TABS = [
   { key: 'profile', label: '我的', en: 'ME', href: '/belt/profile', icon: '◉' },
 ];
 
-export function BeltMobileTabs({ activeView }: { activeView: string }) {
+const MODERATION_TAB = { key: 'moderation', label: '风纪', en: 'TRIBUNAL', href: '/belt/moderation', icon: '⚖' };
+
+export function BeltMobileTabs({ activeView, canModerate = false }: { activeView: string; canModerate?: boolean }) {
   const active = activeView === 'dispatch' ? 'telegraph' : activeView;
+  const tabs = canModerate ? [...TABS, MODERATION_TAB] : TABS;
   return (
-    <nav className="belt-mobile-tabs" aria-label="移动端主导航">
-      {TABS.map((tab) => (
+    <nav className={`belt-mobile-tabs${canModerate ? ' is-wide' : ''}`} aria-label="移动端主导航">
+      {tabs.map((tab) => (
         <Link
           key={tab.key}
           href={tab.href}
