@@ -250,7 +250,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
                     <div className={`belt-im-bubble${mine ? ' is-mine' : ''}`}>
                       {message.card ? (
                         <a className="belt-share-card" href={message.card.data?.url ?? `/belt/posts/${message.card.data?.postId ?? ''}`}>
-                          <span className="belt-share-card-kicker">NEWS SHARE · {message.card.data?.sourceName ?? '环带电文'}</span>
+                          <span className="belt-share-card-kicker">NEWS SHARE · {message.card.data?.sourceName ?? '环塔电文'}</span>
                           <strong>{message.card.title}</strong>
                           <em>阅读全文 →</em>
                         </a>
@@ -259,7 +259,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
                           const [, callId, mode, caller] = message.body.split(':');
                           return (
                             <a className="belt-call-card" href={`/belt/rtc?callId=${callId}&mode=${mode || 'audio'}`} onClick={(event) => { event.preventDefault(); notifyRtcDisabled(); }}>
-                              <span>📡 AURORA CALL · 极光通讯</span>
+                              <span>📡 VOICE LINK · 语音链路</span>
                               <strong>{decodeURIComponent(caller || '对方')} 邀请你加入通讯</strong>
                               <em>点击加入 →</em>
                             </a>

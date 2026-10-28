@@ -27,7 +27,7 @@ let sharedCardId = null;
 let sharedMessageId = null;
 let bindCodeId = null;
 let deviceTokenId = null;
-const longParagraph = `${marker} ` + '环带新闻全文。'.repeat(850);
+const longParagraph = `${marker} ` + '环塔新闻全文。'.repeat(850);
 
 const feed = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel><title>${sourceName}</title>
@@ -123,9 +123,9 @@ async function main() {
       await page.getByRole('button', { name: '发送', exact: true }).click();
       await page.waitForTimeout(500);
       console.log('COMMENT_VISIBLE', (await page.locator('body').innerText()).includes(`回波验收 ${stamp}`));
-      await page.getByRole('button', { name: '转发到环带频道' }).click();
+      await page.getByRole('button', { name: '转发到环塔频道' }).click();
       await page.waitForTimeout(700);
-      console.log('SHARE_NOTICE', (await page.locator('body').innerText()).includes('已作为卡片转发到环带频道'));
+      console.log('SHARE_NOTICE', (await page.locator('body').innerText()).includes('已作为卡片转发到环塔频道'));
 
       const defaultChannel = await prisma.channel.findFirst({
         where: { surface: 'belt', slug: 'belt-channel' },

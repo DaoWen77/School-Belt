@@ -12,7 +12,7 @@ import { ZBody } from '../common/pipes/zod-validation.pipe';
 import type { AuthUser } from '../common/types/context';
 
 /**
- * 内部 → 环带的交接码签发。
+ * 内部 → 环塔的交接码签发。
  * 守卫默认 internal，并额外要求 is_internal；HandoffService 再校验一次。
  */
 @Controller('access')
@@ -32,7 +32,7 @@ export class InternalAccessController {
 }
 
 /**
- * 环带 → 帝江号的门禁。
+ * 环塔 → 工作台的门禁。
  * 这里不直接发内部 token：标签通过后只发 60 秒交接码，由内部侧兑换。
  */
 @Controller('belt/access')

@@ -47,10 +47,10 @@ try {
 
   await page.goto(`${WEB}/belt/channel`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.getByText('环带频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
+  await page.getByText('环塔频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
   await page.waitForTimeout(2500);
   const channelText = await page.locator('body').innerText();
-  ok('B2 公网页面加载频道', /环带频道/.test(channelText), { snippet: channelText.slice(0, 80) });
+  ok('B2 公网页面加载频道', /环塔频道/.test(channelText), { snippet: channelText.slice(0, 80) });
   await page.screenshot({ path: path.join(OUT, 'public-channel.png') });
 
   /* 上传一个小 pptx（走 + 附件） */

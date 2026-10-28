@@ -165,7 +165,7 @@ export function RssSettings({ isOwner }: { isOwner: boolean }) {
         </span>
       </div>
       <p className="mb-3 border-l-2 border-ink pl-2 text-[10px] leading-relaxed text-ink-2">
-        抓取结果写入环带电文的 <code>telegraph</code> 版块，电文墙会自动拼贴。RSS 源只允许 Owner / Admin 管理。
+        抓取结果写入环塔电文的 <code>telegraph</code> 版块，电文墙会自动拼贴。RSS 源只允许 Owner / Admin 管理。
       </p>
 
       {error ? (

@@ -30,7 +30,7 @@ const t1 = await call('POST', '/belt/tasks', creator, {
   priceCents: 3000,
 });
 const t2 = await call('POST', '/belt/tasks', qiu, {
-  title: '环带导览图排版',
+  title: '环塔导览图排版',
   description: '把中继塔平面图排成一张 A3 导览图，附 10 个标注点。',
   priceCents: 2000,
 });

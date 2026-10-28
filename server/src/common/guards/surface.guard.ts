@@ -15,14 +15,14 @@ import { ErrorCode } from '../errors/error-codes';
 import type { RequestWithContext } from '../types/context';
 
 /**
- * 面隔离守卫（文明环带 Phase A）。
+ * 面隔离守卫（环塔 Phase A）。
  *
  * 默认 internal：任何没有显式 `@Surface('belt'|'bridge')` 的受保护路由，
  * 都必须同时满足：
  *   - 当前 session.surface === 'internal'
  *   - 用户拥有 `[站长]` 标签（is_internal）
  *
- * `belt` 只校验会话面；`bridge` 预留给跨环带 DM，后续还要叠加好友关系校验。
+ * `belt` 只校验会话面；`bridge` 预留给跨环塔 DM，后续还要叠加好友关系校验。
  * 这里不查库：JwtAuthGuard 已经把 session.surface / isInternal 从库里补齐。
  */
 @Injectable()
@@ -57,7 +57,7 @@ export class SurfaceGuard implements CanActivate {
 
     if (required === 'internal') {
       if (user.sessionSurface !== 'internal') {
-        throw new AppError(ErrorCode.SURFACE_MISMATCH, '该接口仅接受帝江号内部会话');
+        throw new AppError(ErrorCode.SURFACE_MISMATCH, '该接口仅接受工作台内部会话');
       }
       if (!user.isInternal) {
         throw new AppError(ErrorCode.INTERNAL_ONLY, '缺少 [站长] 身份标签');
@@ -67,12 +67,12 @@ export class SurfaceGuard implements CanActivate {
 
     if (required === 'belt') {
       if (user.sessionSurface !== 'belt') {
-        throw new AppError(ErrorCode.SURFACE_MISMATCH, '该接口仅接受文明环带会话');
+        throw new AppError(ErrorCode.SURFACE_MISMATCH, '该接口仅接受环塔会话');
       }
       return true;
     }
 
-    // bridge：内部/环带会话都可进入，但业务层必须继续校验好友关系与频道 surface。
+    // bridge：内部/环塔会话都可进入，但业务层必须继续校验好友关系与频道 surface。
     if (user.sessionSurface !== 'internal' && user.sessionSurface !== 'belt') {
       throw new AppError(ErrorCode.SURFACE_MISMATCH);
     }

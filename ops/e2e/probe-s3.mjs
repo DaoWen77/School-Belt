@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * 手工验证：AWS SDK v3 的**预签名 PUT/GET** 对真实 S3 兼容服务是否可用。
- * 只依赖 S3 服务本身，不经过帝江号 API，用于证明“签名 URL 真能用”。
+ * 只依赖 S3 服务本身，不经过工作台 API，用于证明“签名 URL 真能用”。
  *
  * 本机真实 S3：rclone 1.75.2 `serve s3`，127.0.0.1:9000，minioadmin/minioadmin。
  * 用法：node probe-s3.mjs

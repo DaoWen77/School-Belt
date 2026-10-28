@@ -139,7 +139,7 @@ export function BeltBondsView() {
         size="md"
       />
       <div className="belt-bond-id">
-        <b>{bond.peer?.displayName || bond.peer?.handle || '未知干员'}</b>
+        <b>{bond.peer?.displayName || bond.peer?.handle || '未知用户'}</b>
         <span>@{bond.peer?.handle}</span>
       </div>
       <span className="belt-stamp is-signal">{bondLabel(bond)}</span>

@@ -18,7 +18,7 @@ export interface BeltStickerView {
 }
 
 /**
- * 环带表情包（模块四补丁）：复用 stickers 表，只操作本人的行。
+ * 环塔表情包（模块四补丁）：复用 stickers 表，只操作本人的行。
  * - 上限 100 个；
  * - 文件必须存在、ready、且属于本人；
  * - 同一 fileId 重复添加 → 409 STICKER_CONFLICT。

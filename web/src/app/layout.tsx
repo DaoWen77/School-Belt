@@ -19,7 +19,7 @@ import '../styles/drawer.css';
 import '../styles/archive.css';
 
 export const metadata: Metadata = {
-  title: 'O.M.V 帝江号 · 全域广播',
+  title: 'O.M.V 工作台 · 全域广播',
   description: '邀请制协作空间：频道、私聊、群聊与实时消息（真实 API / WS）',
 };
 

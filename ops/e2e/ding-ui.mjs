@@ -45,12 +45,12 @@ try {
   const receiver = await receiverCtx.newPage();
 
   await receiver.goto(`${WEB}/belt/channel`, { waitUntil: 'domcontentloaded' });
-  await receiver.getByText('环带频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
+  await receiver.getByText('环塔频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
   await receiver.waitForTimeout(2500);
   await receiver.getByRole('button', { name: /我知道了/ }).click({ timeout: 2000 }).catch(() => {});
 
   await sender.goto(`${WEB}/belt/channel`, { waitUntil: 'domcontentloaded' });
-  await sender.getByText('环带频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
+  await sender.getByText('环塔频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
   await sender.waitForTimeout(2500);
   await sender.getByRole('button', { name: /我知道了/ }).click({ timeout: 2000 }).catch(() => {});
 

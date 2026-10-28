@@ -22,11 +22,11 @@ const HANDOFF_TTL_MS = 60_000;
 const HANDOFF_TTL_SEC = HANDOFF_TTL_MS / 1000;
 
 /**
- * 跨面交接码（文明环带 Phase A）。
+ * 跨面交接码（环塔 Phase A）。
  *
  * - 只存在 Redis，60 秒、单次消费；不落业务表。
- * - 内部→环带只允许有 `[站长]` 的内部会话发起；
- *   环带→内部只允许有标签的环带会话发起。
+ * - 内部→环塔只允许有 `[站长]` 的内部会话发起；
+ *   环塔→内部只允许有标签的环塔会话发起。
  * - 消费时用 Lua `GET + DEL` 原子取走，避免并发双花。
  * - 绑定 User-Agent 哈希，降低交接 URL 被复制到另一浏览器直接使用的风险。
  */
@@ -48,11 +48,11 @@ export class HandoffService {
   ): Promise<{ code: string; next: string; expiresIn: number }> {
     if (target === 'belt') {
       if (user.sessionSurface !== 'internal' || !user.isInternal) {
-        throw new AppError(ErrorCode.PROTOCOL_DENIED, '仅帝江号内部账号可接入文明环带');
+        throw new AppError(ErrorCode.PROTOCOL_DENIED, '仅工作台内部账号可接入环塔');
       }
     } else {
       if (user.sessionSurface !== 'belt') {
-        throw new AppError(ErrorCode.SURFACE_MISMATCH, '必须从文明环带会话发起登入');
+        throw new AppError(ErrorCode.SURFACE_MISMATCH, '必须从环塔会话发起登入');
       }
       if (!user.isInternal) {
         await this.audit.record({
@@ -166,6 +166,6 @@ function safeNext(target: HandoffTarget, raw: string | undefined): string {
   if (target === 'belt') {
     return value === '/belt' || value.startsWith('/belt/') ? value : fallback;
   }
-  // 外部路径不允许回跳环带；其余站内路径放行。
+  // 外部路径不允许回跳环塔；其余站内路径放行。
   return value === '/belt' || value.startsWith('/belt/') ? fallback : value;
 }

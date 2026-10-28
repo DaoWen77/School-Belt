@@ -45,7 +45,7 @@ export function BeltDenial({ onDone, reason }: { onDone: () => void; reason?: st
           LINK PURGE IN <b>0{count}</b> … 强制断开
         </div>
       </div>
-      <span className="belt-sr-only">协议拒绝。未授权链路。三秒后强制返回文明环带。</span>
+      <span className="belt-sr-only">协议拒绝。未授权链路。三秒后强制返回环塔。</span>
     </div>
   );
 }

@@ -193,7 +193,7 @@ export class SocialService {
     };
   }
 
-  /** 个人主页 Tab1：只有环带已发布、未删除的帖子 */
+  /** 个人主页 Tab1：只有环塔已发布、未删除的帖子 */
   async posts(
     handle: string,
     limit: number,

@@ -82,7 +82,7 @@ try {
     localStorage.setItem('dj.belt.refresh', t.r);
   }, { a: qiu.accessToken, r: qiu.refreshToken });
   const page = await ctx.newPage();
-  await visit(page, 'member-daily', '/belt/daily', '干员日常');
+  await visit(page, 'member-daily', '/belt/daily', '用户日常');
   await visit(page, 'member-dispatch', '/belt/dispatch', null);
   await visit(page, 'member-bounty', '/belt/bounty', '悬赏委托');
   await visit(page, 'member-direct', '/belt/direct', null);

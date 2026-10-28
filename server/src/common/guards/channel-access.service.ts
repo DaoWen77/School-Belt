@@ -48,7 +48,7 @@ export class ChannelAccessService {
       },
     });
     // 内部频道权限服务接受 internal；bridge DM 是唯一的跨面 DM 例外。
-    // 环带公开频道仍走独立的 belt 消息服务。
+    // 环塔公开频道仍走独立的 belt 消息服务。
     if (
       !channel ||
       (channel.surface !== 'internal' &&

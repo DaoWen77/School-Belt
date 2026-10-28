@@ -1,4 +1,4 @@
-﻿# O.M.V 帝江号 · 本机一键启动（前端 + 后端，不用 Docker）
+﻿# O.M.V 工作台 · 本机一键启动（前端 + 后端，不用 Docker）
 # 用法：
 #   .\一键启动.cmd               # 缺产物则构建，然后起 API(3000) + Web(3100)，开浏览器
 #   .\一键启动.cmd -Rebuild      # 强制重构建
@@ -128,8 +128,8 @@ $apiState = try {
 }
 
 Write-Host ''
-Write-Host "帝江号内网  : $WebUrl" -ForegroundColor Green
-Write-Host "文明环带    : $WebUrl/belt" -ForegroundColor Green
+Write-Host "工作台内网  : $WebUrl" -ForegroundColor Green
+Write-Host "环塔    : $WebUrl/belt" -ForegroundColor Green
 Write-Host "后端 API    : $ApiUrl/api/v1    探针 $ApiUrl/readyz -> $apiState" -ForegroundColor Green
 Write-Host "日志        : ops\.run\api.log / web.log" -ForegroundColor DarkGray
 Write-Host "停止        : .\一键启动.cmd -Stop   （或关掉两个最小化窗口）" -ForegroundColor DarkGray

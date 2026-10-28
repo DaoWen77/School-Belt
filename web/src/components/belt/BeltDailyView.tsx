@@ -39,12 +39,12 @@ function codeOf(id: string): string {
 function tagOf(post: BeltPost): string {
   if (post.source === 'rss') return `#${post.sourceName ?? 'INTERCEPT'}`;
   if (post.source === 'official') return '#协议官';
-  return '#干员日常';
+  return '#日志板';
 }
 
 /**
- * 03 干员日常 / INTER-KNOT
- * ZZZ 绳网式垂直瀑布流：多列错落、霓虹粗边框、涂鸦标题、药丸编号。
+ * 03 日志板 / SIGNAL-NET
+ * ZZZ 信号塔式垂直瀑布流：多列错落、霓虹粗边框、涂鸦标题、药丸编号。
  */
 export function BeltDailyView({ user }: { user: BeltUser }) {
   const [posts, setPosts] = useState<BeltPost[]>([]);
@@ -82,18 +82,18 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
     <>
       <div className="belt-masonry-page mt-4">
         <div className="belt-daily-ticker" aria-hidden="true">
-          <span>INTER-KNOT / 绳网 </span>
-          <span>今日干员信号 </span>
+          <span>SIGNAL-NET / 信号塔 </span>
+          <span>今日用户信号 </span>
           <span>SCROLL ↓</span>
-          <span>INTER-KNOT / 绳网 </span>
-          <span>今日干员信号 </span>
+          <span>SIGNAL-NET / 信号塔 </span>
+          <span>今日用户信号 </span>
         </div>
 
         <header className="belt-daily-hero">
           <div>
-            <p className="belt-page-kicker">INTER-KNOT // 绳网终端 · BELT-07</p>
+            <p className="belt-page-kicker">SIGNAL-NET // 信号塔终端 · BELT-07</p>
             <h1>
-              干员<span>日常</span>
+              用户<span>日常</span>
             </h1>
             <p className="belt-daily-sub">躺在床上刷信号。往下滑，别掉线。</p>
           </div>
@@ -130,11 +130,11 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
           <span className="belt-hint">MASONRY · {posts.length} 条信号</span>
         </div>
 
-        {loading ? <div className="belt-empty">正在接入绳网…</div> : null}
+        {loading ? <div className="belt-empty">正在接入信号塔…</div> : null}
         {!loading && posts.length === 0 ? (
           <div className="belt-daily-empty">
             <span>NO LOG</span>
-            <p>今天还没有干员发信号。右下角按钮，写第一条。</p>
+            <p>今天还没有用户发信号。右下角按钮，写第一条。</p>
           </div>
         ) : null}
 
@@ -197,7 +197,7 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
             <button
               type="button"
               className="belt-daily-fab"
-              aria-label="发布干员日常"
+              aria-label="发布日志板"
               onClick={() => setComposerOpen(true)}
             >
               <span>＋</span>

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const reservedIdentityWord = /(站长|Official|帝江号|文明环带|系统)/i;
+const reservedIdentityWord = /(站长|Official|工作台|环塔|系统)/i;
 
 export const updateProfileSchema = z.object({
   displayName: z

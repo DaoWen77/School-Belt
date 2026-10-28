@@ -2,7 +2,7 @@
   "name": "dijiang-e2e",
   "version": "1.0.0",
   "private": true,
-  "description": "帝江号 E2E：真实 Postgres + API/WS 冒烟 + Playwright UI 冒烟（禁止 mock）",
+  "description": "工作台 E2E：真实 Postgres + API/WS 冒烟 + Playwright UI 冒烟（禁止 mock）",
   "type": "module",
   "engines": {
     "node": ">=22.0.0"

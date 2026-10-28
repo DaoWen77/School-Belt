@@ -1,5 +1,5 @@
 -- ============================================================================
--- O.M.V 帝江号 · 全域广播 —— 0005_sprint3（Sprint 3：AI 配置 + 固定 bot 用户）
+-- O.M.V 工作台 · 全域广播 —— 0005_sprint3（Sprint 3：AI 配置 + 固定 bot 用户）
 -- 依据：Sprint3 需求（@Bot SSE 回复 / AI 配置加密）
 -- 目标库：PostgreSQL 16（本机 embedded PG 17.5）
 -- 前置：0001_init .. 0004_sprint2 已执行
@@ -17,7 +17,7 @@ INSERT INTO users (id, handle, display_name, password_hash, global_role, status,
 VALUES (
   '00000000-0000-4000-8000-0000000000b0',
   'dijiang_bot',
-  '帝江号·协议官',
+  '工作台·协议官',
   '!bot',
   'member',
   'active',

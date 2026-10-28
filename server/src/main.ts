@@ -99,7 +99,7 @@ async function bootstrap(): Promise<void> {
       redis: 'required (PING at startup)',
       rtcSignaling: config.rtc.enabled,
     },
-    '帝江号 API 已启动',
+    '工作台 API 已启动',
   );
 }
 

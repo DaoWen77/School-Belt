@@ -39,10 +39,10 @@ export type BeltView =
   | 'moderation';
 
 const NAV: Array<{ key: BeltView; index: string; label: string; en: string; href: string }> = [
-  { key: 'channel', index: '01', label: '环带频道', en: 'CHANNEL', href: '/belt/channel' },
-  { key: 'dispatch', index: '02', label: '环带电文 / 信号截获', en: 'INTERCEPTS', href: '/belt/dispatch' },
+  { key: 'channel', index: '01', label: '环塔频道', en: 'CHANNEL', href: '/belt/channel' },
+  { key: 'dispatch', index: '02', label: '环塔电文 / 信号截获', en: 'INTERCEPTS', href: '/belt/dispatch' },
   { key: 'bounty', index: '03', label: '悬赏委托', en: 'BOUNTY', href: '/belt/bounty' },
-  { key: 'daily', index: '04', label: '干员日常', en: 'LOGBOOK', href: '/belt/daily' },
+  { key: 'daily', index: '04', label: '日志板', en: 'LOGBOOK', href: '/belt/daily' },
   { key: 'direct', index: '05', label: '私聊链路', en: 'DIRECT', href: '/belt/direct' },
   { key: 'profile', index: '06', label: '个人中心', en: 'PROFILE', href: '/belt/profile' },
   { key: 'organizations', index: '07', label: '组织中心', en: 'ORGS', href: '/belt/organizations' },
@@ -50,17 +50,17 @@ const NAV: Array<{ key: BeltView; index: string; label: string; en: string; href
 ];
 
 const PAGE_META: Record<BeltView, { title: string; en: string; copy: string }> = {
-  channel: { title: '环带频道', en: 'LIVE CHANNEL', copy: '公开实时公共频道 · 所有环带身份可发言' },
-  dispatch: { title: '环带电文', en: 'INTERCEPTS', copy: '官方快报与新闻塔截获 · 信号截获墙' },
+  channel: { title: '环塔频道', en: 'LIVE CHANNEL', copy: '公开实时公共频道 · 所有环塔身份可发言' },
+  dispatch: { title: '环塔电文', en: 'INTERCEPTS', copy: '官方快报与新闻塔截获 · 信号截获墙' },
   bounty: { title: '悬赏委托', en: 'BOUNTY BOARD', copy: '委托交易 · 托管资金' },
-  daily: { title: '干员日常', en: 'LOGBOOK', copy: '公开发帖 · 记录外环的日常信号' },
-  telegraph: { title: '环带电文', en: 'INTERCEPTS', copy: '官方快报与新闻塔截获 · 信号截获墙' },
-  direct: { title: '私聊链路', en: 'DIRECT', copy: '关注后可发起私信 · 跨环带仅限悬赏联络' },
+  daily: { title: '日志板', en: 'LOGBOOK', copy: '公开发帖 · 记录外环的日常信号' },
+  telegraph: { title: '环塔电文', en: 'INTERCEPTS', copy: '官方快报与新闻塔截获 · 信号截获墙' },
+  direct: { title: '私聊链路', en: 'DIRECT', copy: '关注后可发起私信 · 跨环塔仅限悬赏联络' },
   profile: { title: '个人中心', en: 'PROFILE', copy: '外环身份资料 · 头像与组织状态' },
   organizations: { title: '组织中心', en: 'ORGANIZATIONS', copy: '加入组织 · Owner 审批与私有频道' },
   bonds: { title: '我的羁绊', en: 'BONDS', copy: '亲密关系 · 每日延续火花' },
   post: { title: '帖子详情', en: 'TRANSMISSION', copy: '信号正文与回波' },
-  user: { title: '干员档案', en: 'DOSSIER', copy: '外环身份 · 关注链路与发布记录' },
+  user: { title: '档案', en: 'DOSSIER', copy: '外环身份 · 关注链路与发布记录' },
   moderation: { title: '风纪工位', en: 'TRIBUNAL', copy: '工单池 · 众包投票与风纪委员审批' },
 };
 
@@ -129,7 +129,7 @@ export function BeltApp({
           router.replace(`/belt/login?next=${encodeURIComponent(path)}`);
           return;
         }
-        setError(caught instanceof Error ? caught.message : '环带链路读取失败');
+        setError(caught instanceof Error ? caught.message : '环塔链路读取失败');
       })
       .finally(() => {
         if (!cancelled) setBooting(false);
@@ -220,7 +220,7 @@ export function BeltApp({
             <p className="belt-gate-kicker">LINK FAILED</p>
             <h1>
               NO SIGNAL
-              <small>{error ?? '环带身份不可用。'}</small>
+              <small>{error ?? '环塔身份不可用。'}</small>
             </h1>
             <div className="belt-gate-foot">
               <Link href="/belt/login">重新接入</Link>
@@ -236,9 +236,9 @@ export function BeltApp({
       <div className="belt-shell">
         <header className="belt-header">
           <button type="button" className="belt-mobile-menu" aria-label="打开导航" onClick={() => setMobileNav(true)}>≡</button>
-          <Link href="/belt/channel" className="belt-wordmark" aria-label="文明环带首页">
+          <Link href="/belt/channel" className="belt-wordmark" aria-label="环塔首页">
             <strong>CIVILIZATION BELT</strong>
-            <small>文明环带 / 外环中继 07</small>
+            <small>环塔 / 外环中继 07</small>
           </Link>
           <div className="belt-signal">
             <span>RELAY <b>07</b></span>
@@ -249,7 +249,7 @@ export function BeltApp({
           <div className="belt-header-actions">
             {(user.prefixes ?? []).includes('[站长]') ? (
               <Link href="/belt/access" className="belt-header-link is-return">
-                返回帝江号 →
+                返回工作台 →
               </Link>
             ) : (
               <Link href="/belt/access" className="belt-header-link">
@@ -360,7 +360,7 @@ export function BeltApp({
                   value={annBody}
                   onChange={(event) => setAnnBody(event.target.value)}
                   aria-label="公告正文"
-                  placeholder="全环带干员注意…"
+                  placeholder="全环塔用户注意…"
                 />
               </label>
               <label className="belt-field">

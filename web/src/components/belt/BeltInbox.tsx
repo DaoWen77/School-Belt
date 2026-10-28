@@ -23,7 +23,7 @@ interface JoinRequest {
 }
 
 /**
- * 环带处理中心：待审组织 / 组织加入申请。
+ * 环塔处理中心：待审组织 / 组织加入申请。
  * 全部在当前页面处置，不要求切回内网或 F5。
  */
 export function BeltInbox({ isOwner, onChanged }: { isOwner: boolean; onChanged: () => void }) {

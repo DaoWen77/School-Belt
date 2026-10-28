@@ -44,7 +44,7 @@ try {
 
     const started = Date.now();
     await page.goto(`${target.web}/belt/channel`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-    await page.getByText('环带频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
+    await page.getByText('环塔频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
     await page.waitForTimeout(4000);
     const elapsed = Date.now() - started;
 

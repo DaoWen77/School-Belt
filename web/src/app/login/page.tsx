@@ -87,11 +87,11 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         <div className="mb-5">
           <div className="mb-2 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.12em] text-ink-2">
-            <span>DIJIANG / BROADCAST</span>
+            <span>OMV / BROADCAST</span>
             <span className="motion-clock">{now.toLocaleDateString('zh-CN')} {now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })}</span>
           </div>
           <p className="font-sans text-[9px] font-semibold uppercase tracking-[0.18em] text-ink-2">Invite only / 邀请制</p>
-          <h1 className="motion-login-title mt-1 font-sans text-4xl font-extrabold leading-none tracking-tight">帝江号</h1>
+          <h1 className="motion-login-title mt-1 font-sans text-4xl font-extrabold leading-none tracking-tight">工作台</h1>
           <p className="mt-1 font-sans text-[10px] uppercase tracking-[0.24em] text-ink-2">Dijiang / Broadcast</p>
         </div>
 

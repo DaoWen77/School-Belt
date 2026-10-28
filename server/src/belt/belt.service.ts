@@ -32,12 +32,12 @@ export class BeltService implements OnModuleInit {
     try {
       await this.ensureDefaultChannel();
     } catch (error) {
-      this.logger.warn(`环带默认频道初始化失败：${(error as Error).message}`);
+      this.logger.warn(`环塔默认频道初始化失败：${(error as Error).message}`);
     }
   }
 
   /**
-   * 首次启动确保公开环带频道存在。
+   * 首次启动确保公开环塔频道存在。
    * 不写死 created_by：优先生成在任意 bot 用户名下，没有 bot 再退回最早用户。
    */
   async ensureDefaultChannel(): Promise<{ id: string; name: string } | null> {
@@ -58,15 +58,15 @@ export class BeltService implements OnModuleInit {
         select: { id: true },
       }));
     if (!creator) {
-      this.logger.warn('没有可用用户，跳过环带默认频道创建');
+      this.logger.warn('没有可用用户，跳过环塔默认频道创建');
       return null;
     }
 
     const channel = await this.prisma.channel.create({
       data: {
-        name: '环带频道',
+        name: '环塔频道',
         slug: 'belt-channel',
-        topic: '文明环带公共频段 · 外环中继 07',
+        topic: '环塔公共频段 · 外环中继 07',
         visibility: 'public',
         kind: 'channel',
         surface: 'belt',
@@ -75,13 +75,13 @@ export class BeltService implements OnModuleInit {
       },
       select: { id: true, name: true },
     });
-    this.logger.log(`环带默认频道已创建：#${channel.name} (${channel.id})`);
+    this.logger.log(`环塔默认频道已创建：#${channel.name} (${channel.id})`);
     return channel;
   }
 
   async defaultChannel(): Promise<{ id: string; name: string }> {
     const channel = await this.ensureDefaultChannel();
-    if (!channel) throw new Error('环带默认频道不存在');
+    if (!channel) throw new Error('环塔默认频道不存在');
     return channel;
   }
 

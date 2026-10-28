@@ -50,13 +50,13 @@ export function BeltHandoffPage() {
               {error
                 ? error
                 : phase === 'granted'
-                  ? '链路已建立。正在转入环带终端…'
+                  ? '链路已建立。正在转入环塔终端…'
                   : '正在兑换交接码，建立外环会话…'}
             </small>
           </h1>
           {error ? (
             <div className="belt-gate-foot">
-              <Link href="/belt/login">返回环带登录</Link>
+              <Link href="/belt/login">返回环塔登录</Link>
             </div>
           ) : null}
         </div>

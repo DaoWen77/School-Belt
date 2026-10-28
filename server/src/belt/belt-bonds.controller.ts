@@ -6,7 +6,7 @@ import { CurrentUser, Surface } from '../common/decorators';
 import { ZBody } from '../common/pipes/zod-validation.pipe';
 import type { AuthUser } from '../common/types/context';
 
-/** 环带羁绊：邀请 / 接受 / 拒绝 / 续火花 / 解除（亲密度懒结算在服务层） */
+/** 环塔羁绊：邀请 / 接受 / 拒绝 / 续火花 / 解除（亲密度懒结算在服务层） */
 @Controller('belt/bonds')
 @Surface('belt')
 export class BeltBondsController {

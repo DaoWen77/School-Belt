@@ -32,7 +32,7 @@ function writeKey(key: string, value: string): void {
 }
 
 /**
- * 文明环带顶部全服公告（功能大搬家后公告移到外网）。
+ * 环塔顶部全服公告（功能大搬家后公告移到外网）。
  * info = 顶部滚动弹幕；warning = 横幅；critical = 全屏强弹窗（按 id 记录已确认）。
  */
 export function BeltAnnouncement({ refreshKey = 0 }: { refreshKey?: number }) {

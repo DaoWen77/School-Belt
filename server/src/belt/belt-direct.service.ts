@@ -56,7 +56,7 @@ interface DmMessageRow {
   deletedBy: string | null;
 }
 
-/** 环带私聊：关注即可发起（好友体系已废弃，成员关系即访问权） */
+/** 环塔私聊：关注即可发起（好友体系已废弃，成员关系即访问权） */
 @Injectable()
 export class BeltDirectService {
   constructor(

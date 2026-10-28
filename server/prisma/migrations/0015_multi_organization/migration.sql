@@ -1,5 +1,5 @@
 -- ============================================================================
--- O.M.V 帝江号 · 全域广播 —— 0015_multi_organization（扩展结构 1）
+-- O.M.V 工作台 · 全域广播 —— 0015_multi_organization（扩展结构 1）
 -- 1. 移除“一个用户只能有一个 active 组织”的部分唯一索引；
 -- 2. 增加 users.display_organization_id：用户当前展示的组织身份；
 -- 3. 保留 organization_members (organization_id, user_id) 唯一，防止同组织重复行；

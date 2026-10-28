@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Sprint 7.2 UI 截图与冒烟：环带聊天头像/图片、分享 Sheet、ZZZ 日常。 */
+/** Sprint 7.2 UI 截图与冒烟：环塔聊天头像/图片、分享 Sheet、ZZZ 日常。 */
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -53,7 +53,7 @@ async function main() {
         body: [
           '今天也没睡。把窗外的雨声录成一段信号，明天再剪。',
           '在地铁末班车上听完了整张 OST，城市像一条缓慢发光的电路。',
-          '绳网又刷新了一轮。有人约早八，有人约午夜。',
+          '信号塔又刷新了一轮。有人约早八，有人约午夜。',
         ][index],
       },
     });
@@ -69,14 +69,14 @@ async function main() {
     localStorage.setItem('dj.belt.refresh', refresh);
   }, { access: belt.accessToken, refresh: belt.refreshToken });
 
-  // 1. 环带频道：发送图片，检查头像与媒体卡片
+  // 1. 环塔频道：发送图片，检查头像与媒体卡片
   await page.goto(`${WEB}/belt/channel`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(600);
   await page.locator('input[type=file]').setInputFiles(imagePath);
   await page.waitForTimeout(300);
   await page.locator('.belt-attachment-chip').waitFor({ timeout: 8000 });
   console.log('ATTACHMENT_READY', (await page.locator('.belt-attachment-chip').count()) > 0);
-  await page.getByLabel('环带频道消息').fill(`附图信号 ${stamp}`);
+  await page.getByLabel('环塔频道消息').fill(`附图信号 ${stamp}`);
   await page.getByRole('button', { name: 'TRANSMIT', exact: true }).click();
   await page.waitForTimeout(900);
   const chatText = await page.locator('body').innerText();
@@ -99,13 +99,13 @@ async function main() {
   await page.getByRole('button', { name: '关闭', exact: true }).click();
   await page.waitForTimeout(200);
 
-  // 3. 干员日常 ZZZ
+  // 3. 用户日常 ZZZ
   await page.goto(`${WEB}/belt/daily`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(800);
   const dailyText = await page.locator('body').innerText();
-  console.log('DAILY_HERO', dailyText.includes('干员') && dailyText.includes('日常'));
+  console.log('DAILY_HERO', dailyText.includes('用户') && dailyText.includes('日常'));
   console.log('DAILY_CARDS', await page.locator('.belt-daily-card').count());
-  console.log('DAILY_FAB', await page.getByRole('button', { name: '发布干员日常' }).count());
+  console.log('DAILY_FAB', await page.getByRole('button', { name: '发布用户日常' }).count());
   await page.screenshot({ path: path.join(ROOT, 'reports', 'frontend', 'sprint72-daily-390.png'), fullPage: false });
 
   const beltChannel = await prisma.channel.findFirst({

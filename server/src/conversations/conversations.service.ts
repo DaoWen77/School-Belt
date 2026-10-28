@@ -218,7 +218,7 @@ export class ConversationsService {
       throw new AppError(ErrorCode.FORBIDDEN, '目标用户已被封禁');
     }
     if (!target.isInternal) {
-      throw new AppError(ErrorCode.FORBIDDEN, '内部私聊不能指向环带账号');
+      throw new AppError(ErrorCode.FORBIDDEN, '内部私聊不能指向环塔账号');
     }
 
     // 私聊频道由 dm_key（双方 userId 排序哈希）唯一确定；成员关系即访问权。
@@ -593,7 +593,7 @@ export class ConversationsService {
     }
     const external = [...new Set(userIds)].filter((id) => !found.get(id)?.isInternal);
     if (external.length > 0) {
-      throw new AppError(ErrorCode.FORBIDDEN, '内部会话不能包含环带账号', { userIds: external });
+      throw new AppError(ErrorCode.FORBIDDEN, '内部会话不能包含环塔账号', { userIds: external });
     }
   }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * O.M.V 帝江号 · IM 重构后的 UI 回归（task-16）
+ * O.M.V 工作台 · IM 重构后的 UI 回归（task-16）
  *
  * 覆盖：
  *   1) 原 4 项：登录 → 频道发消息 → 新建私聊发消息 → 新建群聊发消息
@@ -292,7 +292,7 @@ async function sendMessage(page, text, { screenshotName = null } = {}) {
 /* ── 主流程 ───────────────────────────────────────────────────────────── */
 async function main() {
   fs.mkdirSync(REPORTS_DIR, { recursive: true });
-  log('════════ 帝江号 IM 重构回归（task-16）════════');
+  log('════════ 工作台 IM 重构回归（task-16）════════');
   log(`WEB_BASE=${WEB_BASE} viewport=${VIEWPORT.width}x${VIEWPORT.height} mobile=${MOBILE.width}x${MOBILE.height}`);
   log(`账号：${HANDLE}`);
   const frontend = await waitFrontend();

@@ -1,5 +1,5 @@
 -- ============================================================================
--- O.M.V 帝江号 · 全域广播 —— 0009_identity_surface（文明环带 Phase A）
+-- O.M.V 工作台 · 全域广播 —— 0009_identity_surface（环塔 Phase A）
 -- 依据：双面单库方案 A｜身份分面
 -- 目标库：PostgreSQL 16（本机 embedded PG 17.5）
 -- 前置：0001_init .. 0008_phase3 已执行
@@ -38,7 +38,7 @@ CREATE TRIGGER users_sync_internal_trg
   FOR EACH ROW
   EXECUTE FUNCTION users_sync_internal();
 
--- 存量真人账号全部是帝江号内部账号；Bot 不授予内部身份。
+-- 存量真人账号全部是工作台内部账号；Bot 不授予内部身份。
 UPDATE users
 SET tags = ARRAY['[极光科技]']
 WHERE is_bot = false;

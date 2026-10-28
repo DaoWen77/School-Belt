@@ -1,4 +1,4 @@
-﻿# O.M.V 帝江号 · 全域广播 —— 一键验收脚本（Windows / PowerShell 5.1+ 与 7+）
+﻿# O.M.V 工作台 · 全域广播 —— 一键验收脚本（Windows / PowerShell 5.1+ 与 7+）
 #
 # 用法（在任意目录执行均可）：
 #   pwsh -File ops/acceptance/start.ps1                 # 自动：有 Docker 跑全栈，没有则跑静态验收
@@ -249,7 +249,7 @@ function Write-Summary([int]$PreviewPort, $testResult, $uiResult, [string]$RunMo
 # ─────────────────────────────────────────────────────────────────────
 Write-Host ''
 Write-Host '┌──────────────────────────────────────────────────────────────┐' -ForegroundColor DarkGray
-Write-Host '│  O.M.V 帝江号 · 全域广播  —— 验收协议 / ACCEPTANCE PROTOCOL   │' -ForegroundColor DarkGray
+Write-Host '│  O.M.V 工作台 · 全域广播  —— 验收协议 / ACCEPTANCE PROTOCOL   │' -ForegroundColor DarkGray
 Write-Host '└──────────────────────────────────────────────────────────────┘' -ForegroundColor DarkGray
 
 if ($Mode -eq 'stop') {

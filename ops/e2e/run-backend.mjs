@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * O.M.V 帝江号 · E2E 后端编排（真实 Postgres，禁止 mock / pg-mem）
+ * O.M.V 工作台 · E2E 后端编排（真实 Postgres，禁止 mock / pg-mem）
  *
  * 职责（契约 v1.2 §F 的“真实链路”底座）：
  *   1. 用 embedded-postgres 在本机起一个**真实** Postgres 实例（端口 55432，数据目录 reports/e2e/pgdata）；
@@ -493,7 +493,7 @@ async function main() {
 
   fs.mkdirSync(REPORTS_DIR, { recursive: true });
   fs.writeFileSync(ORCH_LOG, '');
-  log(`帝江号 E2E 后端启动脚本 · node ${process.version} · ${process.platform}/${process.arch}`);
+  log(`工作台 E2E 后端启动脚本 · node ${process.version} · ${process.platform}/${process.arch}`);
   log(`仓库根目录：${ROOT}`);
   log(`模式：${FLAGS.has('--reset') ? '--reset（清库重建）' : '增量'}${FLAGS.has('--skip-build') ? ' + --skip-build' : ''}`);
   if (FLAGS.has('--with-s3')) {

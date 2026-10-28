@@ -83,7 +83,7 @@ async function seedPosts() {
   const now = Date.now();
   const rows = [
     { board: 'bulletin', source: 'official', sourceName: null, title: '第七码头静默窗口解除', body: '中继 07 已恢复全功率。昨夜的低功率窗口属于计划内审计，未发现断带。所有经停船只按新航标通行。', minutes: 8 },
-    { board: 'bulletin', source: 'official', sourceName: null, title: '环带通行证审计周开始', body: '所有外环通行证持有者请在任一公共中继完成一次身份回写。未回写者仍可读取，但无法签发新的委托。', minutes: 22 },
+    { board: 'bulletin', source: 'official', sourceName: null, title: '环塔通行证审计周开始', body: '所有外环通行证持有者请在任一公共中继完成一次身份回写。未回写者仍可读取，但无法签发新的委托。', minutes: 22 },
     { board: 'telegraph', source: 'rss', sourceName: '36Kr', title: '外环物流网络进入低功耗调度', body: '多家运输节点开始采用夜间低功耗调度，以应对持续的能量配额收紧。', minutes: 35 },
     { board: 'telegraph', source: 'rss', sourceName: 'The Verge', title: '新型中继天线完成首次跨带测试', body: '测试信号在断带边缘保持了十七分钟，超过了此前记录。', minutes: 47 },
     { board: 'telegraph', source: 'rss', sourceName: 'Protocol Daily', title: '协议官发布未登记信标回收指引', body: '指引要求所有单位不得自行拆解未登记信标，需回传坐标由协议官统一登记。', minutes: 58 },
@@ -162,10 +162,10 @@ async function main() {
     await internal.page.keyboard.press('Escape');
     await internal.page.waitForTimeout(200);
 
-    // 3) 接入环带过场：390 视口内完整可见
+    // 3) 接入环塔过场：390 视口内完整可见
     await internal.page.getByRole('button', { name: '打开频道列表' }).click();
     await internal.page.waitForTimeout(200);
-    await internal.page.getByRole('button', { name: /接入文明环带/ }).click();
+    await internal.page.getByRole('button', { name: /接入环塔/ }).click();
     await internal.page.waitForTimeout(1300);
     const entryFrame = await internal.page.locator('.belt-entry-frame').boundingBox();
     const entryViewport = internal.page.viewportSize();

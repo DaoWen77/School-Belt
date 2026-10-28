@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Phase C 验证（真实 API + 真实 PG）：
- *   - 内部 → 环带 handoff，belt 会话可用；
- *   - 环带频道列表 / 发消息 / 读消息；
+ *   - 内部 → 环塔 handoff，belt 会话可用；
+ *   - 环塔频道列表 / 发消息 / 读消息；
  *   - 帖子公开读、登录发帖、点赞、评论；
  *   - 公告仅协议官可发；外网账号不能发公告；
  *   - 外网账号不能登入内部；
@@ -62,12 +62,12 @@ async function beltFromInternal(internalToken) {
     token: internalToken,
     body: { next: '/belt/channel' },
   });
-  check(handoff.status === 201, '内部签发环带交接码 201');
+  check(handoff.status === 201, '内部签发环塔交接码 201');
   const exchange = await call('/belt/auth/handoff/exchange', {
     method: 'POST',
     body: { code: data(handoff).code },
   });
-  check(exchange.status === 200, '环带兑换交接码 200');
+  check(exchange.status === 200, '环塔兑换交接码 200');
   return data(exchange).accessToken;
 }
 
@@ -94,24 +94,24 @@ async function main() {
 
   const me = await call('/belt/me', { token: founderBelt });
   check(me.status === 200, 'GET /belt/me 200');
-  check(data(me).user.handle === 'founder', '环带身份与内部账号一致');
-  check(data(me).user.isInternal === true, '内部账号进入环带后仍标记 internal');
+  check(data(me).user.handle === 'founder', '环塔身份与内部账号一致');
+  check(data(me).user.isInternal === true, '内部账号进入环塔后仍标记 internal');
 
   const channels = await call('/belt/channels', { token: founderBelt });
   check(channels.status === 200, 'GET /belt/channels 200');
   channelId = data(channels).channels[0]?.id ?? null;
-  check(Boolean(channelId), '环带默认频道存在');
+  check(Boolean(channelId), '环塔默认频道存在');
 
   const send = await call(`/belt/channels/${channelId}/messages`, {
     method: 'POST',
     token: founderBelt,
     body: { body: `[PHASE-C] ${stamp} 公共频段测试信号` },
   });
-  check(send.status === 201, '环带频道发消息 201');
+  check(send.status === 201, '环塔频道发消息 201');
   check(data(send).message.sender.prefixes.includes('[站长]Official'), '发送者证章进入消息投影');
 
   const messages = await call(`/belt/channels/${channelId}/messages?limit=20`, { token: founderBelt });
-  check(messages.status === 200, '环带频道读消息 200');
+  check(messages.status === 200, '环塔频道读消息 200');
   check(
     data(messages).messages.some((message) => message.body.includes(`[PHASE-C] ${stamp}`)),
     '消息列表包含刚发送的信号',
@@ -129,7 +129,7 @@ async function main() {
       body: '这是 Phase C 的公开日常帖子。',
     },
   });
-  check(daily.status === 201, '环带登录用户发日常帖 201');
+  check(daily.status === 201, '环塔登录用户发日常帖 201');
   dailyId = data(daily).post.id;
   check(data(daily).post.board === 'daily', '日常帖 board=daily');
   check(data(daily).post.author.prefixes.includes('[站长]Official'), '帖子作者证章正确');
@@ -169,7 +169,7 @@ async function main() {
   check(data(bulletin).post.source === 'official', '快报 source=official');
 
   const badBoard = await call('/belt/posts?board=moments');
-  check(badBoard.status === 400, '环带帖子拒绝 moments 版块', `${badBoard.status}`);
+  check(badBoard.status === 400, '环塔帖子拒绝 moments 版块', `${badBoard.status}`);
 
   const register = await call('/belt/auth/register', {
     method: 'POST',
@@ -209,7 +209,7 @@ async function main() {
   const internalPosts = await call('/posts', { token: founder });
   check(
     internalPosts.status === 200 && data(internalPosts).posts.every((post) => !post.body.includes(titlePrefix)),
-    '内部朋友圈不混入环带帖子',
+    '内部朋友圈不混入环塔帖子',
   );
 
   console.log('\nPHASE_C_RESULT=' + JSON.stringify({ ok: true, checks: checks.length }));

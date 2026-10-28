@@ -13,7 +13,7 @@ interface BotMember {
 }
 
 /**
- * 文明环带 Bot 驻场（功能大搬家）：外网频道/群聊里 @Bot 呼号即触发。
+ * 环塔 Bot 驻场（功能大搬家）：外网频道/群聊里 @Bot 呼号即触发。
  * 与内网 AiChatService 解耦：直接读 bot_profiles + channel_members，
  * 用 AiConfigService.globalDefaults() 取全局 baseUrl/model/key，
  * 最近 10 条频道消息做上下文，非流式补全，写入 bot 消息并经 BeltRealtimeService 广播。
@@ -56,7 +56,7 @@ export class BeltBotService {
       .map((row) => row.body as string);
 
     const prompt = [
-      mentioned.systemPrompt?.trim() || '你是文明环带的驻场助手，用简洁中文回答。',
+      mentioned.systemPrompt?.trim() || '你是环塔的驻场助手，用简洁中文回答。',
       '--- 最近频道消息 ---',
       ...lines,
       '---',
@@ -72,7 +72,7 @@ export class BeltBotService {
         prompt,
       );
     } catch (error) {
-      this.logger.warn(`环带 Bot 补全失败：${(error as Error).message}`);
+      this.logger.warn(`环塔 Bot 补全失败：${(error as Error).message}`);
       return;
     }
 

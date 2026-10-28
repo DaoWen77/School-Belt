@@ -86,7 +86,7 @@ import { WsModule } from './ws/ws.module';
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-    // 认证之后、角色之前：默认 internal，未标注 @Surface 的路由不会漏给环带。
+    // 认证之后、角色之前：默认 internal，未标注 @Surface 的路由不会漏给环塔。
     { provide: APP_GUARD, useClass: SurfaceGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     // 限流全局生效：默认 600/min/IP，端点用 @Throttle 覆盖（契约 §9）

@@ -14,7 +14,7 @@ import type { AuthUser } from '../common/types/context';
 
 const sharePostSchema = z.object({ postId: z.string().uuid() });
 
-/** 环带私聊：关注即可发起（好友体系已废弃） */
+/** 环塔私聊：关注即可发起（好友体系已废弃） */
 @Controller('belt/directs')
 @Surface('belt')
 export class BeltDirectController {

@@ -15,7 +15,7 @@ import { BeltRealtimeService } from './belt-realtime.service';
 import { BeltWsAuthService } from './belt-ws-auth.service';
 
 /**
- * 文明环带 WS（/ws/belt）。
+ * 环塔 WS（/ws/belt）。
  * 只负责实时投递；发消息走 REST，保证限流、校验、持久化只有一条路径。
  */
 @Injectable()
@@ -45,7 +45,7 @@ export class BeltWsGateway implements OnGatewayInit, OnGatewayConnection {
         next();
       } catch (error) {
         const code = isAppError(error) ? error.code : ErrorCode.AUTH_INVALID;
-        this.logger.warn(`环带 WS 握手失败: ${code}`);
+        this.logger.warn(`环塔 WS 握手失败: ${code}`);
         const failure = new Error(code) as Error & { data?: Record<string, unknown> };
         failure.data = { code };
         next(failure);

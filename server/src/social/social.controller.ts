@@ -7,7 +7,7 @@ import type { AuthUser } from '../common/types/context';
 
 /**
  * 个人主页与关注（模块一）+ 我的等级（模块二）。
- * 全部挂在环带面：未登录拿不到，内部会话也会被 SurfaceGuard 拒掉。
+ * 全部挂在环塔面：未登录拿不到，内部会话也会被 SurfaceGuard 拒掉。
  */
 @Controller('belt')
 @Surface('belt')

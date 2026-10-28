@@ -1,5 +1,5 @@
 -- ============================================================================
--- O.M.V 帝江号 · 全域广播 —— 0004_sprint2（Sprint 2：music/chart 卡片 + 贴纸）
+-- O.M.V 工作台 · 全域广播 —— 0004_sprint2（Sprint 2：music/chart 卡片 + 贴纸）
 -- 依据：Sprint2 需求（卡片新类型、个人贴纸库）
 -- 目标库：PostgreSQL 16（本机 embedded PG 17.5）
 -- 前置：0001_init、0002_conversations、0003_v2_sprint1 已执行

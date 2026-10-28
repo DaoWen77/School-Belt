@@ -129,13 +129,13 @@ export class BeltMeController {
   }
 }
 
-/** 环带头像：S3 直传，文件 channelId=null，不依赖内部频道。 */
+/** 环塔头像：S3 直传，文件 channelId=null，不依赖内部频道。 */
 @Controller('belt/files')
 @Surface('belt')
 export class BeltFilesController {
 
   /**
-   * 任意文件下载代理（环带会话）：GET /belt/files/download/:id
+   * 任意文件下载代理（环塔会话）：GET /belt/files/download/:id
    * 穿透环境下绕过 S3 直链；强制 attachment 让浏览器落盘。
    */
   @Get('download/:id')
@@ -444,7 +444,7 @@ export class BeltPostsController {
   }
 }
 
-/** 环带消息：单用户隐藏（幂等，只影响自己的列表） */
+/** 环塔消息：单用户隐藏（幂等，只影响自己的列表） */
 @Controller('belt/messages')
 @Surface('belt')
 export class BeltMessagesController {
@@ -457,7 +457,7 @@ export class BeltMessagesController {
   }
 }
 
-/** 环带黑名单：拉黑后拒绝私聊建链；频道消息不过滤（公开频道以成员为访问权） */
+/** 环塔黑名单：拉黑后拒绝私聊建链；频道消息不过滤（公开频道以成员为访问权） */
 @Controller('belt/users')
 @Surface('belt')
 export class BeltUsersController {

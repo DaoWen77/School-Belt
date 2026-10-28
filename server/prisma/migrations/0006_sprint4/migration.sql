@@ -1,5 +1,5 @@
 -- ============================================================================
--- O.M.V 帝江号 · 全域广播 —— 0006_sprint4（Sprint 4：朋友圈 Posts/Likes/Comments）
+-- O.M.V 工作台 · 全域广播 —— 0006_sprint4（Sprint 4：朋友圈 Posts/Likes/Comments）
 -- 依据：Sprint4 需求（发帖 / 点赞 / 评论；软删）
 -- 目标库：PostgreSQL 16（本机 embedded PG 17.5）
 -- 前置：0001_init .. 0005_sprint3 已执行

@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import type { Server } from 'socket.io';
 
 /**
- * 环带 WS 的独立广播出口。
- * 不能复用内部 RealtimeService：它 attach 的是 /ws 命名空间，环带走 /ws/belt。
+ * 环塔 WS 的独立广播出口。
+ * 不能复用内部 RealtimeService：它 attach 的是 /ws 命名空间，环塔走 /ws/belt。
  */
 @Injectable()
 export class BeltRealtimeService {

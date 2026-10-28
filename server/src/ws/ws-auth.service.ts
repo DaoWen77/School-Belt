@@ -10,7 +10,7 @@ import type { AuthUser } from '../common/types/context';
  * 校验失败由 gateway 中间件转成 `connect_error`，message/code = AUTH_INVALID。
  *
  * Phase A 起，`/ws` 是**内部**命名空间：只接受 session.surface='internal'
- * 且 is_internal=true 的连接。环带 WS 在 Phase C 单独开命名空间。
+ * 且 is_internal=true 的连接。环塔 WS 在 Phase C 单独开命名空间。
  */
 @Injectable()
 export class WsAuthService {
@@ -72,7 +72,7 @@ export class WsAuthService {
       throw new AppError(ErrorCode.AUTH_INVALID, '凭证所属链路不一致');
     }
     if (!options?.allowBelt && (session.surface !== 'internal' || !session.user.isInternal)) {
-      throw new AppError(ErrorCode.SURFACE_MISMATCH, '该 WS 命名空间仅接受帝江号内部会话');
+      throw new AppError(ErrorCode.SURFACE_MISMATCH, '该 WS 命名空间仅接受工作台内部会话');
     }
     if (session.user.status === 'suspended') {
       throw new AppError(ErrorCode.FORBIDDEN, '账号已被封禁');

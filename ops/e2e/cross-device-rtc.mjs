@@ -3,7 +3,7 @@ import { chromium } from 'playwright-core';
 
 const ADB = 'C:\\Program Files (x86)\\WOMic\\adb.exe';
 const channelUrl = 'http://localhost:3100/belt/channel?channelId=65e8429a-8b04-46a7-ae09-affed9465f2c';
-const out = 'E:\\项目\\O.M.V帝江号全域广播\\reports\\frontend';
+const out = 'E:\\项目\\O.M.V工作台全域广播\\reports\\frontend';
 
 function adb(args) {
   return execFileSync(ADB, args, { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 });
@@ -16,7 +16,7 @@ async function login(page, handle) {
     const inputs = page.locator('input:not([type="file"])');
     await inputs.nth(0).fill(handle);
     await inputs.nth(1).fill('Dijiang#2026');
-    await page.getByRole('button', { name: '建立环带链路' }).click();
+    await page.getByRole('button', { name: '建立环塔链路' }).click();
     await page.waitForURL(/\/belt\/channel/, { timeout: 15000 });
   }
   await page.waitForTimeout(800);

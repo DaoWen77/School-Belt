@@ -54,7 +54,7 @@ export function isDmKey(value: unknown): value is string {
 
 /**
  * DM 的 slug = dm-<surface>-<dmKey 前 24 位>。
- * surface 进入 slug，避免同一对用户的内网/环带/bridge DM 撞 channels.slug 唯一键。
+ * surface 进入 slug，避免同一对用户的内网/环塔/bridge DM 撞 channels.slug 唯一键。
  */
 export function dmSlugOf(
   dmKey: string,

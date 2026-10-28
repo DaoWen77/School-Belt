@@ -165,9 +165,9 @@ try {
     acao: download.headers.get('access-control-allow-origin'),
   });
 
-  /* 9. 环带路径同样可用 */
+  /* 9. 环塔路径同样可用 */
   const beltDownload = await call('GET', `/belt/files/download/${fileId}`, { token, origin: WEB });
-  log('F7 环带下载路径可用', beltDownload.status === 200 && beltDownload.buffer.equals(bytes), {
+  log('F7 环塔下载路径可用', beltDownload.status === 200 && beltDownload.buffer.equals(bytes), {
     status: beltDownload.status,
     bytes: beltDownload.buffer.length,
   });

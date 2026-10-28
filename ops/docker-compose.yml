@@ -1,4 +1,4 @@
-# O.M.V 帝江号 · 全域广播 —— 本地/单机编排
+# O.M.V 工作台 · 全域广播 —— 本地/单机编排
 # 用法：cp .env.example .env && docker compose up -d
 # 依赖：Docker Desktop / Docker Engine + Compose v2（交付环境未实测，见 docs/16）
 name: dijiang

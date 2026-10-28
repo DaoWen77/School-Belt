@@ -81,7 +81,7 @@ function writeText(caught: unknown, fallback: string): string {
   if (caught instanceof BeltApiError) {
     if (caught.code === 'INSUFFICIENT_FUNDS') return '商券余额不足，无法托管这笔委托。';
     if (caught.code === 'TASK_CONFLICT') return '委托状态已变化，刷新后再试。';
-    if (caught.status === 401) return '登录已过期，请重新进入环带。';
+    if (caught.status === 401) return '登录已过期，请重新进入环塔。';
     if (caught.status === 403) return '当前身份没有这一步权限。';
     if (caught.status === 404) return '委托链路尚未开放。';
   }
@@ -605,7 +605,7 @@ export function BeltTasksView() {
           {pendingSelect ? (
             <div className="belt-task-confirm" role="alertdialog" aria-label="确认冻结">
               <p>
-                确认选择该干员？将冻结 <b>{fmtCents(panel.task.priceCents)}</b> 券作为托管资金。
+                确认选择该用户？将冻结 <b>{fmtCents(panel.task.priceCents)}</b> 券作为托管资金。
               </p>
               <div className="belt-modal-actions">
                 <button type="button" className="belt-button" disabled={busy} onClick={() => setPendingSelect(null)}>

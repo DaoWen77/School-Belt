@@ -17,8 +17,8 @@ interface DeviceRow {
 }
 
 /**
- * O.M.V 帝江号 · 站长指挥中枢。
- * 取代旧聊天室主页：只保留档案库、活跃度雷达、IoT 设备面板，以及接入文明环带的巨型入口。
+ * O.M.V 工作台 · 站长指挥中枢。
+ * 取代旧聊天室主页：只保留档案库、活跃度雷达、IoT 设备面板，以及接入环塔的巨型入口。
  */
 export function Dashboard() {
   const [user, setUser] = useState<ApiUser | null>(null);
@@ -53,7 +53,7 @@ export function Dashboard() {
           <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-signal">
             AURORA TECH · COMMAND HUB
           </p>
-          <h1 className="text-lg font-black leading-tight tracking-tight">O.M.V 帝江号</h1>
+          <h1 className="text-lg font-black leading-tight tracking-tight">O.M.V 工作台</h1>
         </div>
         <div className="ml-auto flex items-center gap-3">
           {user ? (
@@ -122,7 +122,7 @@ export function Dashboard() {
       <footer className="mx-auto max-w-6xl px-5 pb-10">
         <div className="flex flex-col items-center gap-3 border-t border-line pt-6">
           <p className="font-mono text-[10px] tracking-[0.2em] text-ink-2">
-            CIVILIZATION BELT · 文明环带
+            CIVILIZATION BELT · 环塔
           </p>
           <BeltEntryButton />
         </div>

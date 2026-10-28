@@ -8,7 +8,7 @@ export const ErrorCode = {
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   INVITE_INVALID: 'INVITE_INVALID',
   FORBIDDEN: 'FORBIDDEN',
-  // 文明环带 Phase A：面隔离与交接
+  // 环塔 Phase A：面隔离与交接
   PROTOCOL_DENIED: 'PROTOCOL_DENIED',
   SURFACE_MISMATCH: 'SURFACE_MISMATCH',
   INTERNAL_ONLY: 'INTERNAL_ONLY',
@@ -111,11 +111,11 @@ export const ERROR_DEFAULT_MESSAGE: Readonly<Record<ErrorCode, string>> = {
   FORBIDDEN: '权限不足',
   PROTOCOL_DENIED: '协议拒绝：未授权链路',
   SURFACE_MISMATCH: '当前会话不属于该链路',
-  INTERNAL_ONLY: '仅帝江号内部账号可访问',
+  INTERNAL_ONLY: '仅工作台内部账号可访问',
   HANDOFF_INVALID: '交接码无效或已过期',
   ORGANIZATION_NOT_FOUND: '组织不存在或无权访问',
   ORGANIZATION_CONFLICT: '组织状态冲突',
-  CROSS_SURFACE_DENIED: '跨环带链路仅限悬赏委托发起',
+  CROSS_SURFACE_DENIED: '跨环塔链路仅限悬赏委托发起',
   INSUFFICIENT_FUNDS: '商券余额不足',
   RSS_SOURCE_NOT_FOUND: 'RSS 源不存在',
   NOT_CHANNEL_MEMBER: '你不是该频道成员',

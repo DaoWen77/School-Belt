@@ -1,4 +1,4 @@
-﻿# O.M.V 帝江号 · 全域广播 —— 局域网一键配置（Windows PowerShell）
+﻿# O.M.V 工作台 · 全域广播 —— 局域网一键配置（Windows PowerShell）
 #
 # 作用：探测本机 LAN IP（或用 -Ip 指定）→ 生成 ops/.env.lan（CORS_ORIGINS / S3_PUBLIC_ENDPOINT /
 #       NEXT_PUBLIC_API_BASE 提示）→ 打印可直接复制的启动命令。
@@ -90,7 +90,7 @@ if (-not $NoWrite) {
 
 Write-Host ''
 Write-Host '════════════════════════════════════════════════════════════' -ForegroundColor Cyan
-Write-Host "  帝江号 · 局域网访问配置（LAN_IP=$Ip）" -ForegroundColor Cyan
+Write-Host "  工作台 · 局域网访问配置（LAN_IP=$Ip）" -ForegroundColor Cyan
 Write-Host '════════════════════════════════════════════════════════════' -ForegroundColor Cyan
 Write-Host "  手机/其他设备打开: $WebUrl"
 Write-Host "  API 探针:          $ApiBase/healthz"

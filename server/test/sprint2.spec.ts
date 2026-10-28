@@ -211,7 +211,7 @@ describe('Sprint2 music / chart 卡片类型', () => {
       channelId: CHANNEL_ID,
       kind: 'music',
       title: '夜航',
-      data: { url: 'https://example.com/a.mp3', title: '夜航', artist: '帝江', coverUrl: 'https://example.com/a.png' },
+      data: { url: 'https://example.com/a.mp3', title: '夜航', artist: '工作台', coverUrl: 'https://example.com/a.png' },
     });
     expect(parsed.kind).toBe('music');
     expect(parsed.data?.url).toBe('https://example.com/a.mp3');

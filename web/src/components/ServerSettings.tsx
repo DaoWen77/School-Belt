@@ -22,7 +22,7 @@ function validWs(value: string): boolean {
 }
 
 /**
- * 公共服务器设置组件：内网登录页与文明环带登录页共用。
+ * 公共服务器设置组件：内网登录页与环塔登录页共用。
  * 写 localStorage 的 dj-server-api / dj-server-ws，api.ts / beltApi.ts 都从这里读取。
  */
 export function ServerSettings({ variant = 'internal' }: { variant?: 'internal' | 'belt' }) {

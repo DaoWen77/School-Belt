@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Phase C UI 证据：
- *   - 环带登录 / 频道 / 快报 / 悬赏 / 日常 / 帖子详情
+ *   - 环塔登录 / 频道 / 快报 / 悬赏 / 日常 / 帖子详情
  *   - belt WS 实时事件
  *   - 内部 1.5s 终端过场 → /belt/handoff
- *   - 外网身份 3s 红色拒绝 → 回环带
+ *   - 外网身份 3s 红色拒绝 → 回环塔
  */
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -134,8 +134,8 @@ async function main() {
     token: founderBelt.token,
     body: {
       board: 'bulletin',
-      title: `${prefix} 环带快报 · 中继恢复`,
-      body: '外环中继 07 已恢复。所有在册身份可接入公共频段，跨环带联络仍受协议限制。',
+      title: `${prefix} 环塔快报 · 中继恢复`,
+      body: '外环中继 07 已恢复。所有在册身份可接入公共频段，跨环塔联络仍受协议限制。',
     },
   });
   bulletinId = bulletin.post.id;
@@ -147,7 +147,7 @@ async function main() {
       board: 'bounty',
       title: `${prefix} 回收外环测绘浮标`,
       body: '需要一名熟悉外环航路的人回收失联测绘浮标。坐标在中继站东侧断带。',
-      bountyReward: '1200 环带券',
+      bountyReward: '1200 环塔券',
       bountyDeadline: new Date(Date.now() + 86400000 * 3).toISOString(),
     },
   });
@@ -159,7 +159,7 @@ async function main() {
     body: {
       board: 'daily',
       title: `${prefix} 外环值班记录`,
-      body: '今日环带信号稳定。听得到远处中继的载波，像有人在敲金属墙。',
+      body: '今日环塔信号稳定。听得到远处中继的载波，像有人在敲金属墙。',
     },
   });
   dailyId = daily.post.id;
@@ -255,7 +255,7 @@ async function main() {
     await shot(belt.page, 'phase-c-belt-post-1440.png');
     console.log('POST_DETAIL_HAS_TITLE', (await belt.page.locator('body').innerText()).includes(prefix));
 
-    // 内部 → 环带：1.5s 终端过场
+    // 内部 → 环塔：1.5s 终端过场
     await belt.page.goto(`${WEB}/belt/access`, { waitUntil: 'networkidle' });
     await belt.page.waitForTimeout(400);
     await shot(belt.page, 'phase-c-belt-access-1440.png');
@@ -263,7 +263,7 @@ async function main() {
     const inner = await pageWithTokens(browser, { internal: founder });
     await inner.page.goto(WEB, { waitUntil: 'networkidle' });
     await inner.page.waitForTimeout(700);
-    const entry = inner.page.getByRole('button', { name: /接入文明环带/ }).first();
+    const entry = inner.page.getByRole('button', { name: /接入环塔/ }).first();
     await entry.click();
     await inner.page.waitForTimeout(720);
     await shot(inner.page, 'phase-c-internal-entry-1440.png');
@@ -282,7 +282,7 @@ async function main() {
     const denied = await pageWithTokens(browser, { belt: externalBelt });
     await denied.page.goto(`${WEB}/belt/access`, { waitUntil: 'networkidle' });
     await denied.page.waitForTimeout(500);
-    await denied.page.getByRole('button', { name: /登入 O\.M\.V 帝江号/ }).click();
+    await denied.page.getByRole('button', { name: /登入 O\.M\.V 工作台/ }).click();
     await denied.page.waitForTimeout(280);
     const denialText = await denied.page.locator('.belt-denial').innerText();
     console.log('DENIAL_HAS_PROTOCOL', denialText.includes('PROTOCOL DENIED') || denialText.includes('协议拒绝'));

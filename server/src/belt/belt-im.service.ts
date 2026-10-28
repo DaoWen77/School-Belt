@@ -60,7 +60,7 @@ export class BeltImService {
     if (!channel || channel.surface !== 'belt' || channel.archivedAt) {
       throw new AppError(ErrorCode.VALIDATION_FAILED, '消息不存在');
     }
-    // 私聊 / 组织频道必须先是成员；公开频道对环带用户可见
+    // 私聊 / 组织频道必须先是成员；公开频道对环塔用户可见
     if (channel.kind === 'dm' || channel.organizationId !== null) {
       const member = await this.prisma.channelMember.findUnique({
         where: { channelId_userId: { channelId: message.channelId, userId: user.id } },
@@ -117,7 +117,7 @@ export class BeltImService {
   async resolveMentionIds(channelId: string, body: string | null | undefined): Promise<string[]> {
     const handles = parseMentionHandles(body);
     if (handles.length === 0) return [];
-    /* 公开环带频道没有 channel_members 行（全员可访问），此时允许提及任意现存用户；
+    /* 公开环塔频道没有 channel_members 行（全员可访问），此时允许提及任意现存用户；
        组织私有频道仍严格按成员行过滤。 */
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },

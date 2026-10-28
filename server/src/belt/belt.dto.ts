@@ -10,7 +10,7 @@ export const beltBoardSchema = z.enum([
 ]);
 export type BeltBoard = z.infer<typeof beltBoardSchema>;
 
-/** 三合一 Feed：dynamic=干员日常 / campus=校园墙 / daily=日报；all=全部 */
+/** 三合一 Feed：dynamic=日志板 / campus=校园墙 / daily=日报；all=全部 */
 export const beltFeedSchema = z.enum(['all', 'dynamic', 'campus', 'daily']);
 export type BeltFeed = z.infer<typeof beltFeedSchema>;
 

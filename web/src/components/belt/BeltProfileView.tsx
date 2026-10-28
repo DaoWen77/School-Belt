@@ -409,7 +409,7 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
     return (
       <section className="belt-panel belt-uf-skeleton" aria-live="polite">
         <p className="belt-page-kicker">DOSSIER SYNC</p>
-        <p className="belt-hint">正在读取干员档案…</p>
+        <p className="belt-hint">正在读取档案…</p>
       </section>
     );
   }
@@ -419,14 +419,14 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
       <section className="belt-panel">
         <p className="belt-page-kicker">NO DOSSIER</p>
         <p className="belt-error" role="alert">
-          <code>PROFILE_UNREACHABLE</code> {error ?? '档案不存在或已离开环带。'}
+          <code>PROFILE_UNREACHABLE</code> {error ?? '档案不存在或已离开环塔。'}
         </p>
         <div className="belt-uf-actions">
           <button type="button" className="belt-button" onClick={() => setReloadKey((value) => value + 1)}>
             重试
           </button>
           <Link href="/belt/channel" className="belt-button">
-            返回环带
+            返回环塔
           </Link>
         </div>
       </section>

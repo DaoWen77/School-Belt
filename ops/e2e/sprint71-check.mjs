@@ -57,7 +57,7 @@ async function main() {
   const applied = await call('/belt/organizations', {
     method: 'POST',
     token: owner.token,
-    body: { name: orgName, summary: '面向环带学生的跨校兴趣组织。' },
+    body: { name: orgName, summary: '面向环塔学生的跨校兴趣组织。' },
   });
   orgId = applied.organization.id;
   console.log('APPLIED', orgId, applied.organization.status);

@@ -344,7 +344,7 @@ export class BeltChannelsService {
     }
   }
 
-  /** 环带 Owner 直接新建公开频道（不经过内部 /channels 的 internal 守卫）。 */
+  /** 环塔 Owner 直接新建公开频道（不经过内部 /channels 的 internal 守卫）。 */
   async createChannel(user: AuthUser, name: string, topic: string | null): Promise<BeltChannelView> {
     if (user.globalRole !== 'owner' && user.globalRole !== 'admin') {
       throw new AppError(ErrorCode.FORBIDDEN, '仅 Owner 可新建频道');
@@ -514,7 +514,7 @@ export class BeltChannelsService {
 
   private async requireChannel(user: AuthUser, channelId: string): Promise<BeltChannelView> {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(channelId)) {
-      throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '环带频道不存在');
+      throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '环塔频道不存在');
     }
     const channel = await this.prisma.channel.findFirst({
       where: {
@@ -529,7 +529,7 @@ export class BeltChannelsService {
       },
       select: { id: true, name: true, topic: true, visibility: true, organizationId: true },
     });
-    if (!channel) throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '环带频道不存在');
+    if (!channel) throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '环塔频道不存在');
     return channel;
   }
 

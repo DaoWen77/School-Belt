@@ -14,7 +14,7 @@ export interface BeltCommandResult {
 }
 
 /**
- * 文明环带斜杠指令拦截器（功能大搬家）：频道/群聊里输入以下指令即触发。
+ * 环塔斜杠指令拦截器（功能大搬家）：频道/群聊里输入以下指令即触发。
  *   /ping            → PONG
  *   /task <标题>     → 创建任务卡（kind=task）
  *   /poll <题目>     → 创建投票卡（kind=vote，赞成/反对）
@@ -37,7 +37,7 @@ export class BeltCommandService {
     const command = rawCommand.toLowerCase();
     const arg = rest.join(' ').trim();
 
-    if (command === '/ping') return { handled: true, reply: 'PONG · 环带链路在线' };
+    if (command === '/ping') return { handled: true, reply: 'PONG · 环塔链路在线' };
     if (command === '/help') {
       return {
         handled: true,
@@ -52,7 +52,7 @@ export class BeltCommandService {
       });
       return {
         handled: true,
-        reply: `[环带简报] ${arg || '本频道'} 近 7 天消息 ${count} 条。`,
+        reply: `[环塔简报] ${arg || '本频道'} 近 7 天消息 ${count} 条。`,
       };
     }
 
@@ -71,7 +71,7 @@ export class BeltCommandService {
     if (command === '/chart') {
       if (!arg) return { handled: true, reply: '用法：/chart 标题|标签=数值,标签=数值' };
       const sep = arg.indexOf('|');
-      const title = (sep >= 0 ? arg.slice(0, sep) : '环带图表').trim().slice(0, 120);
+      const title = (sep >= 0 ? arg.slice(0, sep) : '环塔图表').trim().slice(0, 120);
       const dataPart = (sep >= 0 ? arg.slice(sep + 1) : arg).trim();
       const points = dataPart
         .split(',')
@@ -130,6 +130,6 @@ export class BeltCommandService {
         data: { lastMessageAt: new Date() },
       });
     });
-    this.logger.log(`环带指令建卡：${kind}「${title}」by ${user.handle}`);
+    this.logger.log(`环塔指令建卡：${kind}「${title}」by ${user.handle}`);
   }
 }

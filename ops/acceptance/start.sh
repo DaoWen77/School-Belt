@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# O.M.V 帝江号 · 全域广播 —— 一键验收脚本（Linux / macOS / WSL / Git Bash）
+# O.M.V 工作台 · 全域广播 —— 一键验收脚本（Linux / macOS / WSL / Git Bash）
 #
 # 用法：
 #   bash ops/acceptance/start.sh                 # 自动：有 Docker 跑全栈，没有则静态验收
@@ -227,7 +227,7 @@ open_hub() {
 }
 
 printf '\n%s┌──────────────────────────────────────────────────────────────┐%s\n' "$c_gray" "$c_off"
-printf '%s│  O.M.V 帝江号 · 全域广播  —— 验收协议 / ACCEPTANCE PROTOCOL   │%s\n' "$c_gray" "$c_off"
+printf '%s│  O.M.V 工作台 · 全域广播  —— 验收协议 / ACCEPTANCE PROTOCOL   │%s\n' "$c_gray" "$c_off"
 printf '%s└──────────────────────────────────────────────────────────────┘%s\n' "$c_gray" "$c_off"
 
 case "$MODE" in

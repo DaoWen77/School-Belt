@@ -2,7 +2,7 @@
   "name": "dijiang-broadcast-server",
   "version": "1.0.0",
   "private": true,
-  "description": "O.M.V 帝江号 · 全域广播 后端 API（契约 v1.0）",
+  "description": "O.M.V 工作台 · 全域广播 后端 API（契约 v1.0）",
   "license": "UNLICENSED",
   "engines": {
     "node": ">=22.0.0"

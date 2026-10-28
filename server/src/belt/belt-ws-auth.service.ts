@@ -7,7 +7,7 @@ import type { AuthUser } from '../common/types/context';
 
 /**
  * /ws/belt 握手：只接受 sessions.surface='belt' 的会话。
- * 内部 token 不能直接连环带 WS，必须先在 A 阶段 handoff 成 belt 会话。
+ * 内部 token 不能直接连环塔 WS，必须先在 A 阶段 handoff 成 belt 会话。
  */
 @Injectable()
 export class BeltWsAuthService {
@@ -63,7 +63,7 @@ export class BeltWsAuthService {
     if (session.expiresAt.getTime() <= Date.now()) throw new AppError(ErrorCode.TOKEN_EXPIRED);
     if (tokenSurface && tokenSurface !== session.surface) throw new AppError(ErrorCode.AUTH_INVALID);
     if (session.surface !== 'belt') {
-      throw new AppError(ErrorCode.SURFACE_MISMATCH, '该 WS 命名空间仅接受文明环带会话');
+      throw new AppError(ErrorCode.SURFACE_MISMATCH, '该 WS 命名空间仅接受环塔会话');
     }
     if (session.user.status === 'suspended') throw new AppError(ErrorCode.FORBIDDEN, '账号已被封禁');
 

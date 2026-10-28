@@ -1,4 +1,4 @@
-# O.M.V 帝江号 · 全域广播 —— Windows 一键脚本
+# O.M.V 工作台 · 全域广播 —— Windows 一键脚本
 # 用法：
 #   .\start.ps1            # 构建并启动，然后跑迁移 + owner 初始化 + 种子
 #   .\start.ps1 -Down      # 停止（保留数据卷）

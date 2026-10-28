@@ -125,7 +125,7 @@ interface AvatarPresign {
   headers?: Record<string, string>;
 }
 
-/** 环带头像 S3 直传；不依赖内部频道成员关系。 */
+/** 环塔头像 S3 直传；不依赖内部频道成员关系。 */
 export async function uploadBeltAvatar(file: File): Promise<string> {
   const presign = await beltApi<AvatarPresign>('/belt/files/avatar/presign', {
     method: 'POST',
@@ -148,7 +148,7 @@ export async function uploadBeltAvatar(file: File): Promise<string> {
   return view.id;
 }
 
-/** 环带实时 socket；回调只处理 belt:message，断线由 Socket.IO 自动重连。 */
+/** 环塔实时 socket；回调只处理 belt:message，断线由 Socket.IO 自动重连。 */
 export function connectBeltSocket(
   onMessage: (payload: unknown) => void,
   onState?: (state: 'connecting' | 'online' | 'offline') => void,

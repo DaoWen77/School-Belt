@@ -357,7 +357,7 @@ describe('POST /ai/report（SSE + 7 天统计）', () => {
     expect(prompt).toContain('消息数：3');
     expect(prompt).toContain('活跃用户数：2');
     expect(prompt).toContain('任务总数：2，已完成：1，完成率：50%');
-    expect(prompt).toContain('终末地工业高级协议官');
+    expect(prompt).toContain('站长助理');
 
     expect(events.filter((item) => item.name === 'delta').length).toBeGreaterThan(0);
     expect(events.find((item) => item.name === 'done')).toBeTruthy();

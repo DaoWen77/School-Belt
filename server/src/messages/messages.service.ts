@@ -98,7 +98,7 @@ export class MessagesService {
           message: message.view,
         });
       }
-      // bridge DM 的另一端是环带 WS，需要把同一条消息补投到 belt 用户房间。
+      // bridge DM 的另一端是环塔 WS，需要把同一条消息补投到 belt 用户房间。
       if (resolved.channel.surface === 'bridge') {
         const members = await this.prisma.channelMember.findMany({
           where: { channelId },

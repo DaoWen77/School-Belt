@@ -74,10 +74,10 @@ export function BeltAccessPage() {
           <p className="belt-gate-kicker">O.M.V INTERNAL // ACCESS GATE</p>
           <h1>
             INTERNAL LINK
-            <small>返回帝江号 / 仅 `[站长]` 身份可通过</small>
+            <small>返回工作台 / 仅 `[站长]` 身份可通过</small>
           </h1>
           <div className="mt-4 border-l-2 border-[var(--ef-signal)] pl-3 text-[11px] leading-[1.8] text-[var(--ef-ink-2)]">
-            <p>这里不是普通登录。协议会现场校验你的环带身份标签。</p>
+            <p>这里不是普通登录。协议会现场校验你的环塔身份标签。</p>
             <p>无标签将触发红色协议拒绝，并在 3 秒后强制断开回外环。</p>
           </div>
           {phase === 'granted' ? (
@@ -97,10 +97,10 @@ export function BeltAccessPage() {
               disabled={phase === 'checking' || phase === 'granted'}
               onClick={() => void check()}
             >
-              {phase === 'checking' ? '正在校验…' : phase === 'granted' ? '链路已建立' : '返回帝江号'}
+              {phase === 'checking' ? '正在校验…' : phase === 'granted' ? '链路已建立' : '返回工作台'}
             </button>
             <Link href="/belt/channel" className="belt-button">
-              返回环带
+              返回环塔
             </Link>
           </div>
           <div className="belt-gate-foot">

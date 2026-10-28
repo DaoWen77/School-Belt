@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** 把桌面上的「将进酒.pptx」上传到环带频道并发送为附件消息 */
+/** 把桌面上的「将进酒.pptx」上传到环塔频道并发送为附件消息 */
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -36,7 +36,7 @@ try {
 
   const channels = await json('GET', '/belt/channels', token);
   const list = channels.data?.data?.channels ?? channels.data?.data ?? [];
-  const channel = list.find((item) => item.name?.includes('环带频道')) ?? list[0];
+  const channel = list.find((item) => item.name?.includes('环塔频道')) ?? list[0];
   log('channel', { id: channel?.id, name: channel?.name, count: list.length });
 
   const presign = await json('POST', '/belt/files/attachments/presign', token, {

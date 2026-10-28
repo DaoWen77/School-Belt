@@ -83,11 +83,11 @@ try {
     step('A2 首屏注册是否要邀请码', false, { note: '未找到邀请码注册按钮' });
   }
 
-  /* ── 阶段一 · 环带注册 ─────────────────────────────── */
+  /* ── 阶段一 · 环塔注册 ─────────────────────────────── */
   await g.goto(`${WEB}/belt/register`, { waitUntil: 'domcontentloaded' });
   await g.waitForTimeout(600);
   const regFacts = await pageFacts(g);
-  step('A3 环带注册是否选填邀请码', regFacts.inputs.some((i) => /invite|邀请|邀请码/i.test(i)), {
+  step('A3 环塔注册是否选填邀请码', regFacts.inputs.some((i) => /invite|邀请|邀请码/i.test(i)), {
     inputs: regFacts.inputs,
     buttons: regFacts.buttons,
   });
@@ -104,7 +104,7 @@ try {
     access: localStorage.getItem('dj.belt.access'),
     refresh: localStorage.getItem('dj.belt.refresh'),
   }));
-  step('A4 环带注册后是否直接进入环塔', Boolean(tokens.access), {
+  step('A4 环塔注册后是否直接进入环塔', Boolean(tokens.access), {
     url: g.url(),
     text: afterReg.text.slice(0, 300),
   });
@@ -135,7 +135,7 @@ try {
   await page.waitForTimeout(1500);
   const daily = await pageFacts(page);
   const feedTabs = daily.buttons.filter((b) => /动态|校园|日常|墙/.test(b));
-  step('B1 三合一信息流 Tab（动态墙/校园墙/干员日常）', feedTabs.length >= 2 && /动态|校园/.test(feedTabs.join(' ')), {
+  step('B1 三合一信息流 Tab（动态墙/校园墙/用户日常）', feedTabs.length >= 2 && /动态|校园/.test(feedTabs.join(' ')), {
     candidateTabs: feedTabs,
     bodyHasDynamic: daily.text.includes('动态墙'),
     bodyHasCampus: daily.text.includes('校园墙'),

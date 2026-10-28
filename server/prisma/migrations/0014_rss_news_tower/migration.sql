@@ -1,5 +1,5 @@
 -- ============================================================================
--- O.M.V 帝江号 · 全域广播 —— 0014_rss_news_tower（Phase E / Sprint5）
+-- O.M.V 工作台 · 全域广播 —— 0014_rss_news_tower（Phase E / Sprint5）
 -- 新闻塔：RSS 源 + 抓取幂等账本；只写 belt/telegraph 的 posts，不碰现有表。
 -- 说明：仓库内已有 inet / search_vector 等 Prisma Unsupported 列，
 --       `prisma migrate dev` 会被既有 drift 警告阻塞；本迁移显式只建 RSS 表，

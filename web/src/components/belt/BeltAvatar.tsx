@@ -5,7 +5,7 @@ import { beltFileUrl } from '@/lib/beltApi';
 
 const urlCache = new Map<string, Promise<string>>();
 
-/** 环带头像：S3 签名 URL，按 fileId 去重请求；失败时退回首字母。 */
+/** 环塔头像：S3 签名 URL，按 fileId 去重请求；失败时退回首字母。 */
 export function BeltAvatar({
   fileId,
   name,

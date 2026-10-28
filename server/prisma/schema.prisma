@@ -1,4 +1,4 @@
-// O.M.V 帝江号 · 全域广播
+// O.M.V 工作台 · 全域广播
 // Prisma schema —— 严格对齐 docs/_contract.md §1 枚举 与 §2 表结构（18 张表）。
 // 迁移 SQL 为手写（prisma/migrations/0001_init/migration.sql），Prisma 只用于类型安全的客户端访问。
 // 说明：契约中的部分唯一索引（reactions / attachments）、生成列（messages.search_vector）、
@@ -124,9 +124,9 @@ enum Platform {
   android
 }
 
-// ───────────────────────────── 文明环带 Phase A：身份分面 ─────────────────────────────
+// ───────────────────────────── 环塔 Phase A：身份分面 ─────────────────────────────
 /**
- * 账号/会话/帖子所属面：帝江号内部 / 文明环带外部
+ * 账号/会话/帖子所属面：工作台内部 / 环塔外部
  */
 enum Surface {
   internal
@@ -134,7 +134,7 @@ enum Surface {
 }
 
 /**
- * 频道所属面：内部 / 环带 / 跨环带桥接 DM
+ * 频道所属面：内部 / 环塔 / 跨环塔桥接 DM
  */
 enum ChannelSurface {
   internal
@@ -143,7 +143,7 @@ enum ChannelSurface {
 }
 
 /**
- * 帖子版块：朋友圈与环带四个版块（电文单列）
+ * 帖子版块：朋友圈与环塔四个版块（电文单列）
  */
 enum PostBoard {
   moments
@@ -154,7 +154,7 @@ enum PostBoard {
   campus
 }
 
-// ───────────────────────────── 文明环带 Phase B：组织与证章 ─────────────────────────────
+// ───────────────────────────── 环塔 Phase B：组织与证章 ─────────────────────────────
 enum OrgStatus {
   pending
   active
@@ -184,7 +184,7 @@ enum OrgJoinType {
   invite
 }
 
-// ───────────────────────────── 文明环带 Phase C：内容 ─────────────────────────────
+// ───────────────────────────── 环塔 Phase C：内容 ─────────────────────────────
 enum PostSource {
   user
   official
@@ -241,7 +241,7 @@ model User {
    */
   isInternal            Boolean    @default(false) @map("is_internal")
   /**
-   * 账号出生面：内部邀请/初始化=internal，环带自助注册=belt
+   * 账号出生面：内部邀请/初始化=internal，环塔自助注册=belt
    */
   accountOrigin         Surface    @default(internal) @map("account_origin")
   /**
@@ -326,7 +326,7 @@ model Organization {
   joinType     OrgJoinType    @default(apply) @map("join_type")
   status       OrgStatus      @default(pending)
   /**
-   * 组织所属面：内部组织 / 环带外部组织；私密频道继承该面
+   * 组织所属面：内部组织 / 环塔外部组织；私密频道继承该面
    */
   surface      ChannelSurface @default(internal)
   ownerId      String         @map("owner_id") @db.Uuid
@@ -466,7 +466,7 @@ model Session {
   id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId      String               @map("user_id") @db.Uuid
   /**
-   * 会话所属面：内部 token 不能调环带 API，反之亦然
+   * 会话所属面：内部 token 不能调环塔 API，反之亦然
    */
   surface     Surface              @default(internal)
   tokenHash   String               @unique @map("token_hash")
@@ -521,7 +521,7 @@ model Channel {
   visibility     Visibility     @default(public)
   kind           ChannelKind    @default(channel)
   /**
-   * 频道所属面：内部频道 / 环带公开频道 / 跨环带桥接 DM
+   * 频道所属面：内部频道 / 环塔公开频道 / 跨环塔桥接 DM
    */
   surface        ChannelSurface @default(internal)
   /**
@@ -822,7 +822,7 @@ model Post {
   id                 String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   authorId           String         @map("author_id") @db.Uuid
   /**
-   * 帖子所属面；内部朋友圈与环带帖子必须分开查询
+   * 帖子所属面；内部朋友圈与环塔帖子必须分开查询
    */
   surface            Surface        @default(internal)
   /**

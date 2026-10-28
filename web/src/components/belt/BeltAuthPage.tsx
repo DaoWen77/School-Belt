@@ -57,7 +57,7 @@ export function BeltAuthPage({ mode }: { mode: 'login' | 'register' }) {
           <p className="belt-gate-kicker">CIVILIZATION BELT // RELAY 07</p>
           <h1>
             CIVILIZATION
-            <small>{mode === 'login' ? '环带身份接入 / EXTERNAL LINK' : '申请环带身份 / NEW CALLSIGN'}</small>
+            <small>{mode === 'login' ? '环塔身份接入 / EXTERNAL LINK' : '申请环塔身份 / NEW CALLSIGN'}</small>
           </h1>
 
           <form className="belt-gate-form" onSubmit={submit}>
@@ -111,24 +111,24 @@ export function BeltAuthPage({ mode }: { mode: 'login' | 'register' }) {
               className="belt-button is-signal"
               disabled={busy || !handle.trim() || password.length < 8 || (mode === 'register' && !displayName.trim())}
             >
-              {busy ? '正在握手…' : mode === 'login' ? '建立环带链路' : '申请接入'}
+              {busy ? '正在握手…' : mode === 'login' ? '建立环塔链路' : '申请接入'}
             </button>
           </form>
 
           <div className="belt-gate-foot">
             {mode === 'login' ? (
               <>
-                <span>没有环带身份？</span>
+                <span>没有环塔身份？</span>
                 <Link href={`/belt/register?next=${encodeURIComponent(next)}`}>申请接入</Link>
               </>
             ) : (
               <>
-                <span>已有环带身份？</span>
+                <span>已有环塔身份？</span>
                 <Link href={`/belt/login?next=${encodeURIComponent(next)}`}>返回登录</Link>
               </>
             )}
             <span>·</span>
-            <span>内部账号请从舰内入口【接入文明环带】进入。</span>
+            <span>内部账号请从舰内入口【接入环塔】进入。</span>
           </div>
 
           <div className="mt-3">

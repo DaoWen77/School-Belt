@@ -57,12 +57,12 @@ try {
   const receiver = await receiverCtx.newPage();
 
   await receiver.goto(`${WEB}/belt/channel`, { waitUntil: 'domcontentloaded' });
-  await receiver.getByText('环带频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
+  await receiver.getByText('环塔频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
   await receiver.waitForTimeout(2500);
   await receiver.getByRole('button', { name: /我知道了/ }).click({ timeout: 2000 }).catch(() => {});
 
   await sender.goto(`${WEB}/belt/channel`, { waitUntil: 'domcontentloaded' });
-  await sender.getByText('环带频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
+  await sender.getByText('环塔频道').first().waitFor({ timeout: 40_000 }).catch(() => {});
   await sender.waitForTimeout(2500);
 
   /* 1. @ 浮层 */
@@ -110,7 +110,7 @@ try {
   await fetch(`${API}/belt/announcement`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${founder.accessToken}` },
-    body: JSON.stringify({ body: '紧急通知：今晚 22:00 进行环带中继切换，请提前保存工作。', level: 'critical' }),
+    body: JSON.stringify({ body: '紧急通知：今晚 22:00 进行环塔中继切换，请提前保存工作。', level: 'critical' }),
   });
   await receiver.goto(`${WEB}/belt/channel`, { waitUntil: 'domcontentloaded' });
   await receiver.waitForTimeout(3500);

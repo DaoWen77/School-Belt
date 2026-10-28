@@ -86,7 +86,7 @@ function renderBeltBody(body: string, mentionHandles: string[] = []) {
 
 const COMMAND_LABELS: Record<BeltCommand['kind'], string> = {
   help: '列出全部斜杠指令',
-  ping: '探测环带链路',
+  ping: '探测环塔链路',
   report: '生成本频道近 7 天简报',
   task: '创建任务卡',
   poll: '发起投票卡',
@@ -712,7 +712,7 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
     return <div className="belt-panel belt-empty">正在锁定公共频段…</div>;
   }
   if (!channel) {
-    return <div className="belt-panel belt-empty">没有可用的环带频道。等待中继配置。</div>;
+    return <div className="belt-panel belt-empty">没有可用的环塔频道。等待中继配置。</div>;
   }
 
   return (
@@ -840,7 +840,7 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
                     })()
                   ) : (
                     <a className="belt-share-card" href={message.card.data?.url ?? `/belt/posts/${message.card.data?.postId ?? ''}`}>
-                      <span className="belt-share-card-kicker">NEWS SHARE · {message.card.data?.sourceName ?? '环带电文'}</span>
+                      <span className="belt-share-card-kicker">NEWS SHARE · {message.card.data?.sourceName ?? '环塔电文'}</span>
                       <strong>{message.card.title}</strong>
                       {message.card.body ? <span>{message.card.body}</span> : null}
                       <em>阅读全文 →</em>
@@ -852,11 +852,11 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
                     const [, callId, mode, , invitees] = message.body.split(':');
                     const invited = invitees ? invitees.split(',').filter(Boolean) : [];
                     if (invited.length > 0 && !invited.includes(user.id)) {
-                      return <p className="belt-message-body">📡 极光通讯邀请已发送给指定成员</p>;
+                      return <p className="belt-message-body">📡 语音链路邀请已发送给指定成员</p>;
                     }
                     return (
                       <a className="belt-call-card" href={`/belt/rtc?callId=${callId}&mode=${mode || 'audio'}`} onClick={(event) => { event.preventDefault(); notifyRtcDisabled(); }}>
-                        <span>📡 AURORA CALL · 极光通讯</span>
+                        <span>📡 VOICE LINK · 语音链路</span>
                         <strong>{message.sender.displayName} 邀请你加入通讯</strong>
                         <em>点击加入 →</em>
                       </a>
@@ -1031,7 +1031,7 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
             onKeyDown={handleDraftKeyDown}
             onBlur={() => window.setTimeout(() => setMention(null), 150)}
             placeholder="输入信号…  @提及 /ping /task /poll /report /chart"
-            aria-label="环带频道消息"
+            aria-label="环塔频道消息"
           />
           {mention && mentionMatches.length > 0 ? (
             <div className="belt-mention-pop" role="listbox" aria-label="成员提及">

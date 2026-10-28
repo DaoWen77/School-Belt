@@ -184,7 +184,7 @@ export class BeltPostsService {
 
   async create(user: AuthUser, dto: CreateBeltPostDto): Promise<BeltPostView> {
     if (dto.board === 'bulletin' && user.globalRole !== 'owner' && user.globalRole !== 'admin') {
-      throw new AppError(ErrorCode.FORBIDDEN, '仅协议官可发布环带快报');
+      throw new AppError(ErrorCode.FORBIDDEN, '仅协议官可发布环塔快报');
     }
     const deadline = dto.bountyDeadline ? new Date(dto.bountyDeadline) : null;
     if (deadline && Number.isNaN(deadline.getTime())) {
@@ -204,7 +204,7 @@ export class BeltPostsService {
         authorId: user.id,
         surface: 'belt',
         board: dto.board,
-        // 【干员日常】允许像朋友圈一样只发纯文字：缺标题时取正文首行。
+        // 【日志板】允许像朋友圈一样只发纯文字：缺标题时取正文首行。
         title: (dto.title?.trim() || dto.body.trim().split(/\r?\n/)[0] || '未命名日常信号').slice(0, 120),
         body: dto.body,
         coverUrl: dto.coverUrl ?? null,
@@ -281,7 +281,7 @@ export class BeltPostsService {
     return (await this.commentViews([row]))[0]!;
   }
 
-  /** 把电文分享到默认环带频道：创建 Card + card message。 */
+  /** 把电文分享到默认环塔频道：创建 Card + card message。 */
   async share(user: AuthUser, postId: string, channelId?: string): Promise<{ channelId: string; messageId: string }> {
     const post = await this.prisma.post.findFirst({
       where: { id: postId, surface: 'belt', status: 'published', deletedAt: null },
@@ -306,7 +306,7 @@ export class BeltPostsService {
           where: { surface: 'belt', kind: 'channel', slug: 'belt-channel', archivedAt: null },
           select: { id: true },
         });
-    if (!channel) throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '环带频道不存在');
+    if (!channel) throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '环塔频道不存在');
     const clientMsgId = randomUUID();
     const message = await this.prisma.withTransaction(async (tx) => {
       const card = await tx.card.create({

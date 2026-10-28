@@ -31,8 +31,8 @@ console.log('S3_IMGS',JSON.stringify(imgs.slice(0,6)));
 for(let i=0;i<3;i++){ await page.reload({waitUntil:'networkidle'}); await page.waitForTimeout(1200); }
 const avatars=await page.locator('img').evaluateAll(list=>list.filter(i=>i.src.includes(':9000')).map(i=>({nw:i.naturalWidth,alt:i.alt,src:i.src.slice(0,55)})));
 console.log('AFTER_RELOAD_AVATARS',JSON.stringify(avatars.slice(0,6)));
-await page.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/phase1-lan-1440.png'});
+await page.screenshot({path:'E:/项目/O.M.V工作台全域广播/reports/frontend/phase1-lan-1440.png'});
 await page.setViewportSize({width:390,height:844}); await page.waitForTimeout(800);
-await page.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/phase1-lan-390.png'});
+await page.screenshot({path:'E:/项目/O.M.V工作台全域广播/reports/frontend/phase1-lan-390.png'});
 console.log('ERRORS',JSON.stringify(errors.slice(0,5)));
 await browser.close();

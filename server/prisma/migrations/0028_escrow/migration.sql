@@ -1,5 +1,5 @@
 -- ============================================================================
--- O.M.V 帝江号 · 全域广播 —— 0028_escrow（模块五：委托交易 / 托管资金）
+-- O.M.V 工作台 · 全域广播 —— 0028_escrow（模块五：委托交易 / 托管资金）
 -- 依据：委托申请、单接单人、5% 平台抽成、托管资金冻结 → 打款 / 退款
 -- 目标库：PostgreSQL 16（本机 embedded PG 17.5）
 -- 前置：0027_bonds 已执行
@@ -78,7 +78,7 @@ CREATE INDEX IF NOT EXISTS escrows_state_idx ON escrows (state);
 --   * is_internal 由 0009 触发器从 tags 派生，故 tags 必须为空数组；
 --   * users.balance_cents 默认 5000，金库属系统账号，必须置 0（不补 init 流水：
 --     金库余额只由 task fee 流水累积，init 流水会污染对账口径）；
---   * account_origin=internal：系统账号不属于环带自助注册。
+--   * account_origin=internal：系统账号不属于环塔自助注册。
 INSERT INTO users (handle, display_name, password_hash, global_role, status, tags, is_internal, account_origin, is_bot)
 VALUES ('platform_treasury', '环塔金库', '$disabled$', 'member', 'active', '{}', false, 'internal', true)
 ON CONFLICT (handle) DO NOTHING;

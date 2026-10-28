@@ -11,7 +11,7 @@ export const passwordSchema = z.string().min(8, '密码至少 8 位').max(128, '
 
 /** 身份展示名禁止方括号与保留身份词，避免伪装官方前缀 */
 function safeDisplayName(value: string): boolean {
-  return !/[\[\]]/.test(value) && !/(站长|Official|帝江号|文明环带|系统)/i.test(value);
+  return !/[\[\]]/.test(value) && !/(站长|Official|工作台|环塔|系统)/i.test(value);
 }
 
 export const registerSchema = z.object({
@@ -29,7 +29,7 @@ export const registerSchema = z.object({
 export type RegisterDto = z.infer<typeof registerSchema>;
 
 /**
- * 环带自助注册：不携带内部邀请码。
+ * 环塔自助注册：不携带内部邀请码。
  * displayName 禁止方括号与保留身份词，避免伪装 `[站长]Official`。
  */
 export const beltRegisterSchema = z.object({
@@ -41,7 +41,7 @@ export const beltRegisterSchema = z.object({
     .max(40)
     .refine((value) => !/[\[\]]/.test(value), '显示名不能包含方括号')
     .refine(
-      (value) => !/(站长|Official|帝江号|文明环带|系统)/i.test(value),
+      (value) => !/(站长|Official|工作台|环塔|系统)/i.test(value),
       '显示名包含保留身份词',
     ),
   password: passwordSchema,

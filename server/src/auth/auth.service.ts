@@ -231,7 +231,7 @@ export class AuthService {
   }
 
   /**
-   * 环带自助注册：不消耗内部邀请码，出生面固定为 belt，不授予 `[站长]`。
+   * 环塔自助注册：不消耗内部邀请码，出生面固定为 belt，不授予 `[站长]`。
    * 与内部邀请注册完全分开，防止外网用户绕过邀请直接拿到内部身份。
    */
   async registerBelt(dto: BeltRegisterDto, meta: RequestMeta): Promise<AuthResult> {
@@ -325,7 +325,7 @@ export class AuthService {
     });
     if (!session) throw new AppError(ErrorCode.AUTH_INVALID);
 
-    // 环带 refresh 端点不能兑换内部 refresh token；反之亦然。
+    // 环塔 refresh 端点不能兑换内部 refresh token；反之亦然。
     if (session.surface !== expectedSurface) {
       throw new AppError(ErrorCode.SURFACE_MISMATCH, '刷新凭证不属于当前链路');
     }

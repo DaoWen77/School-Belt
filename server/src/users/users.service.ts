@@ -104,7 +104,7 @@ export class UsersService {
 
   async list(query: ListUsersQuery): Promise<{ users: PublicUser[] }> {
     const users = await this.prisma.user.findMany({
-      // 内部用户目录不展示外网账号；外网账号只能走环带自己的用户接口。
+      // 内部用户目录不展示外网账号；外网账号只能走环塔自己的用户接口。
       where: {
         isInternal: true,
         ...(query.q

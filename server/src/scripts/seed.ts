@@ -113,7 +113,7 @@ const SENTENCES = [
   '任务指派已更新，请对应负责人确认。',
   '请在 18:00 前回填素材清单。',
   '投票「下一阶段主题」已开启。',
-  '帝江号调度台完成一次心跳校准。',
+  '工作台调度台完成一次心跳校准。',
   '档案抽屉第 3 层已按协议编号重排。',
   '本轮广播覆盖全部 7 个观测点。',
 ];
@@ -728,7 +728,7 @@ async function seedSocial(passwordHash: string, userMap: Map<string, string>): P
     });
   }
 
-  // 环带电文（个人主页 Tab1）
+  // 环塔电文（个人主页 Tab1）
   const posts = [
     {
       index: 9101,
@@ -791,8 +791,8 @@ async function seedSocial(passwordHash: string, userMap: Map<string, string>): P
 
   const services = [
     { index: 9131, owner: 'clerk1', title: '测绘数据处理', description: '航测原片拼接与出图', priceCents: 50000 },
-    { index: 9132, owner: 'clerk1', title: '环带导览讲解', description: '每小时一次，含中继塔内部', priceCents: null },
-    { index: 9133, owner: 'creator', title: '环带摄影跟拍', description: '半天跟拍，含精修 20 张', priceCents: 30000 },
+    { index: 9132, owner: 'clerk1', title: '环塔导览讲解', description: '每小时一次，含中继塔内部', priceCents: null },
+    { index: 9133, owner: 'creator', title: '环塔摄影跟拍', description: '半天跟拍，含精修 20 张', priceCents: 30000 },
   ];
   for (const item of services) {
     await prisma.service.upsert({
@@ -874,7 +874,7 @@ async function seedSocial(passwordHash: string, userMap: Map<string, string>): P
       id: seedUuid(9151),
       userId: applicant,
       status: 'pending',
-      reason: '常驻环带三年，愿意参与内容治理与工单复核。',
+      reason: '常驻环塔三年，愿意参与内容治理与工单复核。',
       snapshotLevel: levelOf(305),
       snapshotViolations: 0,
     },

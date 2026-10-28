@@ -114,7 +114,7 @@ async function apiGet(pathname, token) {
 
 async function main() {
   fs.mkdirSync(REPORTS_DIR, { recursive: true });
-  log('════════ 帝江号上传全链路验证（契约 §10 / task-13）════════');
+  log('════════ 工作台上传全链路验证（契约 §10 / task-13）════════');
   log(`API=${BASE}　登录账号=${HANDLE}`);
   log(`S3 状态：${s3State.implementation}@${s3State.endpoint}（bucket=${s3State.bucket}，SigV4=${s3State.signatureCheck}，真实 S3 兼容服务）`);
 

@@ -76,7 +76,7 @@
 | 75 | PUT | `/ai/config` | owner·admin | `{ baseUrl, model, apiKey? }` †（baseUrl 必须 http(s)；apiKey 省略=保留旧值） | 200 同上（AES-256-GCM 加密落库，响应不含 key） | FORBIDDEN, VALIDATION_FAILED |
 | 76 | POST | `/ai/test` | owner·admin | — | 200 `{ ok, latencyMs, status, error? }` †（调 `${baseUrl}/models`，Bearer key，8s 超时；不含 key） | FORBIDDEN |
 | 77 | POST | `/ai/chat` | 频道成员 | `{ channelId, body, botId? }` †（`botId` 省略时按 `@名称` 匹配频道 Bot 成员，最长优先，再回退默认 Bot） | **SSE**（`text/event-stream`）：`event: delta {delta,text}` … `event: done {messageId,seq}`；异常 `event: error {code,message}`；落库 bot 消息（senderId=该 Bot 的 user id，body 前缀 `[DIJIANG/OS]`） | NOT_CHANNEL_MEMBER, CHANNEL_NOT_FOUND, BOT_NOT_FOUND, BOT_DISABLED, VALIDATION_FAILED |
-| 78 | POST | `/ai/report` | 频道成员 | `{ channelId, botId? }` †（近 7 天统计） | **SSE**（同 chat；prompt 使用“终末地工业高级协议官”叙事；落库该 Bot 消息） | NOT_CHANNEL_MEMBER, CHANNEL_NOT_FOUND, BOT_NOT_FOUND, BOT_DISABLED, VALIDATION_FAILED |
+| 78 | POST | `/ai/report` | 频道成员 | `{ channelId, botId? }` †（近 7 天统计） | **SSE**（同 chat；prompt 使用“站长助理”叙事；落库该 Bot 消息） | NOT_CHANNEL_MEMBER, CHANNEL_NOT_FOUND, BOT_NOT_FOUND, BOT_DISABLED, VALIDATION_FAILED |
 | | **bots / ai 指令（9，Sprint5）** | | | | | |
 | 88 | GET | `/bots` | **owner**（admin 也 403） | — | `{ bots: [{ id, handle, name, avatarFileId, model, systemPrompt, enabled, keyMasked, createdAt }] }` †（**无明文 key**） | FORBIDDEN |
 | 89 | POST | `/bots` | **owner** | `{ name, avatarFileId?, systemPrompt?, model?, apiKey? }` †（name 1..40；systemPrompt ≤8000） | 201 `{ bot }`（事务创建 users(is_bot=true) + bot_profiles；apiKey AES-256-GCM 加密） | FORBIDDEN, VALIDATION_FAILED |
@@ -303,7 +303,7 @@
 11. **Sprint3 的 AI 语义**（真实供应商未验证；本机用 `ops/e2e/mock-ai.mjs` 的 OpenAI 兼容 mock）：
     - 配置项只存 DB（`ai_settings` 单行），`PUT /ai/config` 的 `apiKey` 经 AES-256-GCM 加密为 `v1:<iv>:<tag>:<cipher>`；GET/PUT/test/SSE 事件、日志、错误均**不含明文 key**，GET 只回 `keyMasked`（末 4 位）。
     - `POST /ai/chat`：需频道成员；取该频道最近 20 条未删除消息（bot 历史消息作为 assistant）作上下文，调用 `${baseUrl}/chat/completions`（`stream:true`）；逐块 `event: delta`（payload 同时带 `delta` 与 `text` 两个等价字段，便于前端任选）；完成后在**同一 Prisma 事务**内写入 bot 消息（`sender_id=00000000-0000-4000-8000-0000000000b0`、`kind=text`、body 以 `[DIJIANG/OS]` 开头，作为前端专属样式标记）并更新 `channels.last_message_at`，提交后广播 `message:new`，最后 `event: done {messageId,seq}`（seq 即消息 id 的十进制字符串）。
-    - `POST /ai/report`：统计该频道**近 7 天**消息数、活跃用户数（distinct sender）、任务卡总数/完成数，prompt 使用“终末地工业高级协议官”叙事；SSE 与落库事务同 chat。
+    - `POST /ai/report`：统计该频道**近 7 天**消息数、活跃用户数（distinct sender）、任务卡总数/完成数，prompt 使用“站长助理”叙事；SSE 与落库事务同 chat。
     - 上游异常/未配置：SSE 以 `event: error {code,message}` 结束；客户端断开时 `reply.raw` 的 close 会 abort 上游 `fetch`，不会继续消耗 token 或落库。
 12. **Sprint4 的朋友圈 / 档案室 / 活跃度语义**：
     - 分页游标为不透明 base64url（`k:<createdAt 毫秒>:<id>`），按 `(createdAt desc, id desc)` 做 keyset 分页；客户端不得解析。

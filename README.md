@@ -1,8 +1,8 @@
-# O.M.V 帝江号 · 全域广播
+# O.M.V 工作台 · 全域广播
 
-> O.M.V. DIJIANG / ALL-DOMAIN BROADCAST
+> O.M.V. WORKBENCH / ALL-DOMAIN BROADCAST
 > 一个邀请制创造性社团的私有协作空间：聊天是主干，素材 / 灵感 / 投票 / 任务 / 作品以**卡片**长在消息流里。
-> 叙事：终末地工业《第三协议·协作条款》式的协议口吻；界面文案只用业务词。
+> 叙事：O.M.V《第三协议·协作条款》式的协议口吻；界面文案只用业务词。
 
 ---
 
@@ -144,7 +144,7 @@ cd web && pnpm dev
 ## 5. 目录结构
 
 ```
-O.M.V帝江号全域广播/
+O.M.V工作台全域广播/
 ├─ docs/                  17 节规格 + 契约 v1.1/v1.2 + 前端/IM/局域网文档
 ├─ server/                NestJS 11 + Prisma 6（源文件 140+；基线 99 例 + Sprint 定向 38 例）
 │  ├─ prisma/             schema.prisma + 0001_init … 0006_sprint4
@@ -257,7 +257,7 @@ Next.js 15 App Router + React 19 + TypeScript + **Tailwind v4**，连真实 REST
 
 ## 9. 命名与文案约定
 
-- 产品名：`O.M.V 帝江号`；功能名：`全域广播`；英文：`O.M.V. DIJIANG / ALL-DOMAIN BROADCAST`。
+- 产品名：`O.M.V 工作台`；功能名：`全域广播`；英文：`O.M.V. WORKBENCH / ALL-DOMAIN BROADCAST`。
 - 角色界面称呼：建立者（owner）、协议官（admin）、档案员（频道 moderator）、成员（member）。
 - 业务词：信号（消息）、素材库、灵感墙、作品墙、发起投票、指派任务、归档素材。
 - 不用风格词做按钮；每个标签用没读过设计文档的人也能懂的业务词。

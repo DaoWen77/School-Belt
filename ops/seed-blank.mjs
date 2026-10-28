@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 空数据初始化：只建「环带频道」一个公共频道，其余全部留空。
+ * 空数据初始化：只建「环塔频道」一个公共频道，其余全部留空。
  * 幂等：频道按 slug 查找，存在就复用。
  */
 import path from 'node:path';
@@ -20,9 +20,9 @@ try {
     existing ??
     (await prisma.channel.create({
       data: {
-        name: '环带频道',
+        name: '环塔频道',
         slug: 'belt',
-        topic: '公开实时公共频道 · 所有环带身份可发言',
+        topic: '公开实时公共频道 · 所有环塔身份可发言',
         kind: 'channel',
         surface: 'belt',
         visibility: 'public',

@@ -12,7 +12,7 @@ export const OptionalAuth = (): MethodDecorator & ClassDecorator =>
 
 /**
  * 面向哪一侧 API。
- * 未标注 = internal（默认拒绝/默认内部），新路由不会因为漏写而暴露给环带。
+ * 未标注 = internal（默认拒绝/默认内部），新路由不会因为漏写而暴露给环塔。
  */
 export type SurfaceRequirement = 'internal' | 'belt' | 'bridge';
 export const SURFACE_KEY = 'dijiang:surface';

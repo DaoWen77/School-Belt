@@ -1,8 +1,8 @@
 import type { ChannelRole, GlobalRole, UserStatus } from '../types/enums';
 
-/** 账号/会话所属面：内部帝江号 / 外部文明环带 */
+/** 账号/会话所属面：内部工作台 / 外部环塔 */
 export type SurfaceName = 'internal' | 'belt';
-/** 频道所属面：内部 / 环带 / 跨环带桥接 DM */
+/** 频道所属面：内部 / 环塔 / 跨环塔桥接 DM */
 export type ChannelSurfaceName = 'internal' | 'belt' | 'bridge';
 
 /** 认证后挂在 request 上的用户上下文 */
@@ -19,7 +19,7 @@ export interface AuthUser {
   isInternal: boolean;
   /** 账号出生面：internal / belt */
   accountOrigin: SurfaceName;
-  /** 系统身份标签（内部 API 可用；环带公开接口不会整包暴露） */
+  /** 系统身份标签（内部 API 可用；环塔公开接口不会整包暴露） */
   tags: string[];
   mutedUntil: Date | null;
   avatarFileId: string | null;

@@ -1,6 +1,6 @@
 /**
- * 环带会话存储：与内部 `dj.access/dj.refresh` 完全分离。
- * 同一个浏览器可以同时持有帝江号内部会话与文明环带会话。
+ * 环塔会话存储：与内部 `dj.access/dj.refresh` 完全分离。
+ * 同一个浏览器可以同时持有工作台内部会话与环塔会话。
  */
 const ACCESS_KEY = 'dj.belt.access';
 const REFRESH_KEY = 'dj.belt.refresh';

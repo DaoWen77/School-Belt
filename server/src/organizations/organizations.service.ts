@@ -119,7 +119,7 @@ export class OrganizationsService {
     };
   }
 
-  /** Sprint 7.1：环带个人组织中心，可同时展示多个 active 组织。 */
+  /** Sprint 7.1：环塔个人组织中心，可同时展示多个 active 组织。 */
   async getMineAll(user: AuthUser): Promise<{
     organizations: OrganizationView[];
     pendingApplication: OrganizationView | null;

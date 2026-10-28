@@ -9,7 +9,7 @@ page.on('request',r=>{if(r.url().includes('/api/v1/'))apiHosts.push(new URL(r.ur
 await page.goto(base+'/login',{waitUntil:'networkidle'});
 const summary=page.getByRole('button',{name:/服务器设置/}).first();
 await summary.click(); await page.waitForTimeout(300);
-await page.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/phase2-login-server-1440.png'});
+await page.screenshot({path:'E:/项目/O.M.V工作台全域广播/reports/frontend/phase2-login-server-1440.png'});
 const api=page.locator('input[aria-label="API Base URL"]');
 const ws=page.locator('input[aria-label="WS URL"]');
 await api.fill('http://192.168.1.9:9999');
@@ -18,7 +18,7 @@ await page.waitForTimeout(1200);
 const badText=await page.locator('body').innerText();
 console.log('BAD_TEST_HAS_ERROR',/失败|错误|无法|NETWORK|fetch/i.test(badText));
 console.log('BAD_SAVED',await page.evaluate(()=>localStorage.getItem('dj-server-api')));
-await page.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/phase2-server-test-1440.png'});
+await page.screenshot({path:'E:/项目/O.M.V工作台全域广播/reports/frontend/phase2-server-test-1440.png'});
 await api.fill('http://192.168.1.9:3000');
 await ws.fill('http://192.168.1.9:3000');
 await page.getByRole('button',{name:'测试连接'}).click();
@@ -35,7 +35,7 @@ await page.click('form button[type=submit]');
 await page.waitForTimeout(3000);
 console.log('LOGIN_URL',page.url());
 console.log('API_HOSTS',JSON.stringify([...new Set(apiHosts)]));
-await page.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/phase2-custom-base-1440.png'});
+await page.screenshot({path:'E:/项目/O.M.V工作台全域广播/reports/frontend/phase2-custom-base-1440.png'});
 console.log('ERRORS',JSON.stringify(errors.slice(0,5)));
 await browser.close();
 

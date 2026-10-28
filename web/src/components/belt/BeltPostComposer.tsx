@@ -20,7 +20,7 @@ const BOARD_OPTIONS = [
 
 const COPY: Record<Board, { eyebrow: string; title: string; body: string }> = {
   moments: {
-    eyebrow: 'MOMENTS / 环带动态',
+    eyebrow: 'MOMENTS / 环塔动态',
     title: '发布一条动态',
     body: '此刻在做什么、看到什么，随手记下来…',
   },
@@ -31,7 +31,7 @@ const COPY: Record<Board, { eyebrow: string; title: string; body: string }> = {
   },
   bulletin: {
     eyebrow: 'OFFICIAL DISPATCH / 协议官签发',
-    title: '签发环带快报',
+    title: '签发环塔快报',
     body: '写下要发往外环的官方公告正文…',
   },
   bounty: {
@@ -128,7 +128,7 @@ export function BeltPostComposer({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    // 干员日常 = 朋友圈：可只发纯文字，标题留空后端取正文首行。
+    // 日志板 = 朋友圈：可只发纯文字，标题留空后端取正文首行。
     if (!canPost || (!isSocial && !title.trim()) || !body.trim() || busy) return;
     setBusy(true);
     setError(null);
@@ -235,7 +235,7 @@ export function BeltPostComposer({
                   value={reward}
                   maxLength={80}
                   onChange={(event) => setReward(event.target.value)}
-                  placeholder="面议 / 1200 环带券"
+                  placeholder="面议 / 1200 环塔券"
                 />
               </label>
               <label className="belt-field">
@@ -252,7 +252,7 @@ export function BeltPostComposer({
 
           {!canPost ? (
             <p className="belt-error">
-              <code>PERMISSION</code> 环带快报仅协议官可签发。
+              <code>PERMISSION</code> 环塔快报仅协议官可签发。
             </p>
           ) : null}
           {error ? (
@@ -295,7 +295,7 @@ export function BeltPostComposer({
           </div>
 
           <div className="signal-drawer-actions">
-            <span className="belt-hint">纯文本 · 不支持附件 · 进入公开环带</span>
+            <span className="belt-hint">纯文本 · 不支持附件 · 进入公开环塔</span>
             <button
               type="submit"
               className="belt-button is-signal signal-publish"

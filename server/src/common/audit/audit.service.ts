@@ -18,7 +18,7 @@ export const AuditAction = {
   USER_SUSPEND: 'user.suspend',
   USER_ACTIVATE: 'user.activate',
   ANNOUNCEMENT_UPDATE: 'announcement.update',
-  // 文明环带 Phase A：面隔离与交接
+  // 环塔 Phase A：面隔离与交接
   HANDOFF_ISSUE: 'handoff.issue',
   HANDOFF_EXCHANGE: 'handoff.exchange',
   BELT_ACCESS_DENIED: 'belt.access.denied',

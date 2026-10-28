@@ -1,4 +1,4 @@
-// O.M.V 帝江号 · 全域广播 —— k6 聊天压测（历史入口，保留文件名）
+// O.M.V 工作台 · 全域广播 —— k6 聊天压测（历史入口，保留文件名）
 //
 // 2026-10-23 起，完整实现抽到 lib/im-scenario.js，本文件与 k6-ack.js 行为一致：
 //   login（多账号，setup）→ 取频道 → WS /ws → message:send → ack 延迟统计 → summary JSON。

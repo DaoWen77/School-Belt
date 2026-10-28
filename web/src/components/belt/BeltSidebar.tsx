@@ -23,7 +23,7 @@ interface Props {
 }
 
 const SYSTEM_LINKS = [
-  { view: 'daily', label: '干员日常', en: 'LOGBOOK', href: '/belt/daily' },
+  { view: 'daily', label: '日志板', en: 'LOGBOOK', href: '/belt/daily' },
   { view: 'dispatch', label: '新闻塔 / 电文', en: 'INTERCEPTS', href: '/belt/dispatch' },
   { view: 'bounty', label: '悬赏委托', en: 'BOUNTY', href: '/belt/bounty' },
   { view: 'organizations', label: '组织中心', en: 'ORGS', href: '/belt/organizations' },
@@ -33,7 +33,7 @@ const SYSTEM_LINKS = [
 ];
 
 /**
- * 环带 Discord 式融合侧栏：
+ * 环塔 Discord 式融合侧栏：
  * 频道（含组织私有） / 私聊 / 系统页面，三组可折叠，点击直接切主视图。
  */
 export function BeltSidebar({ user, activeView, activeChannelId, activeConversationId, refreshKey = 0, mobileOpen = false, onNavigate, canModerate = false }: Props) {

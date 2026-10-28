@@ -3,7 +3,7 @@
  * Phase D UI 证据：
  *   - 内部好友申请 / 同意 / DM 出现在侧边栏
  *   - 悬赏详情【建立联络】→ 跨面 bridge 申请
- *   - 环带私聊链路页；bridge DM 双方可见
+ *   - 环塔私聊链路页；bridge DM 双方可见
  */
 import { createRequire } from 'node:module';
 import path from 'node:path';
@@ -138,7 +138,7 @@ async function main() {
       board: 'bounty',
       title: bountyTitle,
       body: '需要回收一枚外环测绘浮标，坐标在中继东侧断带。',
-      bountyReward: '900 环带券',
+      bountyReward: '900 环塔券',
       bountyDeadline: new Date(Date.now() + 86400000 * 2).toISOString(),
     },
   });

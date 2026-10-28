@@ -150,7 +150,7 @@ export function BeltShareSheet({
               <span className="belt-sheet-icon">#</span>
               <span>
                 <b>发送到频道</b>
-                <small>选择一个公开环带频道</small>
+                <small>选择一个公开环塔频道</small>
               </span>
               <em>CHANNEL</em>
             </button>

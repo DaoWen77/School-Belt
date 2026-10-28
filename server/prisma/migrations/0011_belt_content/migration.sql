@@ -1,10 +1,10 @@
 -- ============================================================================
--- O.M.V 帝江号 · 全域广播 —— 0011_belt_content（文明环带 Phase C）
--- 依据：双面单库方案 C｜环带壳与内容
+-- O.M.V 工作台 · 全域广播 —— 0011_belt_content（环塔 Phase C）
+-- 依据：双面单库方案 C｜环塔壳与内容
 -- 目标库：PostgreSQL 16（本机 embedded PG 17.5）
 -- 前置：0010_organizations 已执行
 -- 说明：
---   1. 扩展 posts 为“朋友圈 + 环带版块”共用表；
+--   1. 扩展 posts 为“朋友圈 + 环塔版块”共用表；
 --   2. 现有朋友圈回填 published_at=created_at、source=user、status=published；
 --   3. 电文/RSS 的 rss_items 在 Phase E 建，本迁移只留 source/sourceUrl 字段；
 --   4. 评论增加软删字段，供外网治理使用。

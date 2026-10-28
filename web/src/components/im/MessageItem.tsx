@@ -260,7 +260,7 @@ export function MessageItem(props: MessageItemProps) {
     message.bot ||
       message.senderId === 'dijiang_bot' ||
       handle === 'dijiang_bot' ||
-      message.body?.trimStart().startsWith('[DIJIANG/OS]'),
+      message.body?.trimStart().startsWith('[OMV/OS]'),
   );
 
   if (isBot) {
@@ -276,7 +276,7 @@ export function MessageItem(props: MessageItemProps) {
           <div className="im-bot-head">
             <Avatar name={name} fileId={avatarFileId} size={20} />
             <span className="ml-1 max-w-[42%] shrink-0 truncate font-mono text-[10px] font-bold text-white">{name}</span>
-            <span className="im-bot-tag">[DIJIANG/OS]</span>
+            <span className="im-bot-tag">[OMV/OS]</span>
             {message.aiKind === 'report' ? <span className="im-bot-sub">REPORT</span> : null}
             {message.aiKind === 'summarize' ? <span className="im-bot-sub">SUMMARY</span> : null}
             {message.aiKind === 'translate' ? <span className="im-bot-sub">TRANSLATE</span> : null}

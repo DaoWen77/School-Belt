@@ -17,10 +17,10 @@ import { Public } from '../common/decorators';
 import { ZBody } from '../common/pipes/zod-validation.pipe';
 
 /**
- * 文明环带认证入口（Phase A 只做身份；页面在 Phase C 接入）。
+ * 环塔认证入口（Phase A 只做身份；页面在 Phase C 接入）。
  *
  * - 注册不消耗内部邀请码，出生面固定 belt，tags 为空；
- * - 登录允许内部账号使用环带身份，但只发 belt 会话；
+ * - 登录允许内部账号使用环塔身份，但只发 belt 会话；
  * - 交接码兑换必须带目标面，且由 HandoffService 单次消费。
  */
 @Controller('belt/auth')

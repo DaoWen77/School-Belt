@@ -1,4 +1,4 @@
-// O.M.V 帝江号 · 全域广播 —— k6 ack 压测入口（task-18 正式脚本）
+// O.M.V 工作台 · 全域广播 —— k6 ack 压测入口（task-18 正式脚本）
 //
 // 流程：登录（setup，多账号）→ GET /channels 取频道 → 每 VU 连 /ws（Socket.IO namespace）
 //       → 周期 message:send → 用 ack 计算端到端延迟 → summary JSON 可直接读 P95/P99。

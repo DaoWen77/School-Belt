@@ -5,7 +5,7 @@ import { ZBody } from '../common/pipes/zod-validation.pipe';
 import { createStickerSchema, type CreateStickerDto } from '../stickers/stickers.dto';
 import type { AuthUser } from '../common/types/context';
 
-/** 环带表情包：本人的贴纸库（模块四补丁） */
+/** 环塔表情包：本人的贴纸库（模块四补丁） */
 @Controller('belt/stickers')
 @Surface('belt')
 export class BeltStickersController {

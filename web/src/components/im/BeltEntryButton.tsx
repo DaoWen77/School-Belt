@@ -11,7 +11,7 @@ interface HandoffResult {
 }
 
 /**
- * 内部 → 文明环带入口。
+ * 内部 → 环塔入口。
  * 点击后先播放 1.5 秒终端连线，再跳转 /belt/handoff 兑换 belt 会话。
  */
 export function BeltEntryButton() {
@@ -60,7 +60,7 @@ export function BeltEntryButton() {
         className="mt-1 flex w-full items-center justify-between gap-1 border border-line px-2 py-1.5 text-[10px] font-semibold text-ink-2 hover:border-ink hover:text-ink"
       >
         <span className="font-sans uppercase tracking-[0.12em]">External Link</span>
-        <span>接入文明环带 ↗</span>
+        <span>接入环塔 ↗</span>
       </button>
 
       {open && typeof document !== 'undefined' ? createPortal(

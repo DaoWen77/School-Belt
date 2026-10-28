@@ -318,7 +318,7 @@ export function BeltPostDetail({ postId, user }: { postId: string; user: BeltUse
         {error ?? '该信号已丢失。'}
         <div className="mt-2">
           <Link href="/belt/channel" className="belt-header-link">
-            返回环带
+            返回环塔
           </Link>
         </div>
       </div>
@@ -631,7 +631,7 @@ export function BeltPostDetail({ postId, user }: { postId: string; user: BeltUse
       </BeltPortal>
       ) : null}
 
-      <BeltShareSheet postId={postId} postTitle={post?.title ?? '环带电文'} open={shareOpen} onClose={() => setShareOpen(false)} />
+      <BeltShareSheet postId={postId} postTitle={post?.title ?? '环塔电文'} open={shareOpen} onClose={() => setShareOpen(false)} />
     </div>
   );
 }

@@ -86,7 +86,7 @@ export class FilesService {
   }
 
   /**
-   * 环带个人头像：不依赖频道成员关系，文件 channelId=null。
+   * 环塔个人头像：不依赖频道成员关系，文件 channelId=null。
    * 校验、S3 直传与 complete 的魔数校验仍复用同一条链路。
    */
   async presignAvatar(user: AuthUser, dto: { filename: string; mime: string; size: number }) {
@@ -125,7 +125,7 @@ export class FilesService {
     };
   }
 
-  /** 环带频道图片/短视频：不依赖内部 channel_members，只校验 belt 公开频道或组织成员。 */
+  /** 环塔频道图片/短视频：不依赖内部 channel_members，只校验 belt 公开频道或组织成员。 */
   async presignBeltAttachment(user: AuthUser, dto: { channelId: string; filename: string; mime: string; size: number }) {
     const channel = await this.prisma.channel.findFirst({
       where: {
@@ -137,7 +137,7 @@ export class FilesService {
       },
       select: { id: true },
     });
-    if (!channel) throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '环带频道不存在');
+    if (!channel) throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '环塔频道不存在');
     // 任意文件：MIME 白名单由 checkUpload 决定（未知类型按 document 50MB 处理）
     const mime = normalizeMime(dto.mime) || 'application/octet-stream';
     const policy = checkUpload(mime, dto.size);
@@ -175,7 +175,7 @@ export class FilesService {
     const file = await this.prisma.file.findUnique({ where: { id: fileId } });
     if (!file) throw new AppError(ErrorCode.VALIDATION_FAILED, '文件不存在', { fileId });
     if (file.ownerId !== user.id || !file.channelId) {
-      throw new AppError(ErrorCode.FORBIDDEN, '只能确认自己的环带附件');
+      throw new AppError(ErrorCode.FORBIDDEN, '只能确认自己的环塔附件');
     }
     if (file.status !== 'pending') {
       throw new AppError(ErrorCode.FILE_NOT_READY, '文件状态不允许重复上传', { fileId });
@@ -244,7 +244,7 @@ export class FilesService {
     return this.toView(updated);
   }
 
-  /** 环带发帖媒体（日常/新闻封面）：不绑定频道，本人可上传图片/视频。 */
+  /** 环塔发帖媒体（日常/新闻封面）：不绑定频道，本人可上传图片/视频。 */
   async presignBeltPostMedia(user: AuthUser, dto: { filename: string; mime: string; size: number }) {
     const mime = normalizeMime(dto.mime);
     if (!mime.startsWith('image/') && !mime.startsWith('video/')) {
@@ -281,7 +281,7 @@ export class FilesService {
     };
   }
 
-  /** 环带文件签名 URL：不经过内部 ChannelAccess，公开环带频道/组织成员/文件所有者可读。 */
+  /** 环塔文件签名 URL：不经过内部 ChannelAccess，公开环塔频道/组织成员/文件所有者可读。 */
   async beltUrl(user: AuthUser, fileId: string): Promise<{ url: string; expiresIn: number }> {
     const file = await this.prisma.file.findUnique({ where: { id: fileId } });
     if (!file) throw new AppError(ErrorCode.VALIDATION_FAILED, '文件不存在', { fileId });
@@ -368,7 +368,7 @@ export class FilesService {
         where: { id: file.channelId },
         select: { surface: true, organizationId: true },
       });
-      // 环带公开频道对登录用户开放（与 beltUrl 规则一致）；组织私有频道需成员
+      // 环塔公开频道对登录用户开放（与 beltUrl 规则一致）；组织私有频道需成员
       allowed = channel?.surface === 'belt' && channel.organizationId === null;
       if (!allowed) {
         const member = await this.prisma.channelMember.findFirst({

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Sprint5 / Phase E UI 证据：新闻塔源管理 + 环带电文 RSS 拼贴。 */
+/** Sprint5 / Phase E UI 证据：新闻塔源管理 + 环塔电文 RSS 拼贴。 */
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import path from 'node:path';

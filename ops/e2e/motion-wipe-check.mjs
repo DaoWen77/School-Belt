@@ -6,5 +6,5 @@ await p.waitForTimeout(440);
 try{await p.waitForURL('http://localhost:3100/',{timeout:2000})}catch{}
 await p.waitForTimeout(80);
 const wipe=await p.locator('.motion-wipe').count();console.log('WIPE_NOW',wipe);
-await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/motion-wipe-1440.png'});
+await p.screenshot({path:'E:/项目/O.M.V工作台全域广播/reports/frontend/motion-wipe-1440.png'});
 await b.close();

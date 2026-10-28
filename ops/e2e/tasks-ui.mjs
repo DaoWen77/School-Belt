@@ -44,7 +44,7 @@ try {
   await page.waitForTimeout(3000);
   const text = await page.locator('body').innerText();
   ok('U1 委托大厅可达', /委托/.test(text) && /我发布的|全部/.test(text), { url: page.url() });
-  ok('U2 列表有委托卡片且显示金额', /外环测绘原片批量校色|环带导览图排版/.test(text) && /券/.test(text), {});
+  ok('U2 列表有委托卡片且显示金额', /外环测绘原片批量校色|环塔导览图排版/.test(text) && /券/.test(text), {});
   await page.screenshot({ path: path.join(OUT, 'tasks-hall.png') });
 
   /* 发布弹窗 */

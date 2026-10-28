@@ -5,7 +5,7 @@ const info=await p.evaluate(()=>{const root=document.querySelector('main')?.pare
 await p.mouse.wheel(0,1400);await p.waitForTimeout(600);
 console.log('AFTER_WHEEL',await p.evaluate(()=>{const root=document.querySelector('main')?.parentElement;return{rootTop:root?.scrollTop,winY:window.scrollY}}));
 const root=p.locator('main').locator('..');console.log('ROOT_SCROLL',await root.evaluate(e=>({top:e.scrollTop,h:e.scrollHeight,c:e.clientHeight})));
-await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/settings-scroll-after-1440.png'});
+await p.screenshot({path:'E:/项目/O.M.V工作台全域广播/reports/frontend/settings-scroll-after-1440.png'});
 await p.evaluate(()=>{const root=document.querySelector('main')?.parentElement;if(root)root.scrollTop=root.scrollHeight});await p.waitForTimeout(400);
-await p.screenshot({path:'E:/项目/O.M.V帝江号全域广播/reports/frontend/settings-scroll-bottom-1440.png'});
+await p.screenshot({path:'E:/项目/O.M.V工作台全域广播/reports/frontend/settings-scroll-bottom-1440.png'});
 await b.close();

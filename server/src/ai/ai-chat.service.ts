@@ -136,7 +136,7 @@ export class AiChatService {
       `消息数：${messageCount}`,
       `活跃用户数：${activeUsers.length}`,
       `任务总数：${taskTotal}，已完成：${taskDone}，完成率：${doneRate}%`,
-      '请以「终末地工业高级协议官」的口吻，按「态势 / 风险 / 行动建议」三段输出，不超过 300 字。',
+      '请以「站长助理」的口吻，按「态势 / 风险 / 行动建议」三段输出，不超过 300 字。',
     ].join('\n');
 
     const fullText = await this.streamCompletion(

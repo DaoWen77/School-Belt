@@ -2,9 +2,9 @@
 /**
  * Phase A 验证（真实 API + 真实 PG，不 mock）：
  *   1. 内部登录 / 内部 API 正常；
- *   2. 内部 → 环带 handoff，兑换后拿到 belt 会话；
+ *   2. 内部 → 环塔 handoff，兑换后拿到 belt 会话；
  *   3. belt 会话打内部 API 必须 403 SURFACE_MISMATCH；
- *   4. 内部账号从环带登入帝江号：check → internal handoff → 内部 API 200；
+ *   4. 内部账号从环塔登入工作台：check → internal handoff → 内部 API 200；
  *   5. 外网注册账号 is_internal=false；内部登录 403 PROTOCOL_DENIED；
  *   6. 外网 tag 被移除后，旧内部 token 立即被 INTERNAL_ONLY 拦截；
  *   7. 验证 DB 触发器：改 tags 会同步 is_internal。
@@ -73,13 +73,13 @@ async function main() {
   const channels = await call('/channels', { token: internalToken });
   check(channels.status === 200, '内部 token 调 /channels 返回 200');
 
-  // 2. 内部 → 环带 handoff
+  // 2. 内部 → 环塔 handoff
   const issue = await call('/access/belt/handoff', {
     method: 'POST',
     token: internalToken,
     body: { next: '/belt/channel' },
   });
-  check(issue.status === 201, '内部签发环带交接码 201');
+  check(issue.status === 201, '内部签发环塔交接码 201');
   const beltCode = dataOf(issue).code;
   check(typeof beltCode === 'string' && beltCode.length >= 20, '交接码已返回');
 
@@ -87,7 +87,7 @@ async function main() {
     method: 'POST',
     body: { code: beltCode },
   });
-  check(exchange.status === 200, '环带兑换交接码 200');
+  check(exchange.status === 200, '环塔兑换交接码 200');
   const beltToken = dataOf(exchange).accessToken;
   check(dataOf(exchange).user.isInternal === true, '兑换后用户仍是内部账号');
 
@@ -98,7 +98,7 @@ async function main() {
     `${beltToInternalApi.status}/${codeOf(beltToInternalApi)}`,
   );
 
-  // 3. 内部账号从环带进入帝江号
+  // 3. 内部账号从环塔进入工作台
   const accessCheck = await call('/belt/access/internal/check', {
     method: 'POST',
     token: beltToken,
@@ -145,7 +145,7 @@ async function main() {
     body: { handle: externalHandle, password },
   });
   check(externalBeltLogin.status === 200, '外网账号 ring 登录 200');
-  check(dataOf(externalBeltLogin).user.isInternal === false, '环带登录仍 isInternal=false');
+  check(dataOf(externalBeltLogin).user.isInternal === false, '环塔登录仍 isInternal=false');
 
   const externalToInternalApi = await call('/channels', { token: externalBeltToken });
   check(
@@ -162,7 +162,7 @@ async function main() {
   });
   check(
     externalAccessCheck.status === 403 && codeOf(externalAccessCheck) === 'PROTOCOL_DENIED',
-    '外网账号登入帝江号 403 PROTOCOL_DENIED',
+    '外网账号登入工作台 403 PROTOCOL_DENIED',
     `${externalAccessCheck.status}/${codeOf(externalAccessCheck)}`,
   );
 

@@ -34,7 +34,7 @@ function sourceLabel(post: BeltPost): string {
 }
 
 /**
- * 02 环带电文 / 信号截获：
+ * 02 环塔电文 / 信号截获：
  * 官方快报 + 新闻塔截获电文合并为错位 Bento 网格，不再用垂直列表。
  */
 export function BeltTelegraphView({ user }: { user: BeltUser }) {

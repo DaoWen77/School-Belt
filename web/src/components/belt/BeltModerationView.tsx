@@ -229,7 +229,7 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
       <header className="belt-mod-head">
         <div className="belt-mod-head-main">
           <p className="belt-page-kicker">TRIBUNAL // 风纪工位</p>
-          <b className="belt-mod-role">{identity || '干员'}</b>
+          <b className="belt-mod-role">{identity || '用户'}</b>
           <span className="belt-mod-pending">
             {allowed ? (
               <>
@@ -285,9 +285,9 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
       <section className="belt-mod-shell">
         <div className="belt-mod-shell-main">
           <p className="belt-page-kicker">MODERATION COMMITTEE / 风纪委员会</p>
-          <h2>环带风纪委员会</h2>
+          <h2>环塔风纪委员会</h2>
           <p className="belt-mod-shell-copy">
-            受理举报、众包投票与工单裁决。任何干员都可以提交申请；当选后才会解锁工单池与投票。
+            受理举报、众包投票与工单裁决。任何用户都可以提交申请；当选后才会解锁工单池与投票。
           </p>
           <ul className="belt-mod-shell-stats">
             <li>
@@ -303,7 +303,7 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
             <li>
               <span>工单池</span>
               <b>{allowed ? '已授权' : '未授权'}</b>
-              <small>{identity || '干员'}</small>
+              <small>{identity || '用户'}</small>
             </li>
           </ul>
           {eligibility && !eligibility.canApply && eligibility.reasons.length > 0 ? (

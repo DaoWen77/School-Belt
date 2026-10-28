@@ -83,7 +83,7 @@ export class PostsService {
     }
 
     const rows = (await this.prisma.post.findMany({
-      // 内网朋友圈只允许 internal + moments；环带帖子由 /belt/posts 单独查询。
+      // 内网朋友圈只允许 internal + moments；环塔帖子由 /belt/posts 单独查询。
       where: { deletedAt: null, surface: 'internal', board: 'moments', ...cursorFilter },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,

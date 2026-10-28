@@ -18,7 +18,7 @@ import { ZBody, ZQuery } from '../common/pipes/zod-validation.pipe';
 import type { AuthUser } from '../common/types/context';
 
 /**
- * 环带委托交易（模块五）：列表 / 详情 / 发布 / 编辑 / 申请 / 选人（冻结）/
+ * 环塔委托交易（模块五）：列表 / 详情 / 发布 / 编辑 / 申请 / 选人（冻结）/
  * 提交 / 验收（5% 抽成）/ 取消（退款）。
  * 资金事务全部在 BeltTasksService，控制器只做入参校验与状态码。
  */

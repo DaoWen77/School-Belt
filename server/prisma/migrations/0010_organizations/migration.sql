@@ -1,5 +1,5 @@
 -- ============================================================================
--- O.M.V 帝江号 · 全域广播 —— 0010_organizations（文明环带 Phase B）
+-- O.M.V 工作台 · 全域广播 —— 0010_organizations（环塔 Phase B）
 -- 依据：双面单库方案 B｜组织与证章
 -- 目标库：PostgreSQL 16（本机 embedded PG 17.5）
 -- 前置：0009_identity_surface 已执行
@@ -83,7 +83,7 @@ ALTER TABLE channels
 
 CREATE INDEX channels_organization_id_idx ON channels (organization_id);
 
--- 组织频道只能是内部私密频道；防止以后误建环带组织频道。
+-- 组织频道只能是内部私密频道；防止以后误建环塔组织频道。
 ALTER TABLE channels
   ADD CONSTRAINT channels_organization_private_check
   CHECK (organization_id IS NULL OR (surface = 'internal' AND visibility = 'private'));

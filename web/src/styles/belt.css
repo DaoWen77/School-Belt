@@ -1,5 +1,5 @@
 /* ==========================================================================
-   belt.css · 文明环带（外环中继 07）
+   belt.css · 环塔（外环中继 07）
    同一套 Endfield 语法，反过来用纸：黑纸 / 骨白字 / 同一支酸黄。
    ========================================================================== */
 
@@ -1674,7 +1674,7 @@ button.belt-row[data-active='true'] .belt-row-deck {
   }
 }
 
-/* im.css 对 button 有高比重的 reset（去底/去边框），环带页面必须显式夺回。
+/* im.css 对 button 有高比重的 reset（去底/去边框），环塔页面必须显式夺回。
    选择器权重与 .im-body button:not(...) 对齐，并靠后加载覆盖。 */
 .im-body .belt-root button.belt-button,
 .im-body .belt-entry button.belt-button {
@@ -1711,7 +1711,7 @@ button.belt-row[data-active='true'] .belt-row-deck {
   }
 }
 
-/* ── Sprint 7.2 · 环带聊天 / 分享 / 绳网日常 ───────────────────── */
+/* ── Sprint 7.2 · 环塔聊天 / 分享 / 信号塔日常 ───────────────────── */
 .belt-avatar {
   display: inline-grid;
   flex: 0 0 auto;
@@ -2113,7 +2113,7 @@ button.belt-row[data-active='true'] .belt-row-deck {
   font-size: 9px;
 }
 
-/* 干员日常 / ZZZ */
+/* 用户日常 / ZZZ */
 .belt-daily {
   position: relative;
   min-width: 0;
@@ -3415,7 +3415,7 @@ button.belt-row[data-active='true'] .belt-row-deck {
   font-size: 13px;
 }
 
-/* 个人中心：左右分栏干员档案 */
+/* 个人中心：左右分栏用户档案 */
 .belt-profile-card {
   display: grid;
   grid-template-columns: 12rem minmax(0, 1fr);
@@ -4095,7 +4095,7 @@ button.belt-row[data-active='true'] .belt-row-deck {
 }
 
 /* ==========================================================================
-   Sprint 7.5 · 干员日常：ZZZ 绳网瀑布流
+   Sprint 7.5 · 用户日常：ZZZ 信号塔瀑布流
    ========================================================================== */
 .belt-masonry-page {
   position: relative;
@@ -4368,7 +4368,7 @@ button.belt-row[data-active='true'] .belt-row-deck {
 }
 
 /* ==========================================================================
-   Sprint 7.7 · RTC 沉浸式通话（终末地风格）
+   Sprint 7.7 · RTC 沉浸式通话（通用风格）
    ========================================================================== */
 .rtc-overlay {
   position: fixed;
@@ -4958,7 +4958,7 @@ button.belt-row[data-active='true'] .belt-row-deck {
 }
 
 
-/* ── 环带代码块 / 图表卡片 ─────────────────────────────────────── */
+/* ── 环塔代码块 / 图表卡片 ─────────────────────────────────────── */
 .belt-code-block {
   margin: 0.3rem 0;
   overflow-x: auto;
@@ -5032,7 +5032,7 @@ button.belt-row[data-active='true'] .belt-row-deck {
 .belt-code-comment { color: #6d7f6d; font-style: italic; }
 .belt-code-num { color: #ff7ad9; }
 
-/* 环带顶栏「返回帝江号」门禁入口 */
+/* 环塔顶栏「返回工作台」门禁入口 */
 .belt-header-link.is-return {
   border-color: var(--ef-signal);
   color: var(--ef-signal);

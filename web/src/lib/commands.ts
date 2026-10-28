@@ -75,7 +75,7 @@ export type BeltCommand =
   | { kind: 'poll'; title: string }
   | { kind: 'chart'; title: string; points: Array<{ name: string; value: number }> };
 
-/** 环带斜杠指令解析（纯函数）：/task /poll /report /ping /help /chart。 */
+/** 环塔斜杠指令解析（纯函数）：/task /poll /report /ping /help /chart。 */
 export function parseBeltCommand(raw: string): BeltCommand | null {
   const text = raw.trim();
   if (!text.startsWith('/')) return null;
@@ -94,7 +94,7 @@ export function parseBeltCommand(raw: string): BeltCommand | null {
       return arg ? { kind: 'poll', title: arg } : { kind: 'help' };
     case '/chart': {
       const sep = arg.indexOf('|');
-      const title = (sep >= 0 ? arg.slice(0, sep) : '环带图表').trim().slice(0, 120);
+      const title = (sep >= 0 ? arg.slice(0, sep) : '环塔图表').trim().slice(0, 120);
       const points = (sep >= 0 ? arg.slice(sep + 1) : '')
         .split(',')
         .map((piece) => piece.trim())

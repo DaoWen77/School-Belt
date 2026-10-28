@@ -115,7 +115,7 @@ function notFound(taskId: string): AppError {
 }
 
 /**
- * 环带委托交易（模块五）。
+ * 环塔委托交易（模块五）。
  *
  * 资金红线：冻结 / 打款 / 退款全部在 prisma.withTransaction 内，条件扣款防竞态，
  * 同一笔交易的 ledger 行共享 groupId，幂等键 `task:*:<taskId>` 兜住重复请求。

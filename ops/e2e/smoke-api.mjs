@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * O.M.V 帝江号 · API + WS 冒烟（契约 v1.2 §F 1–6）
+ * O.M.V 工作台 · API + WS 冒烟（契约 v1.2 §F 1–6）
  *
  * 前置：`node ops/e2e/run-backend.mjs` 已在跑（真实 Postgres + API 3000）。
  * 只用 fetch + socket.io-client 走真实 HTTP/WS，不 mock 任何东西。
@@ -276,7 +276,7 @@ function encodeSeqCursor(id) {
 /* ── 主线 ─────────────────────────────────────────────────────────────── */
 async function main() {
   fs.mkdirSync(REPORTS_DIR, { recursive: true });
-  log('════════ 帝江号 API/WS 冒烟（契约 §F 1–6）════════');
+  log('════════ 工作台 API/WS 冒烟（契约 §F 1–6）════════');
   log(`API_BASE=${API_BASE}  WS=${WS_URL} path=${WS_PATH}`);
   log(`node=${process.version} platform=${process.platform}/${process.arch}`);
   log(`凭据来源：${fs.existsSync(RUN_JSON) ? 'reports/e2e/run.json' : '脚本默认值'}`);

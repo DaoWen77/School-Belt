@@ -28,15 +28,15 @@ function uuid(value: string): string {
 }
 
 /**
- * Sprint 7.1：文明环带组织中心。
- * 只处理 surface=belt 的组织；私密频道也继承 surface=belt，由环带频道接口读取。
+ * Sprint 7.1：环塔组织中心。
+ * 只处理 surface=belt 的组织；私密频道也继承 surface=belt，由环塔频道接口读取。
  */
 @Controller('belt/organizations')
 @Surface('belt')
 export class BeltOrganizationsController {
   constructor(private readonly organizations: OrganizationsService) {}
 
-  /** 全站 Owner 在环带直接查看待审组织。 */
+  /** 全站 Owner 在环塔直接查看待审组织。 */
   @Get('pending')
   async pending(@CurrentUser() user: AuthUser) {
     return this.organizations.listPending(user);

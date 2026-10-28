@@ -2,7 +2,7 @@
   "name": "dijiang-web",
   "version": "1.0.0",
   "private": true,
-  "description": "O.M.V 帝江号 · 全域广播 前端（Next.js App Router，甲套 UI，真实 API/WS）",
+  "description": "O.M.V 工作台 · 全域广播 前端（Next.js App Router，甲套 UI，真实 API/WS）",
   "engines": {
     "node": ">=20.0.0"
   },

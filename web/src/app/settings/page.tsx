@@ -967,7 +967,7 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        <p className="font-mono text-[9px] text-ink-2/70">O.M.V 帝江号 · 全域广播 · IM layout</p>
+        <p className="font-mono text-[9px] text-ink-2/70">O.M.V 工作台 · 全域广播 · IM layout</p>
       </main>
     </div>
   );
