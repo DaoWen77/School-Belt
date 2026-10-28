@@ -1,4 +1,4 @@
-# O.M.V 帝江号 · 全域广播 —— 一键运维（Linux/macOS/WSL）
+# O.M.V 工作台 · 全域广播 —— 一键运维（Linux/macOS/WSL）
 # Windows 无 make 时用 ./start.ps1
 SHELL := /bin/sh
 OPS_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))

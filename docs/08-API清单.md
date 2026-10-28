@@ -75,7 +75,7 @@
 | 74 | GET | `/ai/config` | owner·admin | — | `{ configured, baseUrl, model, keyMasked, updatedAt }` †（**绝不含明文 key**，`keyMasked` 仅末 4 位） | FORBIDDEN |
 | 75 | PUT | `/ai/config` | owner·admin | `{ baseUrl, model, apiKey? }` †（baseUrl 必须 http(s)；apiKey 省略=保留旧值） | 200 同上（AES-256-GCM 加密落库，响应不含 key） | FORBIDDEN, VALIDATION_FAILED |
 | 76 | POST | `/ai/test` | owner·admin | — | 200 `{ ok, latencyMs, status, error? }` †（调 `${baseUrl}/models`，Bearer key，8s 超时；不含 key） | FORBIDDEN |
-| 77 | POST | `/ai/chat` | 频道成员 | `{ channelId, body, botId? }` †（`botId` 省略时按 `@名称` 匹配频道 Bot 成员，最长优先，再回退默认 Bot） | **SSE**（`text/event-stream`）：`event: delta {delta,text}` … `event: done {messageId,seq}`；异常 `event: error {code,message}`；落库 bot 消息（senderId=该 Bot 的 user id，body 前缀 `[DIJIANG/OS]`） | NOT_CHANNEL_MEMBER, CHANNEL_NOT_FOUND, BOT_NOT_FOUND, BOT_DISABLED, VALIDATION_FAILED |
+| 77 | POST | `/ai/chat` | 频道成员 | `{ channelId, body, botId? }` †（`botId` 省略时按 `@名称` 匹配频道 Bot 成员，最长优先，再回退默认 Bot） | **SSE**（`text/event-stream`）：`event: delta {delta,text}` … `event: done {messageId,seq}`；异常 `event: error {code,message}`；落库 bot 消息（senderId=该 Bot 的 user id，body 前缀 `[OMV/OS]`） | NOT_CHANNEL_MEMBER, CHANNEL_NOT_FOUND, BOT_NOT_FOUND, BOT_DISABLED, VALIDATION_FAILED |
 | 78 | POST | `/ai/report` | 频道成员 | `{ channelId, botId? }` †（近 7 天统计） | **SSE**（同 chat；prompt 使用“站长助理”叙事；落库该 Bot 消息） | NOT_CHANNEL_MEMBER, CHANNEL_NOT_FOUND, BOT_NOT_FOUND, BOT_DISABLED, VALIDATION_FAILED |
 | | **bots / ai 指令（9，Sprint5）** | | | | | |
 | 88 | GET | `/bots` | **owner**（admin 也 403） | — | `{ bots: [{ id, handle, name, avatarFileId, model, systemPrompt, enabled, keyMasked, createdAt }] }` †（**无明文 key**） | FORBIDDEN |
@@ -302,7 +302,7 @@
     - music / chart：`POST /cards` 的 `kind` 枚举新增 `music`、`chart`，`data` 原样存 JSON（music: `{ url, title, artist, coverUrl }`；chart: `{ chartType, series }`），服务端**不发起任何外部网络抓取**；列表/详情/WS 事件与既有 card 完全同构。
 11. **Sprint3 的 AI 语义**（真实供应商未验证；本机用 `ops/e2e/mock-ai.mjs` 的 OpenAI 兼容 mock）：
     - 配置项只存 DB（`ai_settings` 单行），`PUT /ai/config` 的 `apiKey` 经 AES-256-GCM 加密为 `v1:<iv>:<tag>:<cipher>`；GET/PUT/test/SSE 事件、日志、错误均**不含明文 key**，GET 只回 `keyMasked`（末 4 位）。
-    - `POST /ai/chat`：需频道成员；取该频道最近 20 条未删除消息（bot 历史消息作为 assistant）作上下文，调用 `${baseUrl}/chat/completions`（`stream:true`）；逐块 `event: delta`（payload 同时带 `delta` 与 `text` 两个等价字段，便于前端任选）；完成后在**同一 Prisma 事务**内写入 bot 消息（`sender_id=00000000-0000-4000-8000-0000000000b0`、`kind=text`、body 以 `[DIJIANG/OS]` 开头，作为前端专属样式标记）并更新 `channels.last_message_at`，提交后广播 `message:new`，最后 `event: done {messageId,seq}`（seq 即消息 id 的十进制字符串）。
+    - `POST /ai/chat`：需频道成员；取该频道最近 20 条未删除消息（bot 历史消息作为 assistant）作上下文，调用 `${baseUrl}/chat/completions`（`stream:true`）；逐块 `event: delta`（payload 同时带 `delta` 与 `text` 两个等价字段，便于前端任选）；完成后在**同一 Prisma 事务**内写入 bot 消息（`sender_id=00000000-0000-4000-8000-0000000000b0`、`kind=text`、body 以 `[OMV/OS]` 开头，作为前端专属样式标记）并更新 `channels.last_message_at`，提交后广播 `message:new`，最后 `event: done {messageId,seq}`（seq 即消息 id 的十进制字符串）。
     - `POST /ai/report`：统计该频道**近 7 天**消息数、活跃用户数（distinct sender）、任务卡总数/完成数，prompt 使用“站长助理”叙事；SSE 与落库事务同 chat。
     - 上游异常/未配置：SSE 以 `event: error {code,message}` 结束；客户端断开时 `reply.raw` 的 close 会 abort 上游 `fetch`，不会继续消耗 token 或落库。
 12. **Sprint4 的朋友圈 / 档案室 / 活跃度语义**：
@@ -316,7 +316,7 @@
     - Key 只以 AES-256-GCM 密文存 DB；列表/更新响应只回 `keyMasked`（末 4 位），任何错误/日志不含明文。
     - Bot 必须通过 `POST /channels/:id/members`（或会话加人）成为频道成员后才能被 @；加人接口用 `upsert`，重复添加不会产生第二行。
     - `botId` 省略时：从 body 的 `@显示名` 匹配该频道 Bot 成员（最长名称优先），无匹配回退默认 Bot（`dijiang_bot`）；显式 `botId` 必须已加入频道且 `enabled=true`，否则 `BOT_NOT_FOUND` / `BOT_DISABLED`。
-    - 对话上下文按 `ai_channel_contexts.cleared_at` 过滤；`POST /ai/clear` **只更新水位**，聊天记录保留。Bot 消息 `sender_id` 为该 Bot 的 user id，`kind=text`、body 以 `[DIJIANG/OS]` 开头，SSE 事件结构不变。
+    - 对话上下文按 `ai_channel_contexts.cleared_at` 过滤；`POST /ai/clear` **只更新水位**，聊天记录保留。Bot 消息 `sender_id` 为该 Bot 的 user id，`kind=text`、body 以 `[OMV/OS]` 开头，SSE 事件结构不变。
     - `/ai/summarize` 取最近 50 条（不按 cleared_at 过滤）；`/ai/translate` 要求 `messageId` 属于该频道且未删除，否则 `VALIDATION_FAILED`。
 14. **Phase3 的用户封禁 / 全服公告语义**：
     - 封禁：`PATCH /users/:id/status` 仅 owner/admin；**不能改自己、不能改 owner**；只改 `users.status`（历史消息/会话保留）；suspended 后登录与 refresh 均被 AuthService 拒绝，已有 access token 在 JwtAuthGuard 层因 `status=suspended` 被拒；写 audit `user.suspend` / `user.activate`。

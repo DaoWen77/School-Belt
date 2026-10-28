@@ -1,4 +1,4 @@
-# O.M.V 帝江号 · 全域广播 —— server 镜像
+# O.M.V 工作台 · 全域广播 —— server 镜像
 # 多阶段构建：builder 装依赖 + prisma generate + tsc；runtime 只带 dist 与生产依赖。
 # 注意：本文件未在交付环境实测（本机无 Docker），语法按 pnpm 官方镜像写法给出。
 

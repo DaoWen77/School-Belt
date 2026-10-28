@@ -1,6 +1,6 @@
 -- ============================================================================
 -- O.M.V 工作台 · 全域广播 —— 0030_official_badge
--- 身份章改名：`[极光科技]` → `[站长]`
+-- 身份章改名：`[站长]` → `[站长]`
 --   1. 存量 users.tags 就地替换；
 --   2. 重建 0009 建立的触发器函数与 CHECK（新标签合法、旧标签不再合法）；
 --   3. 幂等：重复执行不报错。
@@ -9,8 +9,8 @@
 
 -- 1) 存量数据（先替换，避免 CHECK 与触发器口径不一致）
 UPDATE "users"
-SET "tags" = array_replace("tags", '[极光科技]', '[站长]')
-WHERE '[极光科技]' = ANY("tags");
+SET "tags" = array_replace("tags", '[站长]', '[站长]')
+WHERE '[站长]' = ANY("tags");
 
 -- 2) 触发器函数：is_internal 的唯一来源改为 `[站长]`
 CREATE OR REPLACE FUNCTION users_sync_internal()

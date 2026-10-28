@@ -847,7 +847,7 @@ export function BeltChannelView({ user }: { user: BeltUser }) {
                     </a>
                   )
                 ) : null}
-                {message.body?.startsWith('AURORA_CALL:') ? (
+                {message.body?.startsWith('VOICE_CALL:') ? (
                   (() => {
                     const [, callId, mode, , invitees] = message.body.split(':');
                     const invited = invitees ? invitees.split(',').filter(Boolean) : [];

@@ -254,7 +254,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
                           <strong>{message.card.title}</strong>
                           <em>阅读全文 →</em>
                         </a>
-                      ) : message.body?.startsWith('AURORA_CALL:') ? (
+                      ) : message.body?.startsWith('VOICE_CALL:') ? (
                         (() => {
                           const [, callId, mode, caller] = message.body.split(':');
                           return (

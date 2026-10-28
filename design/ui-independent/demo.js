@@ -1,5 +1,5 @@
 /* ==========================================================================
-   O.M.V 帝江号 · 全域广播 — 乙套 UI「航测档案 / Chart & Log」
+   O.M.V 工作台 · 全域广播 — 乙套 UI「航测档案 / Chart & Log」
    demo.js · 共用演示数据 + 交互（无依赖、无网络请求）
    --------------------------------------------------------------------------
    数据基线：2026-10-22（与契约 §12 / 甲套演示数据一致）
@@ -44,8 +44,8 @@
       { slug: 'protocol', name: '第三协议', visibility: 'private', members: 2, unread: 1, topic: '协议层 · 仅成员可读' }
     ],
     materials: [
-      { id: 'm1', name: '《终末地工业·第三协议》封面.png', kind: 'image', ext: 'PNG', size: '4.8 MB', owner: '白棠', date: '10.21', dims: '4096 × 2160', tag: '协议', code: 'IMG-1021', status: '已就绪' },
-      { id: 'm2', name: '帝江号外景_0412.jpg', kind: 'image', ext: 'JPG', size: '9.2 MB', owner: '沈迟', date: '10.20', dims: '6000 × 4000', tag: '外景', code: 'IMG-1020', status: '已就绪' },
+      { id: 'm1', name: '《O.M.V·第三协议》封面.png', kind: 'image', ext: 'PNG', size: '4.8 MB', owner: '白棠', date: '10.21', dims: '4096 × 2160', tag: '协议', code: 'IMG-1021', status: '已就绪' },
+      { id: 'm2', name: '工作台外景_0412.jpg', kind: 'image', ext: 'JPG', size: '9.2 MB', owner: '沈迟', date: '10.20', dims: '6000 × 4000', tag: '外景', code: 'IMG-1020', status: '已就绪' },
       { id: 'm3', name: '信号塔草图_v3.pdf', kind: 'document', ext: 'PDF', size: '1.6 MB', owner: '祁雾', date: '10.19', dims: '24 页', tag: '草图', code: 'DOC-1019', status: '已就绪' },
       { id: 'm4', name: 'Saira 字体样张.zip', kind: 'archive', ext: 'ZIP', size: '22.4 MB', owner: '洛因', date: '10.18', dims: '12 个字重', tag: '字体', code: 'PKG-1018', status: '已就绪' },
       { id: 'm5', name: '雾海采样_07.wav', kind: 'audio', ext: 'WAV', size: '8.1 MB', owner: '闻溪', date: '10.17', dims: '48 kHz / 24 bit', tag: '采样', code: 'AUD-1017', status: '已就绪' }
@@ -82,7 +82,7 @@
       { prefix: 'DJ7Q', role: '成员', note: '雾海采样协作', expires: '10.20', uses: '0 / 1', status: 'expired' }
     ]
   };
-  window.DIJIANG_DEMO = DATA;
+  window.OMV_DEMO = DATA;
 
   /* 2. 小工具 ------------------------------------------------------------- */
   function $(sel, root) { return (root || document).querySelector(sel); }

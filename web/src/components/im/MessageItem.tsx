@@ -264,7 +264,7 @@ export function MessageItem(props: MessageItemProps) {
   );
 
   if (isBot) {
-    const botBody = (message.body ?? '').replace(/^\[DIJIANG\/OS\]\s*/, '');
+    const botBody = (message.body ?? '').replace(/^\[OMV\/OS\]\s*/, '');
     return (
       <div
         role="listitem"

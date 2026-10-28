@@ -240,7 +240,7 @@ function chatService() {
     message: {
       findMany: vi.fn(async () => [
         { senderId: 'user-1', body: '昨天的排查结论' },
-        { senderId: BOT_USER_ID, body: '[DIJIANG/OS] 已记录' },
+        { senderId: BOT_USER_ID, body: '[OMV/OS] 已记录' },
       ]),
       count: vi.fn(async () => 3),
       groupBy: vi.fn(async () => [{ senderId: 'user-1' }, { senderId: 'user-2' }]),

@@ -51,7 +51,7 @@ export function Dashboard() {
       <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-line bg-paper/95 px-5 py-3 backdrop-blur">
         <div className="min-w-0">
           <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-signal">
-            AURORA TECH · COMMAND HUB
+            OMV · COMMAND HUB
           </p>
           <h1 className="text-lg font-black leading-tight tracking-tight">O.M.V 工作台</h1>
         </div>

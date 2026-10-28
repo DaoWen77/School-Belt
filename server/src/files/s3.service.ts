@@ -20,7 +20,7 @@ export interface ObjectHead {
 }
 
 /** 测试/多环境注入点：默认由配置构造，生产 DI 不注册该 token */
-export const S3_CLIENT_PAIR = Symbol('DIJIANG_S3_CLIENT_PAIR');
+export const S3_CLIENT_PAIR = Symbol('OMV_S3_CLIENT_PAIR');
 
 /**
  * S3 / MinIO 适配层（契约 §10 文件直传）：
