@@ -36,3 +36,6 @@ backups/*.tar.gz
 # 一键启动脚本的运行时产物（PID/日志）
 ops/.run/
 reports/tmp/
+
+# 本地固件/Arduino 工具链缓存（体积大，不入库）
+tools/
