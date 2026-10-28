@@ -151,6 +151,7 @@ enum PostBoard {
   bounty
   daily
   telegraph
+  campus
 }
 
 // ───────────────────────────── 文明环带 Phase B：组织与证章 ─────────────────────────────
@@ -215,14 +216,7 @@ enum PromotionKind {
   manual
 }
 
-// ───────────────────────────── 文明环带 Phase D：好友与 DM ─────────────────────────────
-enum FriendshipStatus {
-  pending
-  accepted
-  rejected
-  blocked
-  removed
-}
+// ───────────────────────────── 私聊：关注即可发起（Friendship 已废弃）─────────────────────────────
 
 // ───────────────────────────── §2.1 users ─────────────────────────────
 model User {
@@ -239,7 +233,7 @@ model User {
    */
   statusPrefix          String?    @map("status_prefix") @db.VarChar(24)
   /**
-   * 系统身份标签；只有包含 `[极光科技]` 的账号才是内部账号
+   * 系统身份标签；只有包含 `[站长]` 的账号才是内部账号
    */
   tags                  String[]   @default([])
   /**
@@ -270,6 +264,10 @@ model User {
    * 等级缓存，由 exp 派生（levelOf(exp)），写入 EXP 流水时重算
    */
   level                 Int        @default(0)
+  /**
+   * 环塔商券余额（1 券 = 100 分）；初始赠送 5000 = 50 券，只能通过流水备注变动
+   */
+  balanceCents          Int        @default(5000) @map("balance_cents")
 
   settings              UserSetting?
   devices               Device[]
@@ -283,13 +281,16 @@ model User {
   ownedOrganizations    Organization[]       @relation("OrganizationOwner")
   reviewedOrganizations Organization[]       @relation("OrganizationReviewer")
   organizationMembers   OrganizationMember[]
-  friendshipsSent       Friendship[]         @relation("FriendshipRequester")
-  friendshipsReceived   Friendship[]         @relation("FriendshipAddressee")
   deviceBindCodes       DeviceBindCode[]
   deviceTokens          DeviceToken[]
   followsMade           Follow[]             @relation("FollowFollower")
   followsReceived       Follow[]             @relation("FollowFollowing")
   expLogs               ExpLog[]
+  ledgerEntries         LedgerEntry[]
+  postBookmarks         PostBookmark[]
+  messageHides          MessageHide[]
+  blocksMade            UserBlock[]          @relation("UserBlockBlocker")
+  blocksReceived        UserBlock[]          @relation("UserBlockBlocked")
   clerkApplications     ClerkApplication[]
   clerkReviews          ClerkApplication[]   @relation("ClerkReviewer")
   reportsFiled          Report[]             @relation("ReportReporter")
@@ -298,7 +299,11 @@ model User {
   moderationVotes       ModerationVote[]
   tasksCreated          Task[]               @relation("TaskCreator")
   tasksTaken            Task[]               @relation("TaskTaker")
+  taskApplications      TaskApplication[]
   servicesOffered       Service[]
+  bondsA                Bond[]               @relation("BondA")
+  bondsB                Bond[]               @relation("BondB")
+  bondsInvited          Bond[]               @relation("BondInviter")
 
   @@index([status])
   @@index([isInternal])
@@ -371,32 +376,8 @@ model OrganizationMember {
 // 部分唯一索引在 0012 迁移中创建：
 // - 一对用户只能有一条关系：UNIQUE (LEAST(requester_id, addressee_id), GREATEST(...))
 // - dm_channel_id 唯一；同一条 DM 只对应一条好友链路
-model Friendship {
-  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  requesterId   String           @map("requester_id") @db.Uuid
-  addresseeId   String           @map("addressee_id") @db.Uuid
-  status        FriendshipStatus @default(pending)
-  /**
-   * internal / belt / bridge：bridge 仅由悬赏上下文触发
-   */
-  surface       ChannelSurface   @default(internal)
-  contextPostId String?          @map("context_post_id") @db.Uuid
-  requestNote   String?          @map("request_note") @db.VarChar(200)
-  dmChannelId   String?          @unique @map("dm_channel_id") @db.Uuid
-  blockedBy     String?          @map("blocked_by") @db.Uuid
-  requestedAt   DateTime         @default(now()) @map("requested_at") @db.Timestamptz(6)
-  respondedAt   DateTime?        @map("responded_at") @db.Timestamptz(6)
-  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  requester User @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
-  addressee User @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
-
-  @@index([addresseeId, status, requestedAt])
-  @@index([requesterId, status])
-  @@index([dmChannelId])
-  @@map("friendships")
-}
+// ───────────────────────────── 私聊：关注即可发起（Friendship 已废弃）─────────────────────────────
+// DM 频道仍以 channels.dm_key（双方 userId 排序哈希）为唯一键；成员关系即访问权，不再有好友申请。
 
 // ───────────────────────────── §2.2 user_settings ─────────────────────────────
 // ───────────────────────────── Sprint 7.3 / IoT device tokens ─────────────────────────────
@@ -601,6 +582,8 @@ model Message {
   replyToId        BigInt?                  @map("reply_to_id")
   cardId           String?                  @map("card_id") @db.Uuid
   mentions         String[]                 @default([]) @db.Uuid
+  /** DING 消息：每日 3 次限额的计数依据（sender_id + ding + created_at） */
+  ding             Boolean                  @default(false)
   threadReplyCount Int                      @default(0) @map("thread_reply_count")
   lastReplyAt      DateTime?                @map("last_reply_at") @db.Timestamptz(6)
   editedAt         DateTime?                @map("edited_at") @db.Timestamptz(6)
@@ -609,8 +592,10 @@ model Message {
   createdAt        DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
   searchVector     Unsupported("tsvector")? @default(dbgenerated("to_tsvector('simple'::regconfig, COALESCE(body, ''::text))"))
 
+  hides MessageHide[]
+
   // 索引在 migration.sql 中创建：频道分页 / 线程分页 / 发送者 / GIN(search_vector) /
-  // GIN(body gin_trgm_ops) / GIN(mentions) / card_id。
+  // GIN(body gin_trgm_ops) / GIN(mentions) / card_id / (channel_id, ding, created_at)。
   @@unique([channelId, senderId, clientMsgId], map: "messages_channel_sender_client_key")
   @@map("messages")
 }
@@ -881,6 +866,7 @@ model Post {
   author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   likes    PostLike[]
   comments PostComment[]
+  bookmarks PostBookmark[]
 
   @@index([createdAt(sort: Desc)])
   @@index([authorId, createdAt(sort: Desc)])
@@ -1173,12 +1159,20 @@ model Task {
   deadline    DateTime?        @db.Timestamptz(6)
   status      CommissionStatus @default(open)
   takerId     String?          @map("taker_id") @db.Uuid
+  /**
+   * 被选中的申请（0028）；不建 Prisma 关系，避免 Task ↔ TaskApplication 双环；
+   * 数据库 FK ON DELETE SET NULL（见 0028_escrow）。
+   */
+  acceptedApplicationId String?   @map("accepted_application_id") @db.Uuid
   editedAt    DateTime?        @map("edited_at") @db.Timestamptz(6)
   createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   creator User  @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
   taker   User? @relation("TaskTaker", fields: [takerId], references: [id], onDelete: SetNull)
+
+  applications TaskApplication[]
+  escrow       Escrow?
 
   @@index([creatorId, status])
   @@index([status, createdAt])
@@ -1199,4 +1193,172 @@ model Service {
 
   @@index([userId, status])
   @@map("services")
+}
+
+// ───────────────────────────── 环塔商券流水（0026）─────────────────────────────
+// 只记真实余额变动；同一笔交易的多条流水共享 groupId；idempotencyKey 防重复入账。
+// 恒等式：Σ users.balance_cents + Σ 冻结中的 escrow = 系统总量（escrow 在模块五落地）。
+enum LedgerKind {
+  init
+  daily_login
+  post_reward
+  tip_out
+  tip_in
+  fee
+  admin_adjust
+  // 模块五：委托托管（冻结 / 打款 / 退款）
+  task_escrow
+  task_payout
+  task_refund
+}
+
+model LedgerEntry {
+  id                String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String     @map("user_id") @db.Uuid
+  amountCents       Int        @map("amount_cents")
+  balanceAfterCents Int        @map("balance_after_cents")
+  kind              LedgerKind
+  refType           String?    @map("ref_type") @db.VarChar(24)
+  refId             String?    @map("ref_id") @db.Uuid
+  groupId           String     @map("group_id") @db.Uuid
+  idempotencyKey    String     @unique @map("idempotency_key") @db.VarChar(120)
+  memo              String?    @db.VarChar(200)
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([groupId])
+  @@map("ledger_entries")
+}
+
+model PostBookmark {
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("post_bookmarks")
+}
+
+// ───────────────────────────── 模块三：羁绊（bonds）─────────────────────────────
+// 规范序：user_a_id < user_b_id（uuid 字符串升序），唯一键 (a, b, type) 覆盖全部状态。
+// 亲密度只在 active 状态按日结算（懒结算，见 src/bond/bond-math.ts）。
+enum BondType {
+  buddy
+  mentor
+  partner
+  pal
+}
+
+enum BondStatus {
+  pending
+  active
+  ended
+}
+
+model Bond {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type          BondType
+  status        BondStatus @default(pending)
+  userAId       String     @map("user_a_id") @db.Uuid
+  userBId       String     @map("user_b_id") @db.Uuid
+  inviterId     String     @map("inviter_id") @db.Uuid
+  intimacy      Int        @default(10)
+  lastRenewA    DateTime?  @map("last_renew_a") @db.Date
+  lastRenewB    DateTime?  @map("last_renew_b") @db.Date
+  lastSettledOn DateTime?  @map("last_settled_on") @db.Date
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  endedAt       DateTime?  @map("ended_at") @db.Timestamptz(6)
+  endReason     String?    @map("end_reason") @db.VarChar(40)
+
+  a       User @relation("BondA", fields: [userAId], references: [id], onDelete: Cascade)
+  b       User @relation("BondB", fields: [userBId], references: [id], onDelete: Cascade)
+  inviter User @relation("BondInviter", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId, type])
+  @@index([status, lastSettledOn])
+  @@index([userBId])
+  @@map("bonds")
+}
+
+// ───────────────────────────── 模块五：委托托管（escrow）─────────────────────────────
+// 资金红线：冻结 / 打款 / 退款全部在 prisma.withTransaction 内完成，两步余额变动
+// 与两条 ledger 同 groupId；幂等键按业务幂等（task:escrow:<id> 等）。
+enum TaskApplicationStatus {
+  pending
+  selected
+  rejected
+  withdrawn
+}
+
+enum EscrowState {
+  held
+  released
+  refunded
+}
+
+model TaskApplication {
+  id          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taskId      String                @map("task_id") @db.Uuid
+  applicantId String                @map("applicant_id") @db.Uuid
+  message     String?               @db.VarChar(500)
+  status      TaskApplicationStatus @default(pending)
+  createdAt   DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  task      Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  applicant User @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, applicantId])
+  @@index([taskId, status])
+  @@index([applicantId, createdAt(sort: Desc)])
+  @@map("task_applications")
+}
+
+model Escrow {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  taskId      String      @unique @map("task_id") @db.Uuid
+  amountCents Int         @map("amount_cents")
+  feeCents    Int         @map("fee_cents")
+  state       EscrowState @default(held)
+  heldAt      DateTime    @default(now()) @map("held_at") @db.Timestamptz(6)
+  settledAt   DateTime?   @map("settled_at") @db.Timestamptz(6)
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([state])
+  @@map("escrows")
+}
+
+// ───────────────────────────── 模块六：IM（隐藏 / 拉黑） ─────────────────────────────
+/** 单用户隐藏消息：只影响自己的列表，不影响他人 */
+model MessageHide {
+  messageId BigInt   @map("message_id")
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId])
+  @@index([userId])
+  @@map("message_hides")
+}
+
+/** 拉黑：blocker 拒绝 blocked 建立私聊链路（频道消息不受影响） */
+model UserBlock {
+  blockerId String   @map("blocker_id") @db.Uuid
+  blockedId String   @map("blocked_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  blocker User @relation("UserBlockBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("UserBlockBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+  @@map("user_blocks")
 }

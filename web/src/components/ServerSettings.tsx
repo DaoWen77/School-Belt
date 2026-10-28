@@ -150,7 +150,7 @@ export function ServerSettings({ variant = 'internal' }: { variant?: 'internal' 
             <button type="button" onClick={() => void testServer()} disabled={testing} className="cut-corner-sm border border-line px-2.5 py-1.5 text-[11px] font-semibold text-ink-2 hover:border-ink hover:text-ink disabled:opacity-40">
               {testing ? '测试中…' : '测试连接'}
             </button>
-            <button type="button" onClick={saveServer} className="cut-corner-sm bg-ink px-2.5 py-1.5 text-[11px] font-bold text-white">
+            <button type="button" onClick={saveServer} className="cut-corner-sm bg-accent px-2.5 py-1.5 text-[11px] font-bold text-on-accent">
               保存并重载
             </button>
             <button type="button" onClick={resetServer} className="cut-corner-sm border border-line px-2.5 py-1.5 text-[11px] text-ink-2">

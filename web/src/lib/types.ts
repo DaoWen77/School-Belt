@@ -7,7 +7,7 @@ export interface ApiUser {
   avatarFileId?: string | null;
   statusPrefix?: string | null;
   globalRole?: string;
-  /** 服务端计算的证章，例如 ['[极光科技]Official', '[测绘组]'] */
+  /** 服务端计算的证章，例如 ['[站长]Official', '[测绘组]'] */
   prefixes?: string[];
   displayOrganizationId?: string | null;
 }

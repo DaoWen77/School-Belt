@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, errorOf } from '@/lib/api';
+import { askConfirm } from '@/lib/confirm';
 import { uploadFile, precheckFile } from '@/lib/upload';
 import { useFileUrl } from '@/lib/useFileUrl';
 import type { Sticker } from '@/lib/types';
@@ -96,7 +97,14 @@ export function StickerPanel({
   };
 
   const remove = async (sticker: Sticker) => {
-    if (!window.confirm(`删除贴纸「${sticker.name ?? '未命名'}」？`)) return;
+    if (
+      !(await askConfirm(`删除贴纸「${sticker.name ?? '未命名'}」？`, {
+        title: '删除贴纸',
+        confirmText: '删除贴纸',
+        danger: true,
+      }))
+    )
+      return;
     setError(null);
     try {
       await api(`/stickers/${sticker.id}`, { method: 'DELETE' });

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '@/lib/api';
+import { askConfirm } from '@/lib/confirm';
 import type { ArchiveItem } from '@/lib/types';
 import { useFileUrl } from '@/lib/useFileUrl';
 import { ArchiveCover } from './ArchiveCover';
@@ -112,7 +113,14 @@ export function ArchiveDrawer({
 
   const remove = async () => {
     if (busy) return;
-    if (!window.confirm(`删除档案「${item.title}」？这是软删除，将从档案室移除。`)) return;
+    if (
+      !(await askConfirm(`删除档案「${item.title}」？这是软删除，将从档案室移除。`, {
+        title: '删除档案',
+        confirmText: '删除档案',
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     setError(null);
     try {

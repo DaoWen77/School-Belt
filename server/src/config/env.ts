@@ -38,6 +38,8 @@ export const envSchema = z.object({
   HOST: z.string().default('0.0.0.0'),
   PORT: z.coerce.number().int().positive().default(3000),
   API_PREFIX: z.string().default('/api/v1'),
+  /** 公网 API 源（如 https://api.example.com）；设置后所有文件 URL 走签名代理，不暴露 S3 */
+  PUBLIC_API_ORIGIN: z.string().default(''),
   CORS_ORIGINS: z
     .string()
     .default(

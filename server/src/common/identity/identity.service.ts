@@ -52,7 +52,7 @@ export function organizationPrefix(choice: OrganizationIdentityChoice): string {
  * 身份证章的唯一计算源。
  *
  * 证章顺序：系统身份在前，组织身份在后。
- * - 有 `[极光科技]` 标签 → `[极光科技]`；全站 Owner 追加 `Official`
+ * - 有 `[站长]` 标签 → `[站长]`；全站 Owner 追加 `Official`
  * - 多组织：优先 users.display_organization_id；未选择/失效时按
  *   组织 Owner > 组织管理员 > 普通成员 → 加入时间 自动选择**一个**组织前缀。
  *
@@ -64,8 +64,8 @@ export class IdentityService {
 
   /** 纯函数：不查库，供认证结果 / 测试 / 列表批量构建使用 */
   static systemPrefixes(user: Pick<IdentityUser, 'tags' | 'globalRole'>): string[] {
-    if (!user.tags.includes('[极光科技]')) return [];
-    return [user.globalRole === 'owner' ? '[极光科技]Official' : '[极光科技]'];
+    if (!user.tags.includes('[站长]')) return [];
+    return [user.globalRole === 'owner' ? '[站长]Official' : '[站长]'];
   }
 
   async prefixesFor(userId: string): Promise<string[]> {

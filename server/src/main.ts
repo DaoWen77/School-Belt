@@ -5,6 +5,7 @@ import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fa
 import { randomUUID } from 'node:crypto';
 import type { IncomingMessage } from 'node:http';
 import { AppModule } from './app.module';
+import { originOf, requestOriginStore } from './common/request-origin';
 import { AppConfig } from './config/config.module';
 import { detectLanIps } from './config/cors';
 import { createPinoLogger, PinoNestLogger } from './common/logger/pino-logger';
@@ -45,6 +46,16 @@ async function bootstrap(): Promise<void> {
     bufferLogs: true,
   });
   app.useLogger(new PinoNestLogger(logger));
+
+  /* 请求级 origin：媒体 URL 跟随访问者 host，内网走内网、公网走公网，不互相绕路 */
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .addHook('onRequest', (request: { headers: Record<string, string | string[] | undefined> }, _reply: unknown, done: () => void) => {
+      const origin = originOf(request.headers);
+      if (!origin) return done();
+      requestOriginStore.run({ origin }, done);
+    });
 
   app.setGlobalPrefix(config.http.apiPrefix, {
     exclude: [

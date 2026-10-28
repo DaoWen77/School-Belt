@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Inject, Injectable, Logger, Optional, type OnModuleInit } from '@nestjs/common';
 import {
   DeleteObjectCommand,
@@ -9,6 +10,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { AppConfig } from '../config/config.module';
+import { currentOrigin } from '../common/request-origin';
 import { createS3Clients, type S3ClientPair } from './s3-clients';
 
 export interface ObjectHead {
@@ -81,9 +83,45 @@ export class S3Service implements OnModuleInit {
   }
 
   /** 预签名 GET：variant=preview 时优先缩略图，无预览降级原图；用公网 client 签名 */
+  /** 签名媒体代理 URL（PUBLIC_API_ORIGIN 配置时启用；浏览器无需 Bearer，也无法直连 S3） */
+  mediaUrl(key: string, expiresInSec = this.config.media?.ttlSec ?? 600): string {
+    const media = this.config.media;
+    const origin = currentOrigin() ?? media?.proxyOrigin;
+    if (!media || !origin) return '';
+    const exp = Math.floor(Date.now() / 1000) + expiresInSec;
+    const sig = createHmac('sha256', media.secret).update(`${key}.${exp}`).digest('base64url');
+    return `${origin}/api/v1/files/view?key=${encodeURIComponent(key)}&exp=${exp}&sig=${sig}`;
+  }
+
+  /** 校验媒体代理签名（常量时间比较） */
+  verifyMedia(key: string, exp: number, sig: string): boolean {
+    if (!Number.isFinite(exp) || exp < Math.floor(Date.now() / 1000)) return false;
+    const expected = createHmac('sha256', this.config.media.secret).update(`${key}.${exp}`).digest('base64url');
+    const a = Buffer.from(expected);
+    const b = Buffer.from(sig ?? '');
+    return a.length === b.length && timingSafeEqual(a, b);
+  }
+
   async presignGet(key: string, expiresInSec = this.presignExpiresSec): Promise<string> {
+    /* 有请求上下文 → 跟随访问者 host；无上下文（脚本）→ 用 PUBLIC_API_ORIGIN */
+    const proxy = this.mediaUrl(key, expiresInSec);
+    if (proxy) return proxy;
     const command = new GetObjectCommand({ Bucket: this.bucket, Key: key });
     return getSignedUrl(this.signing, command, { expiresIn: expiresInSec });
+  }
+
+  /** 读取对象流（下载代理用；绕过 presign 的 localhost/跨域问题） */
+  async stream(key: string): Promise<{ body: NodeJS.ReadableStream; contentType: string | null; contentLength: number | null } | null> {
+    try {
+      const response = await this.internal.send(new GetObjectCommand({ Bucket: this.bucket, Key: key }));
+      return {
+        body: response.Body as unknown as NodeJS.ReadableStream,
+        contentType: response.ContentType ?? null,
+        contentLength: response.ContentLength ?? null,
+      };
+    } catch {
+      return null;
+    }
   }
 
   async head(key: string): Promise<ObjectHead | null> {

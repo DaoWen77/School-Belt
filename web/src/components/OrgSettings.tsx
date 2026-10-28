@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api, errorOf } from '@/lib/api';
+import { askConfirm } from '@/lib/confirm';
 import type { ApiUser } from '@/lib/types';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
 
@@ -209,13 +210,27 @@ export function OrgSettings({ me }: { me: ApiUser | null }) {
     );
   };
 
-  const leave = (org: OrganizationView) => {
-    if (!window.confirm(`退出组织「${org.name}」？组织频道会立即从侧边栏消失。`)) return;
+  const leave = async (org: OrganizationView) => {
+    if (
+      !(await askConfirm(`退出组织「${org.name}」？组织频道会立即从侧边栏消失。`, {
+        title: '退出组织',
+        confirmText: '退出组织',
+        danger: true,
+      }))
+    )
+      return;
     void run(() => api(`/organizations/${org.id}/leave`, { method: 'POST', body: JSON.stringify({}) }));
   };
 
-  const dissolve = (org: OrganizationView) => {
-    if (!window.confirm(`解散组织「${org.name}」？所有成员会失去前缀，组织频道会归档。`)) return;
+  const dissolve = async (org: OrganizationView) => {
+    if (
+      !(await askConfirm(`解散组织「${org.name}」？所有成员会失去前缀，组织频道会归档。`, {
+        title: '解散组织',
+        confirmText: '解散组织',
+        danger: true,
+      }))
+    )
+      return;
     void run(() => api(`/organizations/${org.id}/dissolve`, { method: 'POST', body: JSON.stringify({}) }));
   };
 
@@ -230,8 +245,14 @@ export function OrgSettings({ me }: { me: ApiUser | null }) {
     );
   };
 
-  const archiveChannel = (org: OrganizationView, channel: OrgChannelView) => {
-    if (!window.confirm(`归档组织频道「${channel.name}」？`)) return;
+  const archiveChannel = async (org: OrganizationView, channel: OrgChannelView) => {
+    if (
+      !(await askConfirm(`归档组织频道「${channel.name}」？`, {
+        title: '归档频道',
+        confirmText: '归档频道',
+      }))
+    )
+      return;
     void run(() =>
       api(`/organizations/${org.id}/channels/${channel.id}`, { method: 'DELETE' }),
     );

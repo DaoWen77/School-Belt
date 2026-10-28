@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { beltApi, uploadBeltAvatar, type BeltUser } from '@/lib/beltApi';
+import { beltApi, BeltApiError, uploadBeltAvatar, type BeltUser } from '@/lib/beltApi';
+import { fmtCents } from '@/lib/beltWallet';
 import type {
   BeltProfile,
   BeltProfileCommission,
@@ -12,6 +14,7 @@ import type {
 } from '@/lib/beltTypes';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
 import { BeltAvatar } from './BeltAvatar';
+import { BeltPortal } from './BeltPortal';
 
 const TABS = [
   { key: 'posts', label: '发布的帖子', en: 'POSTS' },
@@ -20,9 +23,16 @@ const TABS = [
 ] as const;
 
 type TabKey = (typeof TABS)[number]['key'];
-type Panel = 'edit' | 'tags' | null;
+type Panel = 'edit' | 'tags' | 'bond' | null;
 
 const CERT_TAGS = ['教师', '开发者', '赞助者', '校园知名人物'];
+const BOND_TYPES = [
+  { type: 'buddy', label: '死党', desc: '日常互损、随叫随到的那种关系。' },
+  { type: 'mentor', label: '大佬', desc: '我仰望的前辈，有事就向前辈请教。' },
+  { type: 'partner', label: '搭档', desc: '一起干活、共同出任务的固定搭档。' },
+  { type: 'pal', label: '搭子', desc: '吃饭、打本、摸鱼，临时也能约上。' },
+] as const;
+type BondType = (typeof BOND_TYPES)[number]['type'];
 const BOARD_LABEL: Record<string, string> = { bulletin: '公告', bounty: '悬赏', daily: '日常', telegraph: '电文' };
 
 function fmtDate(iso: string | null | undefined): string {
@@ -63,6 +73,7 @@ function fallbackCard(user: BeltUser): BeltProfileUser {
 }
 
 export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: string }) {
+  const router = useRouter();
   const targetHandle = (handle ?? user.handle).trim();
   const [profile, setProfile] = useState<BeltProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,6 +92,7 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
   const [menuOpen, setMenuOpen] = useState(false);
   const [panel, setPanel] = useState<Panel>(null);
   const [followBusy, setFollowBusy] = useState(false);
+  const [dmBusy, setDmBusy] = useState(false);
 
   const [displayName, setDisplayName] = useState(user.displayName);
   const [statusPrefix, setStatusPrefix] = useState(user.statusPrefix ?? '');
@@ -93,6 +105,9 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
   const [tagSel, setTagSel] = useState<string[]>([]);
   const [tagBusy, setTagBusy] = useState(false);
   const [panelError, setPanelError] = useState<string | null>(null);
+  const [bondType, setBondType] = useState<BondType>('buddy');
+  const [bondBusy, setBondBusy] = useState(false);
+  const [bondError, setBondError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -124,6 +139,11 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
 
   const isFounder = user.globalRole === 'owner' || user.globalRole === 'admin';
   const hasCard = Boolean(card);
+  const isMaxLevel = (card?.level ?? 0) >= 6 || (card !== null && card.expForNextLevel <= 0);
+  const expPercent =
+    card && card.expForNextLevel > 0
+      ? Math.min(100, Math.round((card.expIntoLevel / card.expForNextLevel) * 100))
+      : 0;
 
   useEffect(() => {
     setPosts(null);
@@ -227,6 +247,9 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
       setEditNotice(null);
     } else if (next === 'tags') {
       setTagSel(card.tags.filter((tag) => CERT_TAGS.includes(tag)));
+    } else if (next === 'bond') {
+      setBondType('buddy');
+      setBondError(null);
     }
     setPanel(next);
   };
@@ -256,6 +279,25 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
       setNotice(errText(caught, '关注操作失败'));
     } finally {
       setFollowBusy(false);
+    }
+  };
+
+  const startDirect = async () => {
+    if (!card || dmBusy || card.isSelf) return;
+    setDmBusy(true);
+    setNotice(null);
+    try {
+      const data = await beltApi<{ channelId: string; created: boolean }>(
+        `/belt/directs/${encodeURIComponent(card.handle)}`,
+        { method: 'POST', body: JSON.stringify({}) },
+      );
+      if (!data?.channelId) throw new Error('私信频道未建立');
+      router.push(`/belt/direct/${data.channelId}`);
+    } catch (caught) {
+      const status = caught instanceof Error && 'status' in caught ? Number((caught as { status: number }).status) : 0;
+      setNotice(status === 403 ? '先关注对方才能私信' : errText(caught, '私信发起失败'));
+    } finally {
+      setDmBusy(false);
     }
   };
 
@@ -319,6 +361,30 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
       setPanelError(errText(caught, '认证标签保存失败'));
     } finally {
       setTagBusy(false);
+    }
+  };
+
+  const inviteBond = async () => {
+    if (!card || bondBusy) return;
+    setBondBusy(true);
+    setBondError(null);
+    try {
+      await beltApi('/belt/bonds/invite', {
+        method: 'POST',
+        body: JSON.stringify({ handle: card.handle, type: bondType }),
+      });
+      setPanel(null);
+      setNotice('已发送羁绊卡片，等待对方确认');
+    } catch (caught) {
+      if (caught instanceof BeltApiError && caught.status === 409) {
+        setBondError('你们已经有这种羁绊或邀请在等待');
+      } else if (caught instanceof BeltApiError && [401, 403, 404].includes(caught.status)) {
+        setBondError('羁绊系统暂不可用，稍后再试');
+      } else {
+        setBondError(errText(caught, '羁绊卡片发送失败'));
+      }
+    } finally {
+      setBondBusy(false);
     }
   };
 
@@ -394,15 +460,31 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
           <div className="belt-uf-id">
             <div className="belt-uf-title">
               <h1 className="belt-uf-name">{card.displayName || card.handle}</h1>
-              {card.level > 0 ? (
-                <span className="belt-uf-level" title={card.levelLabel || `Lv${card.level}`}>
-                  Lv{card.level}
-                </span>
-              ) : null}
+              <span
+                className={`belt-uf-level${card.level === 0 ? ' is-lv0' : ''}`}
+                title={card.levelLabel || `Lv${card.level}`}
+              >
+                Lv{card.level}
+                {card.levelLabel && card.levelLabel !== `Lv${card.level}` ? (
+                  <i className="belt-uf-level-label">{card.levelLabel}</i>
+                ) : null}
+              </span>
             </div>
             <p className="belt-uf-handle">
               @{card.handle}
               {card.statusPrefix ? <span className="belt-uf-status">/ {card.statusPrefix}</span> : null}
+              <span className="belt-uf-wallet" title="商券余额">
+                商券 {fmtCents(card.balanceCents)} 券
+              </span>
+            </p>
+            <p
+              className={`belt-uf-exp${isMaxLevel ? ' is-max' : ''}`}
+              aria-label={isMaxLevel ? '等级经验 MAX' : `EXP ${card.expIntoLevel} / ${card.expForNextLevel}`}
+            >
+              <span className="belt-uf-exp-bar" aria-hidden="true">
+                <i style={{ width: isMaxLevel ? '100%' : `${expPercent}%` }} />
+              </span>
+              <em>{isMaxLevel ? 'MAX' : `EXP ${card.expIntoLevel} / ${card.expForNextLevel}`}</em>
             </p>
             <div className="belt-uf-badges">
               <IdentityBadges values={card.tags} scan />
@@ -418,6 +500,17 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
                 onClick={() => void toggleFollow()}
               >
                 {followBusy ? '链路中…' : card.isFollowing ? '已关注' : '关注'}
+              </button>
+            )}
+            {card.isSelf ? null : (
+              <button
+                type="button"
+                className="belt-button"
+                aria-label="发私信"
+                disabled={dmBusy}
+                onClick={() => void startDirect()}
+              >
+                {dmBusy ? '建立链路…' : '发私信'}
               </button>
             )}
             <div className="belt-menu" ref={menuRef}>
@@ -441,6 +534,9 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
                     <>
                       <button type="button" role="menuitem" className="belt-menu-item" onClick={() => void copyHandle()}>
                         复制呼号
+                      </button>
+                      <button type="button" role="menuitem" className="belt-menu-item" onClick={() => openPanel('bond')}>
+                        发起羁绊
                       </button>
                       {isFounder ? (
                         <button type="button" role="menuitem" className="belt-menu-item" onClick={() => openPanel('tags')}>
@@ -645,7 +741,8 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
       ) : null}
 
       {panel === 'tags' ? (
-        <div className="belt-modal-backdrop" role="presentation" onClick={() => setPanel(null)}>
+        <BeltPortal>
+      <div className="belt-modal-backdrop" role="presentation">
           <section
             className="belt-modal"
             role="dialog"
@@ -685,6 +782,55 @@ export function BeltProfileView({ user, handle }: { user: BeltUser; handle?: str
             </div>
           </section>
         </div>
+      </BeltPortal>
+      ) : null}
+
+      {panel === 'bond' ? (
+        <BeltPortal>
+      <div className="belt-modal-backdrop" role="presentation">
+          <section
+            className="belt-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="发起羁绊"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className="belt-page-kicker">BOND INVITATION</p>
+            <h2>发起羁绊 · @{card.handle}</h2>
+            <p className="belt-hint">选择一种关系，发出羁绊卡片；对方确认后成为羁绊，每日可延续一次。</p>
+            {bondError ? (
+              <p className="belt-error" role="alert">
+                <code>BOND_ERROR</code> {bondError}
+              </p>
+            ) : null}
+            <div className="belt-bond-types" role="radiogroup" aria-label="羁绊类型">
+              {BOND_TYPES.map((item) => (
+                <label key={item.type} className={`belt-bond-type${bondType === item.type ? ' is-active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="bond-type"
+                    value={item.type}
+                    checked={bondType === item.type}
+                    onChange={() => setBondType(item.type)}
+                  />
+                  <span>
+                    <b>{item.label}</b>
+                    <small>{item.desc}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <div className="belt-modal-actions">
+              <button type="button" className="belt-button" onClick={() => setPanel(null)}>
+                取消
+              </button>
+              <button type="button" className="belt-button is-signal" disabled={bondBusy} onClick={() => void inviteBond()}>
+                {bondBusy ? '发送中…' : '发送羁绊卡片'}
+              </button>
+            </div>
+          </section>
+        </div>
+      </BeltPortal>
       ) : null}
     </div>
   );

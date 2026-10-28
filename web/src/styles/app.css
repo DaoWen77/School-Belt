@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    app.css · O.M.V 帝江号 · 全域广播（甲套）
    --------------------------------------------------------------------------
    本文件分两层：
@@ -1783,6 +1783,33 @@ a.ef-record:is(:hover, :focus-visible) > * {
 
 .ef-dialog {
   width: min(24rem, calc(100% - 2 * var(--ef-pad)));
+}
+
+/* ConfirmDialog（lib/confirm.ts 的 <ConfirmHost />）：同一套 ef-dialog 语法 */
+.ef-dialog.dj-confirm {
+  width: min(26rem, calc(100% - 2 * var(--ef-pad)));
+}
+
+.ef-dialog.dj-confirm .ef-panel {
+  border: 1px solid color-mix(in srgb, var(--ef-danger) 30%, var(--ef-rule));
+}
+
+.ef-dialog.dj-confirm .ef-eyebrow {
+  color: var(--ef-danger);
+}
+
+/* 视口 38.2% 黄金分割位：视线先落标题，不往下坠 */
+.ef-dialog[open] {
+  margin: 38.2vh auto auto;
+  max-height: 58dvh;
+  overflow-y: auto;
+}
+
+@media (max-height: 640px) {
+  .ef-dialog[open] {
+    margin-block-start: 1rem;
+    max-height: 88dvh;
+  }
 }
 .ef-dialog > .ef-panel {
   padding: 1.25rem 1.25rem 1.1rem;

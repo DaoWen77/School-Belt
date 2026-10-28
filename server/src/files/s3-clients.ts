@@ -36,6 +36,10 @@ export function createS3Clients(options: S3ClientOptions): S3ClientPair {
       accessKeyId: options.accessKeyId,
       secretAccessKey: options.secretAccessKey,
     },
+    // rclone/MinIO 兼容：SDK v3 默认按 CRC32 双向校验，非 AWS 实现会返回不一致的
+    // x-amz-checksum-crc32 导致 500；仅在协议要求时计算/校验。
+    requestChecksumCalculation: 'WHEN_REQUIRED' as const,
+    responseChecksumValidation: 'WHEN_REQUIRED' as const,
   } as const;
 
   return {

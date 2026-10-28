@@ -124,7 +124,7 @@ export class DeviceService {
       data: { lastSeenAt: new Date() },
     });
 
-    const [unread, announcement, latestNotification, friends] = await Promise.all([
+    const [unread, announcement, latestNotification, follows] = await Promise.all([
       this.prisma.notification.count({ where: { userId: device.userId, readAt: null } }),
       this.prisma.$queryRaw<Array<{ active: boolean }>>`
         SELECT active FROM system_announcements WHERE id = 'default' LIMIT 1
@@ -134,22 +134,19 @@ export class DeviceService {
         orderBy: { createdAt: 'desc' },
         select: { title: true, body: true },
       }),
-      this.prisma.friendship.findMany({
-        where: {
-          status: 'accepted',
-          OR: [{ requesterId: device.userId }, { addresseeId: device.userId }],
-        },
-        select: { requesterId: true, addresseeId: true },
+      this.prisma.follow.findMany({
+        where: { OR: [{ followerId: device.userId }, { followingId: device.userId }] },
+        select: { followerId: true, followingId: true },
       }),
     ]);
 
-    const friendIds = friends.map((row) =>
-      row.requesterId === device.userId ? row.addresseeId : row.requesterId,
+    const peerIds = follows.map((row) =>
+      row.followerId === device.userId ? row.followingId : row.followerId,
     );
-    const onlineFriends = friendIds.length
+    const onlineFriends = peerIds.length
       ? await this.prisma.user.count({
           where: {
-            id: { in: friendIds },
+            id: { in: peerIds },
             lastSeenAt: { gte: new Date(Date.now() - 5 * 60_000) },
           },
         })

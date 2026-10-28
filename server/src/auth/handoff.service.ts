@@ -25,7 +25,7 @@ const HANDOFF_TTL_SEC = HANDOFF_TTL_MS / 1000;
  * 跨面交接码（文明环带 Phase A）。
  *
  * - 只存在 Redis，60 秒、单次消费；不落业务表。
- * - 内部→环带只允许有 `[极光科技]` 的内部会话发起；
+ * - 内部→环带只允许有 `[站长]` 的内部会话发起；
  *   环带→内部只允许有标签的环带会话发起。
  * - 消费时用 Lua `GET + DEL` 原子取走，避免并发双花。
  * - 绑定 User-Agent 哈希，降低交接 URL 被复制到另一浏览器直接使用的风险。
@@ -65,7 +65,7 @@ export class HandoffService {
         });
         throw new AppError(
           ErrorCode.PROTOCOL_DENIED,
-          '协议拒绝：未授权链路（缺少 [极光科技] 身份标签）',
+          '协议拒绝：未授权链路（缺少 [站长] 身份标签）',
         );
       }
     }

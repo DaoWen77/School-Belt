@@ -34,12 +34,7 @@ export const AuditAction = {
   ORG_CHANNEL_CREATE: 'organization.channel.create',
   ORG_CHANNEL_ARCHIVE: 'organization.channel.archive',
   // Phase D：好友与 DM
-  FRIEND_REQUEST: 'friendship.request',
-  FRIEND_ACCEPT: 'friendship.accept',
-  FRIEND_REJECT: 'friendship.reject',
-  FRIEND_BLOCK: 'friendship.block',
-  FRIEND_REMOVE: 'friendship.remove',
-  DM_CREATE: 'friendship.dm.create',
+  DM_CREATE: 'dm.create',
   // 模块二：风纪
   CLERK_REVIEW: 'moderation.clerk.review',
   REPORT_RESOLVE: 'moderation.report.resolve',

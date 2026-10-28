@@ -154,6 +154,7 @@ export function connectBeltSocket(
   onState?: (state: 'connecting' | 'online' | 'offline') => void,
   onDirectMessage?: (payload: unknown) => void,
   onConversation?: (payload: unknown) => void,
+  onDing?: (payload: unknown) => void,
 ) {
   const token = beltSession.getAccess();
   if (!token) return null;
@@ -173,5 +174,6 @@ export function connectBeltSocket(
   socket.on('belt:message', onMessage);
   if (onDirectMessage) socket.on('belt:dm:message', onDirectMessage);
   if (onConversation) socket.on('belt:conversation', onConversation);
+  if (onDing) socket.on('belt:ding', onDing);
   return socket;
 }

@@ -8,7 +8,7 @@ import { ErrorCode } from '../common/errors/error-codes';
 import { clampLimit, decodeKeyCursor, encodeKeyCursor } from '../common/utils/cursor';
 import { ExpService, type ExpReason } from '../social/exp.service';
 import type { AuthUser } from '../common/types/context';
-import type { BeltBoard, CreateBeltPostDto } from './belt.dto';
+import type { BeltBoard, BeltFeed, ListBeltPostsQuery, CreateBeltPostDto } from './belt.dto';
 
 export interface BeltPostAuthorView {
   id: string;
@@ -20,7 +20,7 @@ export interface BeltPostAuthorView {
 
 export interface BeltPostView {
   id: string;
-  board: 'bulletin' | 'bounty' | 'daily' | 'telegraph';
+  board: 'moments' | 'bulletin' | 'bounty' | 'daily' | 'telegraph' | 'campus';
   title: string;
   body: string;
   source: 'user' | 'official' | 'rss' | 'system';
@@ -41,6 +41,9 @@ export interface BeltPostView {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  bookmarked: boolean;
+  pinned: boolean;
+  promoted: boolean;
 }
 
 export interface BeltCommentView {
@@ -70,11 +73,21 @@ const POST_SELECT = {
   bountyReward: true,
   bountyDeadline: true,
   createdAt: true,
+  promotionKind: true,
+  mirroredFromPostId: true,
   author: { select: { id: true, handle: true, displayName: true, avatarFileId: true } },
   _count: { select: { likes: true, comments: true } },
 } satisfies Prisma.PostSelect;
 
 type PostRow = Prisma.PostGetPayload<{ select: typeof POST_SELECT }>;
+
+/** 三合一 Feed 的版块映射 */
+const FEED_BOARDS: Record<BeltFeed, readonly BeltBoard[]> = {
+  dynamic: ['moments'],
+  campus: ['campus'],
+  daily: ['daily'],
+  all: ['moments', 'campus', 'daily'],
+};
 
 @Injectable()
 export class BeltPostsService {
@@ -86,16 +99,18 @@ export class BeltPostsService {
     private readonly exp: ExpService,
   ) {}
 
+  /** 三合一 Feed：feed=all|dynamic|campus|daily；旧 board 参数继续兼容 */
   async list(
     viewer: AuthUser | null,
-    board: BeltBoard,
-    limit: number,
-    cursor?: string,
+    query: ListBeltPostsQuery,
   ): Promise<{ posts: BeltPostView[]; nextCursor: string | null }> {
-    const take = clampLimit(limit, 30, 50);
+    const take = clampLimit(query.limit, 30, 50);
+    const boards: BeltBoard[] = query.feed
+      ? [...FEED_BOARDS[query.feed]]
+      : [query.board ?? 'moments'];
     let cursorFilter: Prisma.PostWhereInput = {};
-    if (cursor) {
-      const [msRaw, id] = decodeKeyCursor(cursor, 2) as [string, string];
+    if (query.cursor) {
+      const [msRaw, id] = decodeKeyCursor(query.cursor, 2) as [string, string];
       const date = new Date(Number(msRaw));
       if (!/^\d{10,16}$/.test(msRaw) || Number.isNaN(date.getTime())) {
         throw new AppError(ErrorCode.VALIDATION_FAILED, '游标格式非法', { field: 'cursor' });
@@ -105,31 +120,47 @@ export class BeltPostsService {
       };
     }
 
+    // 置顶帖只在第一页额外前置，游标分页只沿时间轴推进。
+    const pinned = query.cursor
+      ? []
+      : await this.prisma.post.findMany({
+          where: {
+            surface: 'belt',
+            board: { in: boards },
+            status: 'published',
+            deletedAt: null,
+            pinnedAt: { not: null },
+          },
+          orderBy: [{ pinnedAt: 'desc' }, { publishedAt: 'desc' }, { id: 'desc' }],
+          take: 3,
+          select: POST_SELECT,
+        });
     const rows = await this.prisma.post.findMany({
       where: {
         surface: 'belt',
-        board,
+        board: { in: boards },
         status: 'published',
         deletedAt: null,
+        ...(pinned.length > 0 ? { id: { notIn: pinned.map((row) => row.id) } } : {}),
         ...cursorFilter,
       },
       orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
       take: take + 1,
       select: POST_SELECT,
     });
-    const page = rows.slice(0, take);
+    const normalPage = rows.slice(0, take);
+    const page = [...pinned, ...normalPage];
     const liked = await this.likedSet(viewer, page.map((row) => row.id));
+    const bookmarked = await this.bookmarkedSet(viewer, page.map((row) => row.id));
     const prefixes = await this.authorPrefixes(page);
+    const last = normalPage[normalPage.length - 1];
     const nextCursor =
-      rows.length > take && page.length > 0
-        ? encodeKeyCursor([
-            page[page.length - 1]!.publishedAt.getTime(),
-            page[page.length - 1]!.id,
-          ])
+      rows.length > take && last
+        ? encodeKeyCursor([last.publishedAt.getTime(), last.id])
         : null;
 
     return {
-      posts: page.map((row) => this.toView(row, viewer, liked, prefixes)),
+      posts: page.map((row) => this.toView(row, viewer, liked, bookmarked, prefixes)),
       nextCursor,
     };
   }
@@ -146,8 +177,9 @@ export class BeltPostsService {
     });
     if (!row) throw new AppError(ErrorCode.VALIDATION_FAILED, '帖子不存在', { postId });
     const liked = await this.likedSet(viewer, [row.id]);
+    const bookmarked = await this.bookmarkedSet(viewer, [row.id]);
     const prefixes = await this.authorPrefixes([row]);
-    return this.toView(row, viewer, liked, prefixes);
+    return this.toView(row, viewer, liked, bookmarked, prefixes);
   }
 
   async create(user: AuthUser, dto: CreateBeltPostDto): Promise<BeltPostView> {
@@ -188,7 +220,7 @@ export class BeltPostsService {
     });
     const prefixes = await this.authorPrefixes([row]);
     await this.awardQuietly(row.author.id, 'post', 'post', row.id, `post:${row.id}`);
-    return this.toView(row, user, new Set(), prefixes);
+    return this.toView(row, user, new Set(), new Set(), prefixes);
   }
 
   async like(user: AuthUser, postId: string): Promise<{ liked: true; likeCount: number }> {
@@ -261,11 +293,14 @@ export class BeltPostsService {
           where: {
             id: channelId,
             surface: 'belt',
-            kind: 'channel',
-            visibility: 'public',
             archivedAt: null,
+            OR: [
+              { kind: 'channel', visibility: 'public' },
+              // 私聊分享：成员关系即访问权（好友体系已废弃）
+              { kind: 'dm', members: { some: { userId: user.id } } },
+            ],
           },
-          select: { id: true },
+          select: { id: true, kind: true },
         })
       : await this.prisma.channel.findFirst({
           where: { surface: 'belt', kind: 'channel', slug: 'belt-channel', archivedAt: null },
@@ -317,6 +352,100 @@ export class BeltPostsService {
     return { deleted: true };
   }
 
+  /** Founder 特权：置顶/取消置顶（仅 owner/admin） */
+  async pin(user: AuthUser, postId: string, pinned: boolean): Promise<{ pinned: boolean }> {
+    this.assertManager(user);
+    const post = await this.visiblePost(postId);
+    await this.prisma.post.update({
+      where: { id: post.id },
+      data: { pinnedAt: pinned ? new Date() : null },
+    });
+    return { pinned };
+  }
+
+  /** Founder 特权：晋升为校园热议镜像（telegraph 帖），同一帖只镜像一次 */
+  async promote(user: AuthUser, postId: string): Promise<{ mirrorId: string }> {
+    this.assertManager(user);
+    const post = await this.prisma.post.findFirst({
+      where: { id: this.postId(postId), surface: 'belt', status: 'published', deletedAt: null },
+      select: { id: true, title: true, body: true, authorId: true, board: true },
+    });
+    if (!post) throw new AppError(ErrorCode.VALIDATION_FAILED, '帖子不存在', { postId });
+    if (post.board === 'telegraph') {
+      throw new AppError(ErrorCode.VALIDATION_FAILED, '电文不能再次晋升');
+    }
+    const existing = await this.prisma.post.findFirst({
+      where: { mirroredFromPostId: post.id },
+      select: { id: true },
+    });
+    if (existing) return { mirrorId: existing.id };
+
+    const now = new Date();
+    try {
+      const mirrorId = await this.prisma.withTransaction(async (tx) => {
+        const mirror = await tx.post.create({
+          data: {
+            authorId: post.authorId,
+            surface: 'belt',
+            board: 'telegraph',
+            category: 'campus',
+            title: post.title,
+            body: post.body,
+            source: 'user',
+            publishedAt: now,
+            mirroredFromPostId: post.id,
+            promotionKind: 'manual',
+            promotedBy: user.id,
+            promotedAt: now,
+          },
+          select: { id: true },
+        });
+        await tx.post.update({
+          where: { id: post.id },
+          data: { promotionKind: 'manual', promotedBy: user.id, promotedAt: now },
+        });
+        return mirror.id;
+      });
+      return { mirrorId };
+    } catch (error) {
+      // mirrored_from_post_id 唯一索引兜底并发晋升。
+      if (!PrismaService.isUniqueViolation(error)) throw error;
+      const raced = await this.prisma.post.findFirst({
+        where: { mirroredFromPostId: post.id },
+        select: { id: true },
+      });
+      if (!raced) throw error;
+      return { mirrorId: raced.id };
+    }
+  }
+
+  /** 收藏（幂等）：返回当前状态与帖子收藏总数 */
+  async bookmark(
+    user: AuthUser,
+    postId: string,
+    on: boolean,
+  ): Promise<{ bookmarked: boolean; bookmarks: number }> {
+    const post = await this.visiblePost(postId);
+    if (on) {
+      await this.prisma.postBookmark.createMany({
+        data: [{ postId: post.id, userId: user.id }],
+        skipDuplicates: true,
+      });
+    } else {
+      await this.prisma.postBookmark.deleteMany({
+        where: { postId: post.id, userId: user.id },
+      });
+    }
+    const bookmarks = await this.prisma.postBookmark.count({ where: { postId: post.id } });
+    return { bookmarked: on, bookmarks };
+  }
+
+  private assertManager(user: AuthUser): void {
+    if (user.globalRole !== 'owner' && user.globalRole !== 'admin') {
+      throw new AppError(ErrorCode.FORBIDDEN, '仅协议官可执行该操作');
+    }
+  }
+
   private async visiblePost(postId: string): Promise<{ id: string; authorId: string }> {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(postId)) {
       throw new AppError(ErrorCode.VALIDATION_FAILED, '帖子不存在', { postId });
@@ -365,6 +494,15 @@ export class BeltPostsService {
     return new Set(rows.map((row) => row.postId));
   }
 
+  private async bookmarkedSet(viewer: AuthUser | null, postIds: string[]): Promise<Set<string>> {
+    if (!viewer || postIds.length === 0) return new Set();
+    const rows = await this.prisma.postBookmark.findMany({
+      where: { userId: viewer.id, postId: { in: postIds } },
+      select: { postId: true },
+    });
+    return new Set(rows.map((row) => row.postId));
+  }
+
   private async authorPrefixes(rows: PostRow[]): Promise<Record<string, string[]>> {
     const ids = [...new Set(rows.map((row) => row.author.id))];
     if (ids.length === 0) return {};
@@ -379,6 +517,7 @@ export class BeltPostsService {
     row: PostRow,
     viewer: AuthUser | null,
     liked: Set<string>,
+    bookmarked: Set<string>,
     prefixes: Record<string, string[]>,
   ): BeltPostView {
     return {
@@ -410,6 +549,9 @@ export class BeltPostsService {
       likeCount: row._count.likes,
       commentCount: row._count.comments,
       likedByMe: Boolean(viewer && liked.has(row.id)),
+      bookmarked: Boolean(viewer && bookmarked.has(row.id)),
+      pinned: row.pinnedAt !== null,
+      promoted: row.promotionKind !== null,
     };
   }
 

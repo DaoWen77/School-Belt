@@ -234,7 +234,7 @@ async function main() {
     console.log('SHOT', channelImage);
     console.log(
       'OWNER_BADGE_IN_BELT',
-      (await belt.page.locator('.identity-badge').allInnerTexts()).includes('[极光科技]Official'),
+      (await belt.page.locator('.identity-badge').allInnerTexts()).includes('[站长]Official'),
     );
     const channelText = await belt.page.locator('body').innerText();
     console.log('CHANNEL_HAS_SIGNAL', channelText.includes(messageMarker));

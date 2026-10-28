@@ -124,6 +124,7 @@ export class SocialService {
         tags: true,
         globalRole: true,
         exp: true,
+        balanceCents: true,
         createdAt: true,
       },
     });
@@ -180,6 +181,9 @@ export class SocialService {
         isSelf: row.id === viewer.id,
         isFollowing,
         followedBy: Boolean(followedByRows),
+        // 关注即可私聊：任一方向的关注关系都点亮「发私信」按钮
+        canDirect: row.id !== viewer.id && (isFollowing || Boolean(followedByRows)),
+        balanceCents: row.balanceCents,
       },
       eligibility: {
         isClerk,

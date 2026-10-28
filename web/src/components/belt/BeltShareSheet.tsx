@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { beltApi } from '@/lib/beltApi';
-import type { BeltChannel, BeltFriendView } from '@/lib/beltTypes';
+import type { BeltChannel, BeltDmConversation } from '@/lib/beltTypes';
 import { BeltAvatar } from './BeltAvatar';
 
-type Step = 'root' | 'channel' | 'friend';
+type Step = 'root' | 'channel' | 'direct';
 
 export function BeltShareSheet({
   postId,
@@ -21,7 +21,7 @@ export function BeltShareSheet({
 }) {
   const [step, setStep] = useState<Step>('root');
   const [channels, setChannels] = useState<BeltChannel[]>([]);
-  const [friends, setFriends] = useState<BeltFriendView[]>([]);
+  const [conversations, setConversations] = useState<BeltDmConversation[]>([]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -62,14 +62,14 @@ export function BeltShareSheet({
     }
   };
 
-  const loadFriends = async () => {
-    setStep('friend');
+  const loadDirects = async () => {
+    setStep('direct');
     setError(null);
     try {
-      const data = await beltApi<{ friends: BeltFriendView[] }>('/belt/friendships');
-      setFriends(data.friends.filter((friend) => Boolean(friend.dmChannelId)));
+      const data = await beltApi<{ conversations: BeltDmConversation[] }>('/belt/directs');
+      setConversations(data.conversations ?? []);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : '好友列表读取失败');
+      setError(caught instanceof Error ? caught.message : '私聊列表读取失败');
     }
   };
 
@@ -90,16 +90,16 @@ export function BeltShareSheet({
     }
   };
 
-  const sendFriend = async (friend: BeltFriendView) => {
-    if (busy || !friend.dmChannelId) return;
+  const sendDirect = async (conversation: BeltDmConversation) => {
+    if (busy) return;
     setBusy(true);
     setError(null);
     try {
-      await beltApi(`/belt/conversations/${friend.dmChannelId}/share`, {
+      await beltApi(`/belt/posts/${postId}/share`, {
         method: 'POST',
-        body: JSON.stringify({ postId }),
+        body: JSON.stringify({ channelId: conversation.id }),
       });
-      setNotice(`已发送给 @${friend.peer.handle}`);
+      setNotice(`已发送给 @${conversation.peer.handle}`);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '发送失败');
     } finally {
@@ -125,7 +125,7 @@ export function BeltShareSheet({
           ) : null}
           <div>
             <p className="belt-page-kicker">TRANSMIT / 转发</p>
-            <h2>{step === 'root' ? '分享这条信号' : step === 'channel' ? '发送到频道' : '发送给好友'}</h2>
+            <h2>{step === 'root' ? '分享这条信号' : step === 'channel' ? '发送到频道' : '发送给私聊'}</h2>
             <p className="belt-sheet-sub">{postTitle}</p>
           </div>
           <button type="button" className="belt-sheet-close" aria-label="关闭" onClick={onClose}>
@@ -154,10 +154,10 @@ export function BeltShareSheet({
               </span>
               <em>CHANNEL</em>
             </button>
-            <button type="button" className="belt-sheet-option" onClick={() => void loadFriends()}>
+            <button type="button" className="belt-sheet-option" onClick={() => void loadDirects()}>
               <span className="belt-sheet-icon">@</span>
               <span>
-                <b>发送给好友</b>
+                <b>发送给私聊</b>
                 <small>以卡片消息发到私聊 DM</small>
               </span>
               <em>DIRECT</em>
@@ -181,15 +181,15 @@ export function BeltShareSheet({
           </div>
         ) : null}
 
-        {step === 'friend' ? (
+        {step === 'direct' ? (
           <div className="belt-sheet-list">
-            {friends.length === 0 ? <p className="belt-empty">还没有可发送的好友私聊。</p> : null}
-            {friends.map((friend) => (
-              <button key={friend.id} type="button" className="belt-sheet-row" disabled={busy} onClick={() => void sendFriend(friend)}>
-                <BeltAvatar fileId={friend.peer.avatarFileId} name={friend.peer.displayName} size="sm" />
+            {conversations.length === 0 ? <p className="belt-empty">还没有可发送的私聊。</p> : null}
+            {conversations.map((conversation) => (
+              <button key={conversation.id} type="button" className="belt-sheet-row" disabled={busy} onClick={() => void sendDirect(conversation)}>
+                <BeltAvatar fileId={conversation.peer.avatarFileId} name={conversation.peer.displayName} size="sm" />
                 <span>
-                  <b>{friend.peer.displayName}</b>
-                  <small>@{friend.peer.handle}</small>
+                  <b>{conversation.peer.displayName}</b>
+                  <small>@{conversation.peer.handle}</small>
                 </span>
                 <em>发送 →</em>
               </button>

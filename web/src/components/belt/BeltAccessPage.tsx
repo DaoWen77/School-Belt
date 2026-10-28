@@ -74,7 +74,7 @@ export function BeltAccessPage() {
           <p className="belt-gate-kicker">O.M.V INTERNAL // ACCESS GATE</p>
           <h1>
             INTERNAL LINK
-            <small>返回帝江号 / 仅 `[极光科技]` 身份可通过</small>
+            <small>返回帝江号 / 仅 `[站长]` 身份可通过</small>
           </h1>
           <div className="mt-4 border-l-2 border-[var(--ef-signal)] pl-3 text-[11px] leading-[1.8] text-[var(--ef-ink-2)]">
             <p>这里不是普通登录。协议会现场校验你的环带身份标签。</p>

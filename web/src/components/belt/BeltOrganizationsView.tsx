@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { askConfirm } from '@/lib/confirm';
 import { beltApi, type BeltUser } from '@/lib/beltApi';
 import { BeltAvatar } from './BeltAvatar';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
+import { BeltPortal } from './BeltPortal';
 
 interface OrgChannel {
   id: string;
@@ -218,7 +220,14 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
 
   const deleteChannel = async (orgId: string, channelId: string, channelName: string) => {
     if (busy) return;
-    if (!window.confirm(`确认删除频道「${channelName}」？此操作会归档频道，成员将不再看到它。`)) return;
+    if (
+      !(await askConfirm(`确认删除频道「${channelName}」？此操作会归档频道，成员将不再看到它。`, {
+        title: '删除频道',
+        confirmText: '归档频道',
+        danger: true,
+      }))
+    )
+      return;
     setBusy(`delete:${channelId}`);
     setError(null);
     try {
@@ -434,7 +443,8 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
       </section>
 
       {applyOpen ? (
-        <div className="belt-modal-backdrop" role="presentation" onClick={() => setApplyOpen(false)}>
+        <BeltPortal>
+      <div className="belt-modal-backdrop" role="presentation">
           <section className="belt-modal" role="dialog" aria-modal="true" aria-label="发起组织申请" onClick={(event) => event.stopPropagation()}>
             <p className="belt-page-kicker">NEW ORGANIZATION / 发起申请</p>
             <h2>建立你的组织</h2>
@@ -475,6 +485,7 @@ export function BeltOrganizationsView({ user }: { user: BeltUser }) {
             </div>
           </section>
         </div>
+      </BeltPortal>
       ) : null}
     </div>
   );

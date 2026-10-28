@@ -28,6 +28,8 @@ export interface ClerkEligibilityInput {
   violations30d: number;
   /** 是否已有 pending 申请 */
   hasPending?: boolean;
+  /** 是否已是风纪委员（已是则不可再申请） */
+  isClerk?: boolean;
 }
 
 export interface ClerkEligibility {
@@ -41,7 +43,7 @@ export interface ClerkEligibility {
   reasons: string[];
 }
 
-/** 风纪委资格：Lv4 + 30 天无违规 + 没有待审申请 */
+/** 风纪委资格：Lv4 + 30 天无违规 + 没有待审申请 + 尚未成为风纪委员 */
 export function clerkEligibility(input: ClerkEligibilityInput): ClerkEligibility {
   const level = Number.isFinite(input.level) ? Math.max(0, Math.trunc(input.level)) : 0;
   const violations30d = Number.isFinite(input.violations30d)
@@ -49,7 +51,9 @@ export function clerkEligibility(input: ClerkEligibilityInput): ClerkEligibility
     : 0;
   const levelOk = level >= CLERK_REQUIRED_LEVEL;
   const cleanOk = violations30d === 0;
+  const isClerk = input.isClerk === true;
   const reasons: string[] = [];
+  if (isClerk) reasons.push('你已是风纪委员');
   if (!levelOk) reasons.push(`等级不足：需 Lv${CLERK_REQUIRED_LEVEL}，当前 Lv${level}`);
   if (!cleanOk) reasons.push(`最近 ${CLERK_CLEAN_DAYS} 天有 ${violations30d} 条违规记录`);
   if (input.hasPending) reasons.push('你已有一份待审的风纪委申请');
@@ -59,7 +63,7 @@ export function clerkEligibility(input: ClerkEligibilityInput): ClerkEligibility
     levelOk,
     violations30d,
     cleanOk,
-    canApply: levelOk && cleanOk && !input.hasPending,
+    canApply: !isClerk && levelOk && cleanOk && !input.hasPending,
     reasons,
   };
 }

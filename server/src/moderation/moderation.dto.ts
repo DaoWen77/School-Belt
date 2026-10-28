@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-/** 4 个认证标签（不含方括号）；其他标签（[极光科技]、风纪委员）不受影响 */
+/** 4 个认证标签（不含方括号）；其他标签（[站长]、风纪委员）不受影响 */
 export const VERIFIED_TAGS = ['教师', '开发者', '赞助者', '校园知名人物'] as const;
 export type VerifiedTag = (typeof VERIFIED_TAGS)[number];
 

@@ -12,6 +12,22 @@ import { BeltLightbox } from './BeltLightbox';
 
 const NEON = ['cyan', 'pink', 'orange', 'green', 'violet'] as const;
 
+const FEED_TABS = [
+  { key: 'all', label: '全部', en: 'ALL' },
+  { key: 'dynamic', label: '动态', en: 'DYNAMIC' },
+  { key: 'campus', label: '校园', en: 'CAMPUS' },
+  { key: 'daily', label: '日常', en: 'DAILY' },
+] as const;
+
+type FeedKey = (typeof FEED_TABS)[number]['key'];
+
+const FEED_BOARD: Record<FeedKey, 'daily' | 'moments' | 'campus'> = {
+  all: 'daily',
+  dynamic: 'moments',
+  campus: 'campus',
+  daily: 'daily',
+};
+
 function codeOf(id: string): string {
   let hash = 0;
   for (let index = 0; index < id.length; index += 1) {
@@ -37,15 +53,16 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
   const [composerOpen, setComposerOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [feed, setFeed] = useState<FeedKey>('all');
 
-  const load = async () => {
+  const load = async (target: FeedKey) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await beltApi<BeltPostList>('/belt/posts?board=daily&limit=30');
+      const data = await beltApi<BeltPostList>(`/belt/posts?feed=${target}&limit=30`);
       setPosts(data.posts);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : '日常信号读取失败');
+      setError(caught instanceof Error ? caught.message : '信号读取失败');
     } finally {
       setLoading(false);
     }
@@ -53,9 +70,13 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
 
   useEffect(() => {
     setMounted(true);
-    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    void load(feed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feed]);
 
   return (
     <>
@@ -81,6 +102,22 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
             <span>SIGNALS</span>
           </div>
         </header>
+
+        <nav className="belt-feed-tabs" role="tablist" aria-label="信息流筛选">
+          {FEED_TABS.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              role="tab"
+              aria-selected={feed === item.key}
+              className={`belt-feed-tab${feed === item.key ? ' is-active' : ''}`}
+              onClick={() => setFeed(item.key)}
+            >
+              <span>{item.label}</span>
+              <small>{item.en}</small>
+            </button>
+          ))}
+        </nav>
 
         {error ? (
           <p className="belt-error" role="alert">
@@ -126,11 +163,19 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
                 </div>
 
                 <div className="belt-neon-foot">
-                  <BeltAvatar fileId={post.author.avatarFileId} name={post.author.displayName} size="sm" />
-                  <span className="belt-neon-author">
-                    <b>{post.author.displayName}</b>
-                    <small>@{post.author.handle}</small>
-                  </span>
+                  <Link
+                    className="belt-msg-link"
+                    href={`/belt/u/${encodeURIComponent(post.author.handle)}`}
+                    aria-label={`查看 ${post.author.displayName} 的主页`}
+                  >
+                    <BeltAvatar fileId={post.author.avatarFileId} name={post.author.displayName} size="sm" />
+                  </Link>
+                  <Link className="belt-msg-link" href={`/belt/u/${encodeURIComponent(post.author.handle)}`}>
+                    <span className="belt-neon-author">
+                      <b>{post.author.displayName}</b>
+                      <small>@{post.author.handle}</small>
+                    </span>
+                  </Link>
                   <span className="belt-neon-actions">
                     <span title="认同">♥ {post.likeCount}</span>
                     <span title="回波">💬 {post.commentCount}</span>
@@ -163,11 +208,11 @@ export function BeltDailyView({ user }: { user: BeltUser }) {
         : null}
 
       <BeltPostComposer
-        board="daily"
+        board={FEED_BOARD[feed]}
         open={composerOpen}
         user={user}
         onClose={() => setComposerOpen(false)}
-        onPosted={() => void load()}
+        onPosted={() => void load(feed)}
       />
       {lightbox ? <BeltLightbox src={lightbox} kind="image" onClose={() => setLightbox(null)} /> : null}
     </>

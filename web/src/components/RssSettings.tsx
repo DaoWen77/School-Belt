@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api, errorOf } from '@/lib/api';
+import { askConfirm } from '@/lib/confirm';
 
 interface RssSource {
   id: string;
@@ -112,7 +113,14 @@ export function RssSettings({ isOwner }: { isOwner: boolean }) {
 
   const remove = async (source: RssSource) => {
     if (!isOwner || busy) return;
-    if (!window.confirm(`移除 RSS 源「${source.name}」？已抓取的电文会保留。`)) return;
+    if (
+      !(await askConfirm(`移除 RSS 源「${source.name}」？已抓取的电文会保留。`, {
+        title: '移除 RSS 源',
+        confirmText: '移除源',
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     setError(null);
     try {

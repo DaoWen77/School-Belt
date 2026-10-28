@@ -91,6 +91,15 @@ export class AppConfig {
     };
   }
 
+  /** 媒体代理：配置了公网 API 源时，文件 URL 一律走 /api/v1/files/view 签名代理 */
+  get media() {
+    return {
+      proxyOrigin: (this.env.PUBLIC_API_ORIGIN ?? '').trim().replace(/\/+$/, ''),
+      secret: this.env.JWT_ACCESS_SECRET,
+      ttlSec: 600,
+    };
+  }
+
   get jwt() {
     return {
       accessSecret: this.env.JWT_ACCESS_SECRET,

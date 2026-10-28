@@ -30,7 +30,7 @@ export interface AuthResult {
     isInternal: boolean;
     accountOrigin: SurfaceName;
     tags: string[];
-    /** 系统证章 → 组织证章，例如 ['[极光科技]Official', '[测绘组]'] */
+    /** 系统证章 → 组织证章，例如 ['[站长]Official', '[测绘组]'] */
     prefixes: string[];
   };
   accessToken: string;
@@ -115,7 +115,7 @@ export class AuthService {
             passwordHash,
             globalRole: invite.role,
             // 内部邀请注册 = 从出生起就是内部账号；触发器和 CHECK 会同步 is_internal。
-            tags: ['[极光科技]'],
+            tags: ['[站长]'],
             accountOrigin: 'internal',
             lastSeenAt: new Date(),
           },
@@ -204,7 +204,7 @@ export class AuthService {
       });
       throw new AppError(
         ErrorCode.PROTOCOL_DENIED,
-        '协议拒绝：未授权链路（缺少 [极光科技] 身份标签）',
+        '协议拒绝：未授权链路（缺少 [站长] 身份标签）',
       );
     }
 
@@ -231,7 +231,7 @@ export class AuthService {
   }
 
   /**
-   * 环带自助注册：不消耗内部邀请码，出生面固定为 belt，不授予 `[极光科技]`。
+   * 环带自助注册：不消耗内部邀请码，出生面固定为 belt，不授予 `[站长]`。
    * 与内部邀请注册完全分开，防止外网用户绕过邀请直接拿到内部身份。
    */
   async registerBelt(dto: BeltRegisterDto, meta: RequestMeta): Promise<AuthResult> {
@@ -295,7 +295,7 @@ export class AuthService {
     if (surface === 'internal' && !user.isInternal) {
       throw new AppError(
         ErrorCode.PROTOCOL_DENIED,
-        '协议拒绝：未授权链路（缺少 [极光科技] 身份标签）',
+        '协议拒绝：未授权链路（缺少 [站长] 身份标签）',
       );
     }
 

@@ -7,6 +7,7 @@ export function Modal({
   eyebrow,
   title,
   wide,
+  dismissible = true,
   onClose,
   children,
 }: {
@@ -14,6 +15,8 @@ export function Modal({
   eyebrow: string;
   title: string;
   wide?: boolean;
+  /** 含录入表单的弹窗置 false：禁点遮罩/按 Esc 误关（防手滑丢草稿） */
+  dismissible?: boolean;
   onClose: () => void;
   children: ReactNode;
 }) {
@@ -26,13 +29,21 @@ export function Modal({
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
+  useEffect(() => {
+    const dialog = ref.current;
+    if (!dialog || dismissible) return;
+    const lock = (event: Event) => event.preventDefault();
+    dialog.addEventListener('cancel', lock);
+    return () => dialog.removeEventListener('cancel', lock);
+  }, [dismissible]);
+
   return (
     <dialog
       ref={ref}
       className={wide ? 'ef-dialog dj-dialog-wide' : 'ef-dialog'}
       onClose={onClose}
       onClick={(event) => {
-        if (event.target === ref.current) onClose();
+        if (dismissible && event.target === ref.current) onClose();
       }}
     >
       {open ? (

@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { beltApi, type BeltUser } from '@/lib/beltApi';
+import { beltApi, BeltApiError, type BeltUser } from '@/lib/beltApi';
 import type { BeltClerkApplication, BeltModerationMe, BeltModerationReport } from '@/lib/beltTypes';
-import { BeltDenial } from './BeltDenial';
+import { BeltPortal } from './BeltPortal';
 
 type Panel = 'apply' | 'approvals' | 'detail' | null;
 
@@ -26,7 +25,6 @@ function excerpt(body: string | null | undefined, limit = 120): string {
 
 /** 风纪工位：工单池 + 投票 + 风纪委员申请 / Founder 审批。 */
 export function BeltModerationView({ user }: { user: BeltUser }) {
-  const router = useRouter();
   const privileged = user.globalRole === 'owner' || user.globalRole === 'admin';
 
   const [me, setMe] = useState<BeltModerationMe | null>(null);
@@ -182,7 +180,11 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
       setApplyReason('');
       setNotice('风纪委员申请已提交，等待 Founder 审批。');
     } catch (caught) {
-      setApplyError(errText(caught, '申请提交失败'));
+      setApplyError(
+        caught instanceof BeltApiError && caught.status === 409
+          ? '你已是风纪委员，无需重复申请。'
+          : errText(caught, '申请提交失败'),
+      );
     } finally {
       setApplyBusy(false);
     }
@@ -215,10 +217,6 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
     );
   }
 
-  if (!allowed) {
-    return <BeltDenial onDone={() => router.replace('/belt/channel')} reason="协议拒绝：风纪权限不足，未授权进入工位。" />;
-  }
-
   const eligibility = me?.eligibility ?? null;
   const pendingApply = me?.application?.status === 'pending';
   const identity = [me?.isClerk ? '风纪委员' : null, me?.isOwner || privileged ? 'Founder' : null]
@@ -233,13 +231,21 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
           <p className="belt-page-kicker">TRIBUNAL // 风纪工位</p>
           <b className="belt-mod-role">{identity || '干员'}</b>
           <span className="belt-mod-pending">
-            待审 <b>{reports.length}</b>
+            {allowed ? (
+              <>
+                待审 <b>{reports.length}</b>
+              </>
+            ) : (
+              '只读参观'
+            )}
           </span>
         </div>
         <div className="belt-mod-head-actions">
-          <button type="button" className="belt-button" disabled={reportsBusy} onClick={() => setReportsKey((value) => value + 1)}>
-            {reportsBusy ? '同步中…' : '刷新'}
-          </button>
+          {allowed ? (
+            <button type="button" className="belt-button" disabled={reportsBusy} onClick={() => setReportsKey((value) => value + 1)}>
+              {reportsBusy ? '同步中…' : '刷新'}
+            </button>
+          ) : null}
           <div className="belt-menu" ref={menuRef}>
             <button
               type="button"
@@ -253,9 +259,15 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
             </button>
             {menuOpen ? (
               <div className="belt-menu-pop" role="menu">
-                <button type="button" role="menuitem" className="belt-menu-item" onClick={() => openPanel('apply')}>
-                  申请风纪委员
-                </button>
+                {me?.isClerk ? (
+                  <span className="belt-menu-item is-static" role="menuitem" aria-disabled="true">
+                    你已是风纪委员
+                  </span>
+                ) : (
+                  <button type="button" role="menuitem" className="belt-menu-item" onClick={() => openPanel('apply')}>
+                    申请风纪委员
+                  </button>
+                )}
                 {privileged ? (
                   <button type="button" role="menuitem" className="belt-menu-item" onClick={() => openPanel('approvals')}>
                     风纪委员申请审批
@@ -270,6 +282,53 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
         </div>
       </header>
 
+      <section className="belt-mod-shell">
+        <div className="belt-mod-shell-main">
+          <p className="belt-page-kicker">MODERATION COMMITTEE / 风纪委员会</p>
+          <h2>环带风纪委员会</h2>
+          <p className="belt-mod-shell-copy">
+            受理举报、众包投票与工单裁决。任何干员都可以提交申请；当选后才会解锁工单池与投票。
+          </p>
+          <ul className="belt-mod-shell-stats">
+            <li>
+              <span>当前等级</span>
+              <b>Lv{eligibility?.level ?? '—'}</b>
+              <small>需 Lv{eligibility?.requiredLevel ?? 4}</small>
+            </li>
+            <li>
+              <span>30 天违规</span>
+              <b>{eligibility?.violations30d ?? '—'} 次</b>
+              <small>{eligibility ? (eligibility.cleanOk ? '清白' : '存在违规') : '数据不可用'}</small>
+            </li>
+            <li>
+              <span>工单池</span>
+              <b>{allowed ? '已授权' : '未授权'}</b>
+              <small>{identity || '干员'}</small>
+            </li>
+          </ul>
+          {eligibility && !eligibility.canApply && eligibility.reasons.length > 0 ? (
+            <ul className="belt-mod-shell-reasons">
+              {eligibility.reasons.map((reason) => (
+                <li key={reason}>{reason}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+        <div className="belt-mod-shell-actions">
+          {allowed ? (
+            <span className="belt-stamp is-signal">工单池已授权</span>
+          ) : pendingApply ? (
+            <p className="belt-hint">申请审核中，请等待 Founder 批复。</p>
+          ) : eligibility?.canApply ? (
+            <button type="button" className="belt-button is-signal" onClick={() => openPanel('apply')}>
+              提交申请
+            </button>
+          ) : (
+            <p className="belt-hint">暂不符合申请条件。</p>
+          )}
+        </div>
+      </section>
+
       {gateError ? (
         <p className="belt-error" role="alert">
           <code>GATE_ERROR</code> {gateError}
@@ -280,21 +339,24 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
           {notice}
         </p>
       ) : null}
-      {voteError ? (
-        <p className="belt-error" role="alert">
-          <code>VOTE_ERROR</code> {voteError}
-        </p>
-      ) : null}
 
-      {reportsError ? (
-        <p className="belt-error" role="alert">
-          <code>QUEUE_ERROR</code> {reportsError}
-        </p>
-      ) : null}
+      {allowed ? (
+        <>
+          {voteError ? (
+            <p className="belt-error" role="alert">
+              <code>VOTE_ERROR</code> {voteError}
+            </p>
+          ) : null}
 
-      {reportsBusy && reports.length === 0 ? <p className="belt-hint">正在读取工单…</p> : null}
+          {reportsError ? (
+            <p className="belt-error" role="alert">
+              <code>QUEUE_ERROR</code> {reportsError}
+            </p>
+          ) : null}
 
-      {!reportsBusy && reports.length === 0 ? <p className="belt-hint">工单池已清空。</p> : null}
+          {reportsBusy && reports.length === 0 ? <p className="belt-hint">正在读取工单…</p> : null}
+
+          {!reportsBusy && reports.length === 0 ? <p className="belt-hint">工单池已清空。</p> : null}
 
       <div className="belt-mod-list">
         {reports.map((report) => (
@@ -351,6 +413,12 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
           </article>
         ))}
       </div>
+        </>
+      ) : (
+        <p className="belt-panel belt-hint">
+          工单池与投票仅对风纪委员开放。符合条件后可在此提交申请，等待 Founder 批复。
+        </p>
+      )}
 
       {panel === 'detail' && detail ? (
         <div className="belt-drawer-backdrop" role="presentation" onClick={() => setPanel(null)}>
@@ -424,8 +492,9 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
         </div>
       ) : null}
 
-      {panel === 'apply' ? (
-        <div className="belt-modal-backdrop" role="presentation" onClick={() => setPanel(null)}>
+      {panel === 'apply' && !me?.isClerk ? (
+        <BeltPortal>
+      <div className="belt-modal-backdrop" role="presentation">
           <section
             className="belt-modal"
             role="dialog"
@@ -491,10 +560,12 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
             </div>
           </section>
         </div>
+      </BeltPortal>
       ) : null}
 
       {panel === 'approvals' ? (
-        <div className="belt-modal-backdrop" role="presentation" onClick={() => setPanel(null)}>
+        <BeltPortal>
+      <div className="belt-modal-backdrop" role="presentation" onClick={() => setPanel(null)}>
           <section
             className="belt-modal"
             role="dialog"
@@ -550,6 +621,7 @@ export function BeltModerationView({ user }: { user: BeltUser }) {
             </div>
           </section>
         </div>
+      </BeltPortal>
       ) : null}
     </div>
   );

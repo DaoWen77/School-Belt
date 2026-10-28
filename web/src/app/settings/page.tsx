@@ -9,12 +9,12 @@ import type { ApiUser, BotConfig, Channel } from '@/lib/types';
 import { Avatar } from '@/components/im/Avatar';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
 import { OrgSettings } from '@/components/OrgSettings';
-import { FriendsSettings } from '@/components/FriendsSettings';
 import { RssSettings } from '@/components/RssSettings';
 import { IdentitySettings } from '@/components/im/IdentitySettings';
 import { ServerSettings } from '@/components/ServerSettings';
 import { Phase3Settings } from '@/components/Phase3Settings';
 import { precheckFile, uploadFile } from '@/lib/upload';
+import { askConfirm } from '@/lib/confirm';
 import { invalidateFileUrl } from '@/lib/fileUrl';
 
 interface PageError {
@@ -89,7 +89,7 @@ export default function SettingsPage() {
   const [botTest, setBotTest] = useState<string | null>(null);
   const isAiAdmin = user?.globalRole === 'owner' || user?.globalRole === 'admin';
   const isBotOwner = user?.globalRole === 'owner';
-  const [settingsTab, setSettingsTab] = useState<'profile' | 'security' | 'notification' | 'devices' | 'friends' | 'rss' | 'org' | 'manage'>('profile');
+  const [settingsTab, setSettingsTab] = useState<'profile' | 'security' | 'notification' | 'devices' | 'rss' | 'org' | 'manage'>('profile');
 
   useEffect(() => {
     if (!session.hasTokens()) {
@@ -248,7 +248,13 @@ export default function SettingsPage() {
   };
 
   const revokeInvite = async (invite: InviteView) => {
-    if (!window.confirm(`撤销邀请 ${invite.codePrefix}…？已注册用户不受影响。`)) return;
+    if (
+      !(await askConfirm(`撤销邀请 ${invite.codePrefix}…？已注册用户不受影响。`, {
+        title: '撤销邀请',
+        confirmText: '撤销邀请',
+      }))
+    )
+      return;
     setRevokingId(invite.id);
     setInviteError(null);
     try {
@@ -350,7 +356,14 @@ export default function SettingsPage() {
   };
 
   const removeBot = async (bot: BotConfig) => {
-    if (!window.confirm(`删除 Bot「${bot.name}」？该操作不可撤销。`)) return;
+    if (
+      !(await askConfirm(`删除 Bot「${bot.name}」？该操作不可撤销。`, {
+        title: '删除 Bot',
+        confirmText: '删除 Bot',
+        danger: true,
+      }))
+    )
+      return;
     setBotBusy(true);
     setBotsError(null);
     try {
@@ -509,7 +522,6 @@ export default function SettingsPage() {
             ['security', '安全'],
             ['notification', '通知'],
             ['devices', '设备'],
-            ['friends', '好友'],
             ['rss', '新闻塔'],
             ['org', '组织'],
             ['manage', '管理'],
@@ -622,8 +634,6 @@ export default function SettingsPage() {
         </section>
 
         <Phase3Settings me={user} isAdmin={isAiAdmin} />
-
-        <FriendsSettings me={user} />
 
         <RssSettings isOwner={isAiAdmin} />
 

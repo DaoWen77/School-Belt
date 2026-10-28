@@ -17,7 +17,7 @@ interface DeviceRow {
 }
 
 /**
- * O.M.V 帝江号 · 极光科技指挥中枢。
+ * O.M.V 帝江号 · 站长指挥中枢。
  * 取代旧聊天室主页：只保留档案库、活跃度雷达、IoT 设备面板，以及接入文明环带的巨型入口。
  */
 export function Dashboard() {
@@ -71,7 +71,7 @@ export function Dashboard() {
         {/* 档案库 */}
         <section className={`lg:col-span-2 motion-view ${booted ? '' : 'opacity-0'}`}>
           <div className="mb-2 flex items-baseline justify-between border-b border-line pb-2">
-            <h2 className="font-black tracking-tight">极光科技档案库</h2>
+            <h2 className="font-black tracking-tight">站长档案库</h2>
             <span className="font-mono text-[10px] text-ink-2">ARCHIVE / 素材与任务</span>
           </div>
           <ArchiveView />

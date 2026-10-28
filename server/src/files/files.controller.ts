@@ -1,4 +1,5 @@
-import { Controller, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, Param, Post, Query, Res, UseGuards } from '@nestjs/common';
+import type { FastifyReply } from 'fastify';
 import { Throttle } from '@nestjs/throttler';
 import { FilesService } from './files.service';
 import {
@@ -11,7 +12,7 @@ import {
   type FileUrlQuery,
   type PresignDto,
 } from './files.dto';
-import { CurrentUser } from '../common/decorators';
+import { CurrentUser, Public, RawResponse, Surface } from '../common/decorators';
 import { ChannelGuard } from '../common/guards/channel.guard';
 import { ZBody, ZQuery } from '../common/pipes/zod-validation.pipe';
 import type { AuthUser } from '../common/types/context';
@@ -38,6 +39,58 @@ export class FilesController {
     @ZBody(completeSchema) dto: CompleteDto,
   ) {
     return this.files.complete(user, id, dto);
+  }
+
+  /**
+   * 媒体内联代理（图片/视频，无需 Authorization）：
+   * GET /api/v1/files/view?key=<storageKey>&exp=<ts>&sig=<hmac>
+   * 仅接受服务端签发的短时签名，公网部署下替代 S3 直链。
+   */
+  @Get('view')
+  @Public()
+  @RawResponse()
+  async view(
+    @Query('key') key: string,
+    @Query('exp') exp: string,
+    @Query('sig') sig: string,
+    @Res() reply: FastifyReply,
+  ): Promise<void> {
+    const safeKey = (key ?? '').trim();
+    const expires = Number(exp);
+    if (!safeKey || !this.files.verifyMedia(safeKey, expires, sig ?? '')) {
+      reply.status(403).send({ ok: false, error: { code: 'MEDIA_TOKEN_INVALID', message: '媒体链接无效或已过期' } });
+      return;
+    }
+    const { file, stream } = await this.files.openMediaByKey(safeKey);
+    reply.header('content-type', file?.mime || stream.contentType || 'application/octet-stream');
+    reply.header('cache-control', 'private, max-age=600');
+    reply.header('x-content-type-options', 'nosniff');
+    if (stream.contentLength) reply.header('content-length', String(stream.contentLength));
+    await reply.send(stream.body);
+  }
+
+  /**
+   * 下载代理：GET /api/v1/files/download/:id
+   * 穿透环境下不依赖 S3 直链；强制 Content-Disposition: attachment，浏览器直接落盘。
+   */
+  @Get('download/:id')
+  @Surface('bridge')
+  @RawResponse()
+  async download(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Res() reply: FastifyReply,
+  ): Promise<void> {
+    const { file, stream } = await this.files.openDownload(user, id);
+    const fallback = file.originalName.replace(/[^ -~]/g, '_').replace(/"/g, "'");
+    reply.header('content-type', file.mime || 'application/octet-stream');
+    reply.header(
+      'content-disposition',
+      `attachment; filename="${fallback}"; filename*=UTF-8''${encodeURIComponent(file.originalName)}`,
+    );
+    reply.header('cache-control', 'private, max-age=0, must-revalidate');
+    if (stream.contentLength) reply.header('content-length', String(stream.contentLength));
+    await reply.send(stream.body);
   }
 
   @Get(':id/url')

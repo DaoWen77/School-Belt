@@ -3,9 +3,31 @@
    同一套 Endfield 语法，反过来用纸：黑纸 / 骨白字 / 同一支酸黄。
    ========================================================================== */
 
-.belt-root,
-.belt-entry,
-.belt-denial {
+/* 深色令牌作用域。portal 出来的浮层（公告/强提醒/转发/灯箱）脱离
+   .belt-root，必须一起列入，否则会退回浅色令牌 → 白底卡片。
+   :where() 零特异性，保留组件自身的令牌覆盖（如 .belt-share-sheet）。 */
+:where(
+  .belt-root,
+  .belt-entry,
+  .belt-denial,
+  .belt-ann-critical,
+  .belt-ding-overlay,
+  .belt-modal-backdrop,
+  .belt-sheet-backdrop,
+  .belt-lightbox
+) {
+  /* Tailwind 的 @theme 在 :root 上把 --color-* 预先算成浅色值，
+     这里重新绑定一层，暗色域内的 bg-panel / text-ink 等工具类才跟随。 */
+  --color-paper: var(--ef-paper);
+  --color-panel: var(--ef-panel);
+  --color-ink: var(--ef-ink);
+  --color-ink-2: var(--ef-ink-2);
+  --color-line: var(--ef-rule);
+  --color-chip: var(--ef-chip);
+  --color-accent: var(--ef-signal);
+  --color-on-accent: var(--ef-on-signal);
+  --color-danger: var(--ef-danger);
+
   --ef-paper: #0e100d;
   --ef-panel: #171a15;
   --ef-ink: #e8e8e0;
@@ -432,13 +454,17 @@
 }
 
 .belt-stamp.is-signal {
-  border-color: var(--ef-signal);
-  background: var(--ef-signal);
-  color: var(--ef-on-signal);
+  /* 浅底深字：16% 同色底 + 提亮前景，避免一屏多枚高饱和黄块压制主操作 */
+  border-color: color-mix(in srgb, var(--ef-signal) 48%, transparent);
+  background: color-mix(in srgb, var(--ef-signal) 16%, transparent);
+  color: color-mix(in srgb, var(--ef-signal) 74%, #ffffff);
 }
 
 .belt-stamp.is-danger {
-  color: var(--ef-danger);
+  /* 浅底深字：8%–18% 同色底 + 提亮前景，暗色域里才读得清 */
+  border-color: color-mix(in srgb, var(--ef-danger) 55%, transparent);
+  background: color-mix(in srgb, var(--ef-danger) 16%, transparent);
+  color: color-mix(in srgb, var(--ef-danger) 55%, #ffffff);
 }
 
 .belt-empty {
@@ -2212,30 +2238,27 @@ button.belt-row[data-active='true'] .belt-row-deck {
   flex-direction: column;
   gap: 0.55rem;
   scroll-snap-align: center;
-  border: 1px solid var(--ef-ink);
-  border-top: 4px solid var(--ef-signal);
+  /* 0.5px 级微边框；卡片靠内容/徽标区分，不靠彩虹顶边与倾斜 */
+  border: 1px solid color-mix(in srgb, var(--ef-ink) 16%, transparent);
+  border-top-color: color-mix(in srgb, var(--ef-signal) 42%, transparent);
   background:
-    linear-gradient(145deg, rgba(255, 250, 0, 0.06), transparent 38%),
+    linear-gradient(145deg, rgba(255, 250, 0, 0.05), transparent 38%),
     repeating-linear-gradient(0deg, transparent 0 7px, rgba(255, 255, 255, 0.025) 7px 8px),
     var(--ef-panel);
   padding: 0.7rem 0.7rem 0.6rem;
-  box-shadow: 7px 9px 0 rgba(0, 0, 0, 0.7);
-  transform: rotate(-1.4deg);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
 }
 
 .belt-daily-card-1 {
-  border-top-color: #00ffff;
-  transform: rotate(1.6deg) translateY(0.45rem);
+  transform: translateY(0.35rem);
 }
 
 .belt-daily-card-2 {
-  border-top-color: #ff2e88;
-  transform: rotate(-2.3deg) translateY(0.1rem);
+  transform: translateY(0.1rem);
 }
 
 .belt-daily-card-3 {
-  border-top-color: #b8ff00;
-  transform: rotate(0.8deg) translateY(0.8rem);
+  transform: translateY(0.6rem);
 }
 
 .belt-daily-card-top {
@@ -5356,19 +5379,34 @@ button.belt-row[data-active='true'] .belt-row-deck {
   z-index: 120;
   inset: 0;
   display: grid;
-  place-items: center;
+  /* 38.2% 黄金分割位，同 .ef-dialog */
+  justify-items: center;
+  align-content: start;
   overflow-y: auto;
   background: rgba(0, 0, 0, 0.68);
-  padding: 1rem;
+  padding: 38.2vh 1rem 1.5rem;
+}
+
+@media (max-height: 640px) {
+  .belt-modal-backdrop {
+    padding-block-start: 1rem;
+  }
 }
 
 .belt-modal {
   width: min(30rem, 100%);
-  max-height: calc(100dvh - 2rem);
+  /* 顶部让出 38.2vh 黄金位后，剩余高度才是卡片的可用空间，避免底栏被视口裁掉 */
+  max-height: calc(61.8dvh - 2rem);
   overflow-y: auto;
   border: 1px solid var(--ef-signal);
   background: var(--ef-panel);
   padding: 1rem;
+}
+
+@media (max-height: 640px) {
+  .belt-modal {
+    max-height: calc(100dvh - 3rem);
+  }
 }
 
 .belt-modal h2 {
@@ -5603,5 +5641,1452 @@ button.belt-row[data-active='true'] .belt-row-deck {
 
   .belt-mod-head {
     padding: 0.6rem;
+  }
+}
+
+/* ── P0：商券 / 等级经验 / 三合一 Feed / 打赏 / 风纪外壳 ───────── */
+.belt-uf-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.belt-uf-level-label {
+  font-style: normal;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.belt-uf-level.is-lv0 {
+  border-color: var(--ef-rule);
+  color: var(--ef-ink-2);
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+
+.belt-uf-wallet {
+  margin-left: 0.5rem;
+  border: 1px solid var(--ef-rule);
+  padding: 0 0.35rem;
+  color: var(--ef-signal);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.belt-uf-exp {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.4rem 0 0;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 9px;
+}
+
+.belt-uf-exp-bar {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 4rem;
+  height: 4px;
+  border: 1px solid var(--ef-rule);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.belt-uf-exp-bar i {
+  display: block;
+  height: 100%;
+  background: var(--ef-signal);
+}
+
+.belt-uf-exp em {
+  font-style: normal;
+  white-space: nowrap;
+}
+
+.belt-uf-exp.is-max em {
+  color: var(--ef-signal);
+}
+
+.belt-header-wallet {
+  border: 1px solid var(--ef-rule);
+  padding: 0.1rem 0.4rem;
+  color: var(--ef-signal);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.belt-feed-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.75rem 0;
+}
+
+.belt-feed-tab {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  border: 1px solid var(--ef-rule);
+  background: transparent;
+  color: var(--ef-ink-2);
+  padding: 0.35rem 0.7rem;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.belt-feed-tab small {
+  font-family: var(--ef-font-mono);
+  font-size: 8px;
+  opacity: 0.7;
+}
+
+.belt-feed-tab:hover,
+.belt-feed-tab:focus-visible {
+  border-color: var(--ef-signal);
+  color: var(--ef-signal);
+}
+
+.belt-feed-tab.is-active {
+  border-color: var(--ef-signal);
+  background: rgba(255, 250, 0, 0.08);
+  color: var(--ef-signal);
+}
+
+.belt-post-toolbar-menu {
+  margin-left: auto;
+}
+
+.belt-post-notice {
+  margin: 0;
+}
+
+.belt-tip-burst {
+  color: var(--ef-signal);
+  font-family: var(--ef-font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  animation: belt-tip-burst 1.1s ease-out forwards;
+}
+
+@keyframes belt-tip-burst {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-16px) scale(1);
+  }
+}
+
+.belt-tip-error {
+  margin: 0.4rem 0 0;
+  color: var(--ef-danger);
+  font-size: 11px;
+}
+
+.belt-tip-confirm {
+  margin: 0.6rem 0;
+  font-weight: 700;
+}
+
+.belt-tip-modal .belt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+}
+
+.belt-report-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.6rem 0;
+}
+
+.belt-report-reason {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--ef-rule);
+  padding: 0.3rem 0.55rem;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.belt-report-reason.is-active {
+  border-color: var(--ef-signal);
+  color: var(--ef-signal);
+}
+
+.belt-report-reason input {
+  accent-color: var(--ef-signal);
+}
+
+.belt-announcement.is-warning {
+  border-color: #f0a020;
+}
+
+.belt-announcement.is-critical {
+  border-color: var(--ef-danger);
+  color: var(--ef-danger);
+}
+
+.belt-mod-shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid var(--ef-rule);
+  background:
+    linear-gradient(135deg, rgba(255, 250, 0, 0.04), transparent 45%),
+    var(--ef-panel);
+  padding: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.belt-mod-shell-main {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.belt-mod-shell-main h2 {
+  margin: 0.15rem 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.belt-mod-shell-copy {
+  margin: 0;
+  color: var(--ef-ink-2);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.belt-mod-shell-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.belt-mod-shell-stats li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border-left: 2px solid var(--ef-signal);
+  padding-left: 0.5rem;
+}
+
+.belt-mod-shell-stats span {
+  color: var(--ef-ink-2);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.belt-mod-shell-stats b {
+  font-family: var(--ef-font-mono);
+  font-size: 13px;
+}
+
+.belt-mod-shell-stats small {
+  color: var(--ef-ink-2);
+  font-size: 9px;
+}
+
+.belt-mod-shell-reasons {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--ef-ink-2);
+  font-size: 11px;
+}
+
+.belt-mod-shell-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 任意文件下载卡片（附件非图片/视频） */
+.belt-file-card{display:flex;align-items:center;gap:.6rem;max-width:22rem;padding:.55rem .7rem;border:1px solid rgba(255,209,0,.45);background:rgba(255,209,0,.06);color:#ffe9a8;text-align:left;cursor:pointer}
+.belt-file-card:hover{background:rgba(255,209,0,.14)}
+.belt-file-card-icon{font-size:1.2rem;line-height:1;color:#ffd100}
+.belt-file-card-meta{display:flex;flex-direction:column;min-width:0}
+.belt-file-card-meta b{font-size:.82rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:18rem}
+.belt-file-card-meta small{font-size:.68rem;color:#a79b6a;letter-spacing:.04em}
+
+/* ── 我的羁绊（BONDS） ─────────────────────────────────── */
+.belt-bonds {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.belt-bonds-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  padding: 0.55rem 0.7rem;
+}
+
+.belt-bonds-head-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.belt-bond-pill {
+  border: 1px solid var(--ef-rule);
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.4rem;
+  white-space: nowrap;
+}
+
+.belt-bonds-notice {
+  border-left: 2px solid var(--ef-signal);
+}
+
+.belt-bonds-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.belt-bonds-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--ef-rule);
+  padding-bottom: 0.3rem;
+}
+
+.belt-bonds-section-head h2 {
+  margin: 0;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.belt-bonds-section-head span {
+  margin-left: auto;
+  color: var(--ef-signal);
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+}
+
+.belt-bond-list {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
+}
+
+.belt-bond-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  padding: 0.7rem 0.8rem;
+}
+
+.belt-bond-card.is-pending {
+  border-left: 2px solid var(--ef-signal);
+}
+
+.belt-bond-card.is-ended {
+  opacity: 0.72;
+}
+
+.belt-bond-who {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.belt-bond-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.belt-bond-id b {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.belt-bond-id span {
+  overflow: hidden;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.belt-bond-who .belt-stamp {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.belt-bond-intimacy {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.belt-bond-intimacy-track {
+  flex: 1 1 auto;
+  height: 5px;
+  border: 1px solid var(--ef-rule);
+  background: color-mix(in srgb, var(--ef-ink) 8%, transparent);
+}
+
+.belt-bond-intimacy-track i {
+  display: block;
+  height: 100%;
+  background: var(--ef-signal);
+}
+
+.belt-bond-intimacy-num {
+  color: var(--ef-ink);
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+}
+
+.belt-bond-intimacy-num small {
+  color: var(--ef-ink-2);
+  font-size: 9px;
+}
+
+.belt-bond-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.belt-bond-foot .belt-button {
+  margin-left: auto;
+}
+
+.belt-bond-state {
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+}
+
+.belt-bond-state.is-warm,
+.belt-bond-state.is-max {
+  color: var(--ef-signal);
+}
+
+.belt-bond-state.is-max {
+  font-weight: 700;
+}
+
+.belt-bond-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.belt-bond-meta {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+}
+
+.belt-bonds-ended {
+  border: 1px solid var(--ef-rule);
+  background: color-mix(in srgb, var(--ef-panel) 60%, transparent);
+  padding: 0.55rem 0.7rem;
+}
+
+.belt-bonds-ended > summary {
+  cursor: pointer;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  list-style: none;
+}
+
+.belt-bonds-ended > summary::-webkit-details-marker {
+  display: none;
+}
+
+.belt-bonds-ended > summary::before {
+  content: '▸ ';
+}
+
+.belt-bonds-ended[open] > summary::before {
+  content: '▾ ';
+}
+
+.belt-bonds-ended > summary span {
+  margin-left: 0.3rem;
+  color: var(--ef-signal);
+}
+
+.belt-bonds-ended[open] > summary {
+  margin-bottom: 0.55rem;
+}
+
+.belt-bonds-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.belt-bonds-empty p {
+  margin: 0;
+}
+
+/* 发起羁绊弹窗里的关系选择 */
+.belt-bond-types {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.belt-bond-type {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border: 1px solid var(--ef-rule);
+  cursor: pointer;
+  padding: 0.45rem 0.55rem;
+}
+
+.belt-bond-type.is-active {
+  border-color: var(--ef-signal);
+  background: color-mix(in srgb, var(--ef-signal) 8%, transparent);
+}
+
+.belt-bond-type input {
+  margin-top: 0.15rem;
+  accent-color: var(--ef-signal);
+}
+
+.belt-bond-type b {
+  display: block;
+  font-size: 12px;
+}
+
+.belt-bond-type small {
+  color: var(--ef-ink-2);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* ── 委托交易大厅（TASKS） ─────────────────────────────── */
+.belt-task {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.belt-task-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  padding: 0.5rem 0.6rem;
+}
+
+.belt-task-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.belt-task-tab {
+  border: 1px solid var(--ef-rule);
+  background: transparent;
+  color: var(--ef-ink-2);
+  padding: 0.3rem 0.55rem;
+  font-family: var(--ef-font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.belt-task-tab:hover {
+  color: var(--ef-ink);
+  border-color: var(--ef-ink-2);
+}
+
+.belt-task-tab.is-active {
+  border-color: var(--ef-signal);
+  background: var(--ef-signal);
+  color: var(--ef-on-signal);
+}
+
+.belt-task-top-side {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.belt-task-balance {
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.belt-task-balance b {
+  color: var(--ef-signal);
+  font-size: 12px;
+}
+
+.belt-task-notice {
+  border-left: 2px solid var(--ef-signal);
+  padding-left: 0.5rem;
+}
+
+.belt-task-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.belt-task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-panel);
+  padding: 0.6rem 0.7rem;
+}
+
+.belt-task-card[data-status='open'] {
+  border-left: 2px solid var(--ef-signal);
+}
+
+.belt-task-card[data-status='cancelled'] {
+  opacity: 0.7;
+}
+
+.belt-task-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.belt-task-card-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.belt-task-card-title b {
+  overflow-wrap: anywhere;
+  font-family: var(--ef-font-display);
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+.belt-task-amount {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: 0.15rem;
+  color: var(--ef-signal);
+  font-family: var(--ef-font-mono);
+}
+
+.belt-task-amount b {
+  font-size: 18px;
+}
+
+.belt-task-amount small {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.belt-task-desc {
+  margin: 0;
+  color: var(--ef-ink-2);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.belt-task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  border-top: 1px dashed var(--ef-rule);
+  padding-top: 0.4rem;
+}
+
+.belt-task-person {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.belt-task-person > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.belt-task-person small {
+  color: var(--ef-ink-2);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+
+.belt-task-person b {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.belt-task-fact {
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+}
+
+.belt-task-note {
+  margin: 0;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+}
+
+.belt-task-note.is-escrow {
+  color: var(--ef-signal);
+}
+
+.belt-task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.belt-task-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.belt-task-fee {
+  margin: 0.5rem 0 0;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+}
+
+.belt-task-apps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.6rem;
+}
+
+.belt-task-app {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-paper);
+  padding: 0.45rem 0.55rem;
+}
+
+.belt-task-app p {
+  margin: 0;
+  color: var(--ef-ink-2);
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.belt-task-app-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.belt-task-confirm {
+  margin-top: 0.6rem;
+  border: 1px solid var(--ef-signal);
+  background: color-mix(in srgb, var(--ef-signal) 7%, transparent);
+  padding: 0.5rem 0.6rem;
+}
+
+.belt-task-confirm p {
+  margin: 0 0 0.45rem;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.belt-task-settle {
+  margin: 0.2rem 0 0.4rem;
+  color: var(--ef-signal);
+  font-family: var(--ef-font-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .belt-task-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .belt-task-top {
+    align-items: stretch;
+  }
+
+  .belt-task-top-side {
+    justify-content: space-between;
+  }
+
+  .belt-task-amount b {
+    font-size: 16px;
+  }
+}
+
+/* ── 模块六：@提及 / DING / 置顶 / 公告分级 ─────────────── */
+.belt-composer {
+  position: relative;
+}
+
+.belt-message-menu {
+  flex-wrap: wrap;
+}
+
+.belt-mention {
+  color: var(--ef-signal);
+  background: color-mix(in srgb, var(--ef-signal) 12%, transparent);
+  padding: 0 0.15rem;
+  font-weight: 700;
+}
+
+.belt-mention-pop {
+  position: absolute;
+  z-index: 40;
+  right: 0.2rem;
+  bottom: calc(100% + 0.3rem);
+  left: 0.2rem;
+  max-height: 13rem;
+  overflow-y: auto;
+  border: 1px solid var(--ef-signal);
+  background: var(--ef-panel);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+}
+
+.belt-mention-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--ef-rule);
+  background: transparent;
+  color: var(--ef-ink);
+  cursor: pointer;
+  padding: 0.4rem 0.55rem;
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+  text-align: left;
+}
+
+.belt-mention-item:last-child {
+  border-bottom: 0;
+}
+
+.belt-mention-item b {
+  flex: 0 0 auto;
+  color: var(--ef-signal);
+  font-size: 11px;
+}
+
+.belt-mention-item span {
+  overflow: hidden;
+  color: var(--ef-ink-2);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.belt-mention-item.is-active {
+  background: color-mix(in srgb, var(--ef-signal) 16%, transparent);
+}
+
+.belt-ding-btn {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  min-width: 2.1rem;
+  border: 1px solid var(--ef-danger);
+  background: transparent;
+  color: var(--ef-danger);
+  cursor: pointer;
+  padding: 0.3rem 0.35rem;
+  font-family: var(--ef-font-mono);
+  font-size: 11px;
+}
+
+.belt-ding-btn small {
+  font-size: 9px;
+}
+
+.belt-ding-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.belt-ding-overlay {
+  position: fixed;
+  z-index: 400;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.82);
+  padding: 1rem;
+}
+
+.belt-ding-card {
+  width: min(26rem, 100%);
+  max-height: 80dvh;
+  overflow-y: auto;
+  border: 2px solid var(--ef-danger);
+  background: var(--ef-panel);
+  padding: 1.1rem;
+  text-align: center;
+  animation: belt-ding-flash 1s steps(2, end) infinite;
+}
+
+.belt-ding-from {
+  display: block;
+  margin: 0.3rem 0;
+  color: var(--ef-danger);
+  font-family: var(--ef-font-display);
+  font-size: 1.4rem;
+}
+
+.belt-ding-channel {
+  display: block;
+  color: var(--ef-ink-2);
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.belt-ding-body {
+  margin: 0.7rem 0 1rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+@keyframes belt-ding-flash {
+  0%,
+  100% {
+    border-color: var(--ef-danger);
+    box-shadow: 0 0 0 2px rgba(255, 75, 62, 0.35);
+  }
+  50% {
+    border-color: #fff;
+    box-shadow: 0 0 32px rgba(255, 75, 62, 0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .belt-ding-card {
+    animation: none;
+  }
+}
+
+.belt-pin-bar {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  border-bottom: 1px solid var(--ef-rule);
+  background: color-mix(in srgb, var(--ef-signal) 5%, var(--ef-paper));
+}
+
+.belt-pin-bar-main {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ef-ink);
+  cursor: pointer;
+  padding: 0.35rem 0.55rem;
+  text-align: left;
+}
+
+.belt-pin-bar-kicker {
+  flex: 0 0 auto;
+  color: var(--ef-signal);
+  font-family: var(--ef-font-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+.belt-pin-bar-text {
+  overflow: hidden;
+  color: var(--ef-ink-2);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.belt-pin-bar-more {
+  flex: 0 0 auto;
+  border: 0;
+  border-left: 1px solid var(--ef-rule);
+  background: transparent;
+  color: var(--ef-ink-2);
+  cursor: pointer;
+  padding: 0 0.6rem;
+  font-family: var(--ef-font-mono);
+  font-size: 9px;
+}
+
+.belt-pin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+}
+
+.belt-pin-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-paper);
+  padding: 0.45rem 0.5rem;
+}
+
+.belt-pin-row-main {
+  min-width: 0;
+}
+
+.belt-pin-row-main b {
+  display: block;
+  color: var(--ef-ink-2);
+  font-size: 10px;
+}
+
+.belt-pin-row-main p {
+  margin: 0.15rem 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.belt-ann-kicker {
+  flex: 0 0 auto;
+  color: var(--ef-signal);
+  font-family: var(--ef-font-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+}
+
+.belt-ann-close {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--ef-ink-2);
+  cursor: pointer;
+  padding: 0 0.2rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.belt-ann-marquee {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  border-bottom: 1px solid var(--ef-signal);
+  background: color-mix(in srgb, var(--ef-signal) 8%, var(--ef-paper));
+  padding: 0.4rem 0.9rem;
+}
+
+.belt-ann-track {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.belt-ann-track p {
+  display: inline-block;
+  margin: 0;
+  padding-left: 100%;
+  white-space: nowrap;
+  color: var(--ef-ink);
+  font-size: 12px;
+  animation: belt-ann-marquee 22s linear infinite;
+}
+
+.belt-ann-marquee:hover .belt-ann-track p {
+  animation-play-state: paused;
+}
+
+@keyframes belt-ann-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.belt-ann-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  border-bottom: 1px solid #f0a020;
+  background: color-mix(in srgb, #f0a020 14%, var(--ef-paper));
+  padding: 0.45rem 0.9rem;
+  color: var(--ef-ink);
+}
+
+.belt-ann-warning p {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.belt-ann-critical {
+  position: fixed;
+  z-index: 500;
+  inset: 0;
+  display: grid;
+  /* 浮层落在视口 38.2% 黄金分割位，而非机器居中 */
+  place-items: start center;
+  padding-block: 38.2vh 1.5rem;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.86);
+  padding: 38.2vh 1rem 1rem;
+}
+
+.belt-ann-critical-card {
+  width: min(30rem, 100%);
+  max-height: 80dvh;
+  overflow-y: auto;
+  border: 1px solid color-mix(in srgb, var(--ef-danger) 62%, transparent);
+  background: var(--ef-panel);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ef-danger) 14%, transparent);
+  padding: 1.1rem;
+}
+
+@media (max-height: 640px) {
+  .belt-ann-critical {
+    padding-block-start: 1rem;
+  }
+}
+
+.belt-ann-critical-body {
+  margin: 0.4rem 0 1rem;
+  color: var(--ef-ink);
+  font-size: 1rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .belt-ann-marquee {
+    padding: 0.35rem 0.6rem;
+  }
+
+  .belt-ann-warning {
+    flex-wrap: wrap;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .belt-mention-pop {
+    left: 0;
+    right: 0;
+  }
+}
+
+/* ── 体验修复：主页链接 / 投稿板块 / 表情包 / 羁绊 ─────── */
+.belt-msg-link {
+  display: contents;
+}
+
+.belt-author-link {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.belt-author-link:hover b,
+.belt-author-link:hover span {
+  color: var(--ef-signal);
+}
+
+.belt-plus {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.belt-plus-menu {
+  position: absolute;
+  z-index: 45;
+  bottom: calc(100% + 0.35rem);
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(6.5rem, 1fr));
+  gap: 0.3rem;
+  min-width: 14rem;
+  border: 1px solid var(--ef-signal);
+  background: var(--ef-panel);
+  padding: 0.35rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+}
+
+.belt-plus-menu button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border: 1px solid var(--ef-rule);
+  background: transparent;
+  color: var(--ef-ink);
+  cursor: pointer;
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+}
+
+.belt-plus-menu button:hover {
+  border-color: var(--ef-signal);
+}
+
+.belt-plus-menu b {
+  font-size: 12px;
+}
+
+.belt-plus-menu small {
+  color: var(--ef-ink-2);
+  font-size: 9px;
+}
+
+.belt-sticker-pop {
+  position: absolute;
+  z-index: 46;
+  right: 0;
+  bottom: calc(100% + 0.35rem);
+  left: 0;
+  max-height: min(24rem, 60vh);
+  overflow-y: auto;
+  border: 1px solid var(--ef-signal);
+  background: var(--ef-panel);
+  padding: 0.55rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+.belt-sticker-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--ef-rule);
+  padding-bottom: 0.35rem;
+}
+
+.belt-sticker-head b {
+  font-family: var(--ef-font-display);
+  font-size: 13px;
+}
+
+.belt-sticker-head .belt-hint {
+  margin-left: auto;
+}
+
+.belt-sticker-emoji {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  border-bottom: 1px dashed var(--ef-rule);
+  padding: 0.4rem 0;
+}
+
+.belt-sticker-emoji button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1.2;
+  padding: 0.1rem;
+}
+
+.belt-sticker-emoji button:hover {
+  background: color-mix(in srgb, var(--ef-signal) 14%, transparent);
+}
+
+.belt-sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+
+.belt-sticker-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 0;
+  border: 1px solid var(--ef-rule);
+  background: var(--ef-paper);
+  cursor: pointer;
+  padding: 0.3rem;
+}
+
+.belt-sticker-item:hover {
+  border-color: var(--ef-signal);
+}
+
+.belt-sticker-item img {
+  width: 100%;
+  height: 3.2rem;
+  object-fit: contain;
+}
+
+.belt-sticker-item span {
+  overflow: hidden;
+  width: 100%;
+  color: var(--ef-ink-2);
+  font-size: 9px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.belt-sticker-ph {
+  display: grid;
+  width: 100%;
+  height: 3.2rem;
+  place-items: center;
+  color: var(--ef-ink-2);
+  font-size: 1.2rem;
+}
+
+.belt-sticker-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.45rem;
+}
+
+.belt-board-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.2rem;
+}
+
+.belt-board-option {
+  border: 1px solid var(--ef-rule);
+  background: transparent;
+  color: var(--ef-ink-2);
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  font-family: var(--ef-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.belt-board-option.is-active {
+  border-color: var(--ef-signal);
+  background: var(--ef-signal);
+  color: var(--ef-on-signal);
+}
+
+.belt-bond-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+}
+
+.belt-menu-item.is-static {
+  color: var(--ef-ink-2);
+  cursor: default;
+}
+
+.belt-menu-item.is-static:hover {
+  background: transparent;
+}
+
+@media (max-width: 640px) {
+  .belt-plus-menu {
+    grid-template-columns: 1fr;
+    min-width: 10rem;
+  }
+
+  .belt-sticker-pop {
+    max-height: 55vh;
   }
 }

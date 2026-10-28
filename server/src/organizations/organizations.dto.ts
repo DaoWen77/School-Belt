@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const reservedOrgName = /(极光科技|Official|帝江号|文明环带|系统|O\.M\.V)/i;
+const reservedOrgName = /(站长|Official|帝江号|文明环带|系统|O\.M\.V)/i;
 
 export const createOrganizationSchema = z.object({
   name: z

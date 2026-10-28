@@ -13,12 +13,6 @@ interface PendingOrg {
   createdAt: string;
 }
 
-interface FriendRequest {
-  id: string;
-  requestNote: string | null;
-  peer: { id: string; handle: string; displayName: string };
-}
-
 interface JoinRequest {
   orgId: string;
   orgName: string;
@@ -29,26 +23,23 @@ interface JoinRequest {
 }
 
 /**
- * 环带处理中心：待审组织 / 好友申请 / 组织加入申请。
+ * 环带处理中心：待审组织 / 组织加入申请。
  * 全部在当前页面处置，不要求切回内网或 F5。
  */
 export function BeltInbox({ isOwner, onChanged }: { isOwner: boolean; onChanged: () => void }) {
   const [open, setOpen] = useState(false);
   const [orgs, setOrgs] = useState<PendingOrg[]>([]);
-  const [friends, setFriends] = useState<FriendRequest[]>([]);
   const [joins, setJoins] = useState<JoinRequest[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const root = useRef<HTMLDivElement | null>(null);
 
   const load = async () => {
-    const [orgData, friendData, mine] = await Promise.all([
+    const [orgData, mine] = await Promise.all([
       isOwner ? beltApi<{ organizations: PendingOrg[] }>('/belt/organizations/pending').catch(() => ({ organizations: [] })) : Promise.resolve({ organizations: [] }),
-      beltApi<{ incoming: FriendRequest[] }>('/belt/friendships').catch(() => ({ incoming: [] })),
       beltApi<{ organizations: Array<{ id: string; name: string; myRole: string; pendingRequests?: Array<{ userId: string; handle: string; displayName: string; requestNote: string | null }> }> }>('/belt/organizations/mine').catch(() => ({ organizations: [] })),
     ]);
     setOrgs(orgData.organizations ?? []);
-    setFriends(friendData.incoming ?? []);
     const rows: JoinRequest[] = [];
     for (const org of mine.organizations ?? []) {
       if (org.myRole !== 'owner' && org.myRole !== 'admin') continue;
@@ -80,7 +71,7 @@ export function BeltInbox({ isOwner, onChanged }: { isOwner: boolean; onChanged:
     return () => document.removeEventListener('mousedown', onClick);
   }, [open]);
 
-  const count = orgs.length + friends.length + joins.length;
+  const count = orgs.length + joins.length;
 
   const reviewOrg = async (id: string, action: 'approve' | 'reject') => {
     setBusy(`org:${id}`);
@@ -90,23 +81,6 @@ export function BeltInbox({ isOwner, onChanged }: { isOwner: boolean; onChanged:
         body: JSON.stringify({ action, ...(action === 'reject' ? { reason: '本轮暂缓' } : {}) }),
       });
       setNotice(action === 'approve' ? '组织已通过。' : '组织已驳回。');
-      await load();
-      onChanged();
-    } catch (caught) {
-      setNotice(caught instanceof Error ? caught.message : '处理失败');
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const reviewFriend = async (id: string, action: 'accept' | 'reject') => {
-    setBusy(`friend:${id}`);
-    try {
-      await beltApi(`/belt/friendships/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ action }),
-      });
-      setNotice(action === 'accept' ? '已建立链路。' : '已拒绝。');
       await load();
       onChanged();
     } catch (caught) {
@@ -172,28 +146,6 @@ export function BeltInbox({ isOwner, onChanged }: { isOwner: boolean; onChanged:
                     </button>
                     <button type="button" disabled={Boolean(busy)} onClick={() => void reviewOrg(org.id, 'reject')}>
                       驳回
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-
-          {friends.length > 0 ? (
-            <div className="belt-inbox-group">
-              <p>好友申请 · {friends.length}</p>
-              {friends.map((row) => (
-                <div key={row.id} className="belt-inbox-row">
-                  <div>
-                    <b>{row.peer.displayName}</b>
-                    <small>@{row.peer.handle}{row.requestNote ? ` · ${row.requestNote}` : ''}</small>
-                  </div>
-                  <div className="belt-inbox-actions">
-                    <button type="button" disabled={Boolean(busy)} onClick={() => void reviewFriend(row.id, 'accept')}>
-                      同意
-                    </button>
-                    <button type="button" disabled={Boolean(busy)} onClick={() => void reviewFriend(row.id, 'reject')}>
-                      拒绝
                     </button>
                   </div>
                 </div>

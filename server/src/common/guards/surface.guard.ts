@@ -20,7 +20,7 @@ import type { RequestWithContext } from '../types/context';
  * 默认 internal：任何没有显式 `@Surface('belt'|'bridge')` 的受保护路由，
  * 都必须同时满足：
  *   - 当前 session.surface === 'internal'
- *   - 用户拥有 `[极光科技]` 标签（is_internal）
+ *   - 用户拥有 `[站长]` 标签（is_internal）
  *
  * `belt` 只校验会话面；`bridge` 预留给跨环带 DM，后续还要叠加好友关系校验。
  * 这里不查库：JwtAuthGuard 已经把 session.surface / isInternal 从库里补齐。
@@ -60,7 +60,7 @@ export class SurfaceGuard implements CanActivate {
         throw new AppError(ErrorCode.SURFACE_MISMATCH, '该接口仅接受帝江号内部会话');
       }
       if (!user.isInternal) {
-        throw new AppError(ErrorCode.INTERNAL_ONLY, '缺少 [极光科技] 身份标签');
+        throw new AppError(ErrorCode.INTERNAL_ONLY, '缺少 [站长] 身份标签');
       }
       return true;
     }

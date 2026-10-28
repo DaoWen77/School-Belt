@@ -15,6 +15,7 @@ export interface BeltUserView {
   accountOrigin: 'internal' | 'belt';
   avatarFileId: string | null;
   statusPrefix: string | null;
+  balanceCents: number;
   prefixes: string[];
 }
 
@@ -96,6 +97,7 @@ export class BeltService implements OnModuleInit {
         accountOrigin: true,
         avatarFileId: true,
         statusPrefix: true,
+        balanceCents: true,
       },
     });
     if (!row) throw new Error('用户不存在');
@@ -109,6 +111,7 @@ export class BeltService implements OnModuleInit {
         accountOrigin: row.accountOrigin,
         avatarFileId: row.avatarFileId,
         statusPrefix: row.statusPrefix,
+        balanceCents: row.balanceCents,
         prefixes: await this.identity.prefixesFor(row.id),
       },
     };
@@ -153,6 +156,31 @@ export class BeltService implements OnModuleInit {
     };
   }
 
+  /** Founder 特权：设置/覆盖单行公告（id=default） */
+  async setAnnouncement(
+    user: AuthUser,
+    body: string,
+    level?: 'info' | 'warning' | 'critical',
+  ): Promise<{ announcement: { id: string; body: string; level: string } }> {
+    const row = await this.prisma.systemAnnouncement.upsert({
+      where: { id: 'default' },
+      create: { id: 'default', body, level: level ?? 'info', active: true, updatedBy: user.id },
+      update: { body, level: level ?? 'info', active: true, updatedBy: user.id },
+      select: { body: true, level: true },
+    });
+    return { announcement: { id: 'default', body: row.body, level: row.level } };
+  }
+
+  /** Founder 特权：关闭公告（保留 body） */
+  async clearAnnouncement(user: AuthUser): Promise<{ active: false }> {
+    await this.prisma.systemAnnouncement.upsert({
+      where: { id: 'default' },
+      create: { id: 'default', body: '', active: false, updatedBy: user.id },
+      update: { active: false, updatedBy: user.id },
+    });
+    return { active: false };
+  }
+
   /** 外网顶部公告：直接读 system_announcements 当前 active 行。 */
   async announcement(): Promise<{ announcement: { id: string; body: string; level: string } | null }> {
     const rows = await this.prisma.$queryRaw<Array<{ body: string; level: string }>>`
@@ -194,6 +222,7 @@ export class BeltService implements OnModuleInit {
         accountOrigin: true,
         avatarFileId: true,
         statusPrefix: true,
+        balanceCents: true,
       },
     });
     return {
@@ -206,6 +235,7 @@ export class BeltService implements OnModuleInit {
         accountOrigin: row.accountOrigin,
         avatarFileId: row.avatarFileId,
         statusPrefix: row.statusPrefix,
+        balanceCents: row.balanceCents,
         prefixes: await this.identity.prefixesFor(row.id),
       },
     };

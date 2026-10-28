@@ -7,9 +7,28 @@ import { resolvePublicUrl } from '@/lib/fileUrl';
 import { BeltLightbox } from './BeltLightbox';
 import type { BeltUser } from '@/lib/beltApi';
 
-type Board = 'bulletin' | 'bounty' | 'daily';
+type Board = 'bulletin' | 'bounty' | 'daily' | 'moments' | 'campus';
+
+/** 可自由切换板块的社交型投稿。 */
+const SOCIAL_BOARDS: Board[] = ['daily', 'moments', 'campus'];
+
+const BOARD_OPTIONS = [
+  { key: 'moments', label: '动态' },
+  { key: 'campus', label: '校园' },
+  { key: 'daily', label: '日常' },
+] as const;
 
 const COPY: Record<Board, { eyebrow: string; title: string; body: string }> = {
+  moments: {
+    eyebrow: 'MOMENTS / 环带动态',
+    title: '发布一条动态',
+    body: '此刻在做什么、看到什么，随手记下来…',
+  },
+  campus: {
+    eyebrow: 'CAMPUS / 校园墙',
+    title: '投稿校园墙',
+    body: '校园里的新鲜事、失物招领、组队搭子…',
+  },
   bulletin: {
     eyebrow: 'OFFICIAL DISPATCH / 协议官签发',
     title: '签发环带快报',
@@ -51,6 +70,12 @@ export function BeltPostComposer({
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [picked, setPicked] = useState<Board>(board);
+
+  useEffect(() => {
+    if (!open) return;
+    setPicked(board);
+  }, [board, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -97,25 +122,25 @@ export function BeltPostComposer({
     }
   };
 
-  const copy = COPY[board];
-  const canPost =
-    board !== 'bulletin' || user.globalRole === 'owner' || user.globalRole === 'admin';
+  const copy = COPY[picked];
+  const isSocial = SOCIAL_BOARDS.includes(picked);
+  const canPost = picked !== 'bulletin' || user.globalRole === 'owner' || user.globalRole === 'admin';
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     // 干员日常 = 朋友圈：可只发纯文字，标题留空后端取正文首行。
-    if (!canPost || (board !== 'daily' && !title.trim()) || !body.trim() || busy) return;
+    if (!canPost || (!isSocial && !title.trim()) || !body.trim() || busy) return;
     setBusy(true);
     setError(null);
     try {
       await beltApi('/belt/posts', {
         method: 'POST',
         body: JSON.stringify({
-          board,
+          board: picked,
           title: title.trim(),
           body: body.trim(),
-          ...(board === 'bounty' && reward.trim() ? { bountyReward: reward.trim() } : {}),
-          ...(board === 'bounty' && deadline
+          ...(picked === 'bounty' && reward.trim() ? { bountyReward: reward.trim() } : {}),
+          ...(picked === 'bounty' && deadline
             ? { bountyDeadline: new Date(deadline).toISOString() }
             : {}),
           ...(coverFileId ? { coverFileId } : {}),
@@ -161,6 +186,21 @@ export function BeltPostComposer({
         </div>
 
         <form className="signal-drawer-form" onSubmit={submit}>
+          {SOCIAL_BOARDS.includes(board) ? (
+            <div className="belt-board-switch" role="group" aria-label="选择投稿板块">
+              {BOARD_OPTIONS.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  className={`belt-board-option${picked === option.key ? ' is-active' : ''}`}
+                  aria-pressed={picked === option.key}
+                  onClick={() => setPicked(option.key)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
           <label className="belt-field">
             <span>标题 / TITLE</span>
             <input
@@ -168,9 +208,9 @@ export function BeltPostComposer({
               value={title}
               maxLength={120}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder={board === 'bounty' ? '例如：回收外环测绘浮标' : '一句话标题（可留空）'}
+              placeholder={picked === 'bounty' ? '例如：回收外环测绘浮标' : '一句话标题（可留空）'}
               autoFocus
-              required={board !== 'daily'}
+              required={!isSocial}
             />
           </label>
 
@@ -186,7 +226,7 @@ export function BeltPostComposer({
             />
           </label>
 
-          {board === 'bounty' ? (
+          {picked === 'bounty' ? (
             <div className="belt-form-row">
               <label className="belt-field">
                 <span>赏金 / REWARD</span>
@@ -259,7 +299,7 @@ export function BeltPostComposer({
             <button
               type="submit"
               className="belt-button is-signal signal-publish"
-              disabled={busy || !canPost || (board !== 'daily' && !title.trim()) || !body.trim()}
+              disabled={busy || !canPost || (!isSocial && !title.trim()) || !body.trim()}
             >
               {busy ? '发射中…' : '发布新信号'}
             </button>

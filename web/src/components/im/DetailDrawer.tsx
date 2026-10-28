@@ -10,6 +10,7 @@ import { Avatar } from './Avatar';
 import { IdentityBadges, identityText } from './IdentityBadges';
 import { Markdown } from './Markdown';
 import { api } from '@/lib/api';
+import { askConfirm } from '@/lib/confirm';
 
 export function DetailDrawer({
   open,
@@ -142,7 +143,13 @@ export function DetailDrawer({
 
   const transferOwner = async (member: Member) => {
     if (!channel || channel.kind !== 'group') return;
-    if (!window.confirm(`确认将群主转让给「${member.displayName ?? member.handle}」？转让后你仍是群成员。`)) return;
+    if (
+      !(await askConfirm(`确认将群主转让给「${member.displayName ?? member.handle}」？转让后你仍是群成员。`, {
+        title: '转让群主',
+        confirmText: '转让群主',
+      }))
+    )
+      return;
     try {
       await api(`/conversations/${channel.id}/transfer`, { method: 'POST', body: JSON.stringify({ userId: member.userId }) });
       window.dispatchEvent(new CustomEvent('dj:members-changed'));
@@ -166,7 +173,14 @@ export function DetailDrawer({
 
   const deleteChannel = async () => {
     if (!channel) return;
-    if (!window.confirm(`删除频道「${channel.name}」？此操作不可撤销。`)) return;
+    if (
+      !(await askConfirm(`删除频道「${channel.name}」？此操作不可撤销。`, {
+        title: '删除频道',
+        confirmText: '彻底删除',
+        danger: true,
+      }))
+    )
+      return;
     if (deletingChannel) return;
     setDeletingChannel(true);
     try {
@@ -220,7 +234,14 @@ export function DetailDrawer({
 
   const blockConversation = async () => {
     if (!channel || channel.kind !== 'dm') return;
-    if (!window.confirm('拉黑对方？拉黑后双方都无法继续发送私聊消息。')) return;
+    if (
+      !(await askConfirm('拉黑对方？拉黑后双方都无法继续发送私聊消息。', {
+        title: '拉黑对方',
+        confirmText: '拉黑对方',
+        danger: true,
+      }))
+    )
+      return;
     try {
       await api(`/conversations/${channel.id}/block`, { method: 'POST' });
       window.dispatchEvent(new CustomEvent('dj:conversations-changed'));
@@ -233,9 +254,10 @@ export function DetailDrawer({
   const deleteFriend = async () => {
     if (!peer || friendBusy) return;
     if (
-      !window.confirm(
+      !(await askConfirm(
         `切断与「${peer.displayName ?? peer.handle ?? '对方'}」的好友链路？\n\n私聊会从列表移除，历史消息只读。`,
-      )
+        { title: '切断好友链路', confirmText: '切断链路', danger: true },
+      ))
     ) {
       return;
     }

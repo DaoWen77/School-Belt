@@ -108,7 +108,7 @@ async function main() {
     body: { body: `[PHASE-C] ${stamp} 公共频段测试信号` },
   });
   check(send.status === 201, '环带频道发消息 201');
-  check(data(send).message.sender.prefixes.includes('[极光科技]Official'), '发送者证章进入消息投影');
+  check(data(send).message.sender.prefixes.includes('[站长]Official'), '发送者证章进入消息投影');
 
   const messages = await call(`/belt/channels/${channelId}/messages?limit=20`, { token: founderBelt });
   check(messages.status === 200, '环带频道读消息 200');
@@ -132,7 +132,7 @@ async function main() {
   check(daily.status === 201, '环带登录用户发日常帖 201');
   dailyId = data(daily).post.id;
   check(data(daily).post.board === 'daily', '日常帖 board=daily');
-  check(data(daily).post.author.prefixes.includes('[极光科技]Official'), '帖子作者证章正确');
+  check(data(daily).post.author.prefixes.includes('[站长]Official'), '帖子作者证章正确');
 
   const detail = await call(`/belt/posts/${dailyId}`);
   check(detail.status === 200, '帖子详情公开读 200');

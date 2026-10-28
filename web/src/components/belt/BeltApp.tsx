@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { beltApi, BeltApiError, type BeltUser } from '@/lib/beltApi';
 import { beltSession } from '@/lib/beltSession';
+import { fmtCents, useBeltWallet } from '@/lib/beltWallet';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
 import { BeltBoardView } from './BeltBoardView';
 import { BeltChannelView } from './BeltChannelView';
@@ -14,11 +15,14 @@ import { BeltTelegraphView } from './BeltTelegraphView';
 import { BeltProfileView } from './BeltProfileView';
 import { BeltModerationView } from './BeltModerationView';
 import { BeltOrganizationsView } from './BeltOrganizationsView';
+import { BeltTasksView } from './BeltTasksView';
+import { BeltBondsView } from './BeltBondsView';
 import { BeltDailyView } from './BeltDailyView';
 import { BeltSidebar } from './BeltSidebar';
 import { BeltAnnouncement } from './BeltAnnouncement';
 import { BeltInbox } from './BeltInbox';
 import { BeltMobileTabs } from './BeltMobileTabs';
+import { BeltPortal } from './BeltPortal';
 
 export type BeltView =
   | 'channel'
@@ -31,6 +35,7 @@ export type BeltView =
   | 'organizations'
   | 'post'
   | 'user'
+  | 'bonds'
   | 'moderation';
 
 const NAV: Array<{ key: BeltView; index: string; label: string; en: string; href: string }> = [
@@ -41,17 +46,19 @@ const NAV: Array<{ key: BeltView; index: string; label: string; en: string; href
   { key: 'direct', index: '05', label: '私聊链路', en: 'DIRECT', href: '/belt/direct' },
   { key: 'profile', index: '06', label: '个人中心', en: 'PROFILE', href: '/belt/profile' },
   { key: 'organizations', index: '07', label: '组织中心', en: 'ORGS', href: '/belt/organizations' },
+  { key: 'bonds', index: '08', label: '我的羁绊', en: 'BONDS', href: '/belt/bonds' },
 ];
 
 const PAGE_META: Record<BeltView, { title: string; en: string; copy: string }> = {
   channel: { title: '环带频道', en: 'LIVE CHANNEL', copy: '公开实时公共频道 · 所有环带身份可发言' },
   dispatch: { title: '环带电文', en: 'INTERCEPTS', copy: '官方快报与新闻塔截获 · 信号截获墙' },
-  bounty: { title: '悬赏委托', en: 'BOUNTY BOARD', copy: '任务信息撮合区 · 委托档案袋' },
+  bounty: { title: '悬赏委托', en: 'BOUNTY BOARD', copy: '委托交易 · 托管资金' },
   daily: { title: '干员日常', en: 'LOGBOOK', copy: '公开发帖 · 记录外环的日常信号' },
   telegraph: { title: '环带电文', en: 'INTERCEPTS', copy: '官方快报与新闻塔截获 · 信号截获墙' },
-  direct: { title: '私聊链路', en: 'DIRECT', copy: '好友申请通过后才会生成私聊 · 跨环带仅限悬赏联络' },
+  direct: { title: '私聊链路', en: 'DIRECT', copy: '关注后可发起私信 · 跨环带仅限悬赏联络' },
   profile: { title: '个人中心', en: 'PROFILE', copy: '外环身份资料 · 头像与组织状态' },
   organizations: { title: '组织中心', en: 'ORGANIZATIONS', copy: '加入组织 · Owner 审批与私有频道' },
+  bonds: { title: '我的羁绊', en: 'BONDS', copy: '亲密关系 · 每日延续火花' },
   post: { title: '帖子详情', en: 'TRANSMISSION', copy: '信号正文与回波' },
   user: { title: '干员档案', en: 'DOSSIER', copy: '外环身份 · 关注链路与发布记录' },
   moderation: { title: '风纪工位', en: 'TRIBUNAL', copy: '工单池 · 众包投票与风纪委员审批' },
@@ -80,6 +87,14 @@ export function BeltApp({
   const [error, setError] = useState<string | null>(null);
   const [clock, setClock] = useState(() => clockOf(new Date()));
   const [canModerate, setCanModerate] = useState(false);
+  const [annOpen, setAnnOpen] = useState(false);
+  const [annBody, setAnnBody] = useState('');
+  const [annLevel, setAnnLevel] = useState<'info' | 'warning' | 'critical'>('info');
+  const [annBusy, setAnnBusy] = useState(false);
+  const [annError, setAnnError] = useState<string | null>(null);
+  const [annKey, setAnnKey] = useState(0);
+  const wallet = useBeltWallet();
+  const isFounder = user?.globalRole === 'owner' || user?.globalRole === 'admin';
 
   const path =
     view === 'post' && postId
@@ -155,6 +170,32 @@ export function BeltApp({
     router.replace('/belt/login');
   };
 
+  const openAnnouncement = () => {
+    setAnnBody('');
+    setAnnLevel('info');
+    setAnnError(null);
+    setAnnOpen(true);
+  };
+
+  const publishAnnouncement = async () => {
+    if (annBusy || !annBody.trim()) return;
+    setAnnBusy(true);
+    setAnnError(null);
+    try {
+      await beltApi('/belt/announcement', {
+        method: 'POST',
+        body: JSON.stringify({ body: annBody.trim(), level: annLevel }),
+      });
+      setAnnKey((value) => value + 1);
+      setAnnOpen(false);
+      setAnnBody('');
+    } catch (caught) {
+      setAnnError(caught instanceof Error ? caught.message : '公告发布失败');
+    } finally {
+      setAnnBusy(false);
+    }
+  };
+
   if (booting) {
     return (
       <div className="belt-root">
@@ -206,7 +247,7 @@ export function BeltApp({
             <span>{clock}</span>
           </div>
           <div className="belt-header-actions">
-            {(user.prefixes ?? []).includes('[极光科技]') ? (
+            {(user.prefixes ?? []).includes('[站长]') ? (
               <Link href="/belt/access" className="belt-header-link is-return">
                 返回帝江号 →
               </Link>
@@ -216,6 +257,16 @@ export function BeltApp({
               </Link>
             )}
             <BeltInbox isOwner={user.globalRole === 'owner' || user.globalRole === 'admin'} onChanged={() => setRefreshKey((value) => value + 1)} />
+            {isFounder ? (
+              <button type="button" className="belt-button belt-header-announce" onClick={openAnnouncement}>
+                公告
+              </button>
+            ) : null}
+            {wallet !== null ? (
+              <span className="belt-header-wallet" title="商券余额">
+                商券 {fmtCents(wallet)}
+              </span>
+            ) : null}
             <IdentityBadges values={user.prefixes ?? []} scan />
             <span className="belt-hint">@{user.handle}</span>
             <button type="button" className="belt-button" onClick={logout}>
@@ -225,7 +276,7 @@ export function BeltApp({
         </header>
 
         <header className="belt-header">
-          <BeltAnnouncement />
+          <BeltAnnouncement refreshKey={annKey} />
         </header>
 
         <div className="belt-shell-body">
@@ -273,20 +324,76 @@ export function BeltApp({
                 <BeltModerationView user={user} />
               ) : view === 'organizations' ? (
                 <BeltOrganizationsView user={user} />
+              ) : view === 'bonds' ? (
+                <BeltBondsView />
               ) : view === 'post' && postId ? (
                 <BeltPostDetail postId={postId} user={user} />
               ) : view === 'dispatch' || view === 'telegraph' ? (
                 <BeltTelegraphView user={user} />
+              ) : view === 'bounty' ? (
+                <BeltTasksView />
               ) : (
-                <BeltBoardView
-                  board={view === 'bounty' ? 'bounty' : 'daily'}
-                  user={user}
-                />
+                <BeltBoardView board="daily" user={user} />
               )}
             </div>
           </main>
         </div>
         <BeltMobileTabs activeView={view} canModerate={canModerate} />
+
+        {annOpen && isFounder ? (
+          <BeltPortal>
+      <div className="belt-modal-backdrop" role="presentation">
+            <section
+              className="belt-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label="发布全服公告"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <p className="belt-page-kicker">BROADCAST / 全服公告</p>
+              <h2>发布全服公告</h2>
+              <label className="belt-field">
+                <span>公告正文</span>
+                <textarea
+                  className="belt-input"
+                  maxLength={500}
+                  value={annBody}
+                  onChange={(event) => setAnnBody(event.target.value)}
+                  aria-label="公告正文"
+                  placeholder="全环带干员注意…"
+                />
+              </label>
+              <label className="belt-field">
+                <span>级别</span>
+                <select
+                  className="belt-input"
+                  value={annLevel}
+                  onChange={(event) => setAnnLevel(event.target.value as 'info' | 'warning' | 'critical')}
+                  aria-label="公告级别"
+                >
+                  <option value="info">info · 通知</option>
+                  <option value="warning">warning · 警示</option>
+                  <option value="critical">critical · 紧急</option>
+                </select>
+              </label>
+              {annError ? <p className="belt-tip-error">{annError}</p> : null}
+              <div className="belt-modal-actions">
+                <button type="button" className="belt-button" disabled={annBusy} onClick={() => setAnnOpen(false)}>
+                  取消
+                </button>
+                <button
+                  type="button"
+                  className="belt-button is-signal"
+                  disabled={annBusy || !annBody.trim()}
+                  onClick={() => void publishAnnouncement()}
+                >
+                  {annBusy ? '广播中…' : '发布公告'}
+                </button>
+              </div>
+            </section>
+          </div>
+      </BeltPortal>
+        ) : null}
       </div>
     </div>
   );

@@ -4,10 +4,9 @@ import { MessagesService } from './messages.service';
 import { CardsModule } from '../cards/cards.module';
 import { FilesModule } from '../files/files.module';
 import { NotificationsModule } from '../notifications/notifications.module';
-import { FriendshipsModule } from '../friendships/friendships.module';
 
 @Module({
-  imports: [CardsModule, FilesModule, NotificationsModule, FriendshipsModule],
+  imports: [CardsModule, FilesModule, NotificationsModule],
   controllers: [ChannelMessagesController, MessagesController],
   providers: [MessagesService],
   exports: [MessagesService],

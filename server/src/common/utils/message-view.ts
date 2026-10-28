@@ -63,6 +63,8 @@ export interface MessageView {
   replyToId: string | null;
   cardId: string | null;
   mentions: string[];
+  /** 被 @ 的呼号（与 mentions 同序，由调用方解析后传入） */
+  mentionHandles: string[];
   threadReplyCount: number;
   lastReplyAt: string | null;
   editedAt: string | null;
@@ -97,6 +99,7 @@ export function toMessageView(
   row: MessageRowLike,
   attachments: readonly AttachmentView[] = [],
   replyTo: ReplyToSummary | null = null,
+  mentionHandles: readonly string[] = [],
 ): MessageView {
   return {
     id: row.id.toString(),
@@ -110,6 +113,7 @@ export function toMessageView(
     replyToId: row.replyToId?.toString() ?? null,
     cardId: row.cardId,
     mentions: row.mentions,
+    mentionHandles: [...mentionHandles],
     threadReplyCount: row.threadReplyCount,
     lastReplyAt: row.lastReplyAt?.toISOString() ?? null,
     editedAt: row.editedAt?.toISOString() ?? null,

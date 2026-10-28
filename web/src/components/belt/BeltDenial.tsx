@@ -37,7 +37,7 @@ export function BeltDenial({ onDone, reason }: { onDone: () => void; reason?: st
             <>
               协议拒绝：未授权链路
               <br />
-              [极光科技] 身份标签缺失
+              [站长] 身份标签缺失
             </>
           )}
         </p>

@@ -138,10 +138,8 @@ export class FilesService {
       select: { id: true },
     });
     if (!channel) throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '环带频道不存在');
-    const mime = normalizeMime(dto.mime);
-    if (!mime.startsWith('image/') && !mime.startsWith('video/')) {
-      throw new AppError(ErrorCode.FILE_TYPE_NOT_ALLOWED, '仅支持图片或短视频');
-    }
+    // 任意文件：MIME 白名单由 checkUpload 决定（未知类型按 document 50MB 处理）
+    const mime = normalizeMime(dto.mime) || 'application/octet-stream';
     const policy = checkUpload(mime, dto.size);
     if (!policy.ok) {
       throw new AppError(policy.code, policy.message, policy.maxBytes ? { maxBytes: policy.maxBytes } : {});
@@ -339,6 +337,50 @@ export class FilesService {
       query.variant === 'preview' && file.previewKey ? file.previewKey : file.storageKey;
     const url = await this.s3.presignGet(key);
     return { id: file.id, url, variant: query.variant, expiresIn: this.s3.presignExpiresSec };
+  }
+
+  verifyMedia(key: string, exp: number, sig: string): boolean {
+    return this.s3.verifyMedia(key, exp, sig);
+  }
+
+  /** 媒体代理（图片/视频内联展示）：按 storageKey 取流，签名已在调用方校验 */
+  async openMediaByKey(key: string) {
+    const file = await this.prisma.file.findFirst({ where: { storageKey: key } });
+    const stream = await this.s3.stream(key);
+    if (!stream) throw new AppError(ErrorCode.VALIDATION_FAILED, '文件存储不可用');
+    return { file, stream };
+  }
+
+  /**
+   * 下载代理：后端从 S3 取出对象流回传浏览器。
+   * 穿透/跨域环境下不依赖 S3 公网直链，也不会把 127.0.0.1 暴露给客户端。
+   */
+  async openDownload(user: AuthUser, fileId: string) {
+    const file = await this.prisma.file.findUnique({ where: { id: fileId } });
+    if (!file) throw new AppError(ErrorCode.VALIDATION_FAILED, '文件不存在', { fileId });
+    if (file.status !== 'ready') throw new AppError(ErrorCode.FILE_NOT_READY, '文件尚未就绪', { fileId });
+    let allowed =
+      file.ownerId === user.id ||
+      file.storageKey.startsWith('belt-posts/') ||
+      file.storageKey.startsWith('avatars/');
+    if (!allowed && file.channelId) {
+      const channel = await this.prisma.channel.findUnique({
+        where: { id: file.channelId },
+        select: { surface: true, organizationId: true },
+      });
+      // 环带公开频道对登录用户开放（与 beltUrl 规则一致）；组织私有频道需成员
+      allowed = channel?.surface === 'belt' && channel.organizationId === null;
+      if (!allowed) {
+        const member = await this.prisma.channelMember.findFirst({
+          where: { channelId: file.channelId, userId: user.id },
+        });
+        allowed = Boolean(member);
+      }
+    }
+    if (!allowed) throw new AppError(ErrorCode.FORBIDDEN, '无权下载该文件');
+    const stream = await this.s3.stream(file.storageKey);
+    if (!stream) throw new AppError(ErrorCode.VALIDATION_FAILED, '文件存储不可用', { fileId });
+    return { file, stream };
   }
 
   async listByChannel(user: AuthUser, channelId: string, query: ChannelFilesQuery) {

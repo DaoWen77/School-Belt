@@ -174,7 +174,7 @@ async function main() {
       displayName: `临时内部${suffix.slice(-3)}`,
       passwordHash,
       globalRole: 'member',
-      tags: ['[极光科技]'],
+      tags: ['[站长]'],
       accountOrigin: 'internal',
     },
   });

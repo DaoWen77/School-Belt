@@ -146,7 +146,7 @@ describe('Sprint1 纯规则（v1.2 Sprint1）', () => {
 
 function identityStub() {
   return {
-    prefixesFor: vi.fn(async () => ['[极光科技]']),
+    prefixesFor: vi.fn(async () => ['[站长]']),
     prefixesForMany: vi.fn(async () => ({})),
   } as unknown as IdentityService;
 }

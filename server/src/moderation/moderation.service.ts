@@ -147,18 +147,21 @@ export class ModerationService {
         level: levelOf(profile.exp),
         violations30d,
         hasPending: application?.status === 'pending',
+        isClerk,
       }),
       counters: { openReports, myVotes },
     };
   }
 
-  /** 提交风纪委申请：Lv4 + 30 天无违规 + 无 pending */
+  /** 提交风纪委申请：Lv4 + 30 天无违规 + 无 pending + 尚未是风纪委员 */
   async apply(user: AuthUser, reason: string) {
     const profile = await this.prisma.user.findUnique({
       where: { id: user.id },
-      select: { exp: true },
+      select: { exp: true, tags: true },
     });
     if (!profile) throw new AppError(ErrorCode.USER_NOT_FOUND);
+    // 已是风纪委员不可重复申请（409，与「资格不足」区分）
+    if (profile.tags.includes(CLERK_TAG)) throw new AppError(ErrorCode.CLERK_ALREADY);
 
     const [violations30d, pending] = await Promise.all([
       this.violations30d(user.id),
@@ -276,7 +279,7 @@ export class ModerationService {
     return result;
   }
 
-  /** 替换 4 个认证标签，其他标签（[极光科技]、风纪委员）原样保留 */
+  /** 替换 4 个认证标签，其他标签（[站长]、风纪委员）原样保留 */
   async setTags(handle: string, tags: readonly string[], actor: AuthUser) {
     const user = await this.findUser(handle);
     const verified = new Set<string>(VERIFIED_TAGS);

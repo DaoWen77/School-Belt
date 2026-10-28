@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { askConfirm } from '@/lib/confirm';
 import { beltApi, type BeltUser } from '@/lib/beltApi';
 import type { BeltPost, BeltPostList } from '@/lib/beltTypes';
 import { IdentityBadges } from '@/components/im/IdentityBadges';
@@ -87,7 +88,14 @@ export function BeltTelegraphView({ user }: { user: BeltUser }) {
 
   const remove = async (post: BeltPost) => {
     if (busyId) return;
-    if (!window.confirm(`执行删除「${post.title}」？这是软删除，会从频道移除。`)) return;
+    if (
+      !(await askConfirm(`执行删除「${post.title}」？这是软删除，会从频道移除。`, {
+        title: '删除动态',
+        confirmText: '删除动态',
+        danger: true,
+      }))
+    )
+      return;
     setBusyId(post.id);
     setError(null);
     try {

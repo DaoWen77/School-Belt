@@ -20,8 +20,9 @@ ops/e2e/pgdata/
 ops/e2e/rclone-s3/
 ops/e2e/server.log
 ops/e2e/*.log
-reports/e2e/
-reports/tmp/
+reports/*
+!reports/.gitkeep
+!reports/README.md
 
 # 系统垃圾
 nul

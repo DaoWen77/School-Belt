@@ -209,7 +209,7 @@ export class ConversationsService {
     }
     const target = await this.prisma.user.findUnique({
       where: { id: dto.userId },
-      select: { id: true, status: true, isInternal: true },
+      select: { id: true, status: true, isInternal: true, displayName: true },
     });
     if (!target) {
       throw new AppError(ErrorCode.VALIDATION_FAILED, '用户不存在', { userId: dto.userId });
@@ -221,29 +221,51 @@ export class ConversationsService {
       throw new AppError(ErrorCode.FORBIDDEN, '内部私聊不能指向环带账号');
     }
 
-    // Phase D：DM 由 accepted 好友链路产生，前端不能再直接建会话。
-    const friendship = await this.prisma.friendship.findFirst({
-      where: {
-        status: 'accepted',
-        surface: 'internal',
-        dmChannelId: { not: null },
-        OR: [
-          { requesterId: user.id, addresseeId: target.id },
-          { requesterId: target.id, addresseeId: user.id },
-        ],
-      },
-      select: { dmChannelId: true },
-    });
-    if (!friendship?.dmChannelId) {
-      throw new AppError(ErrorCode.FRIENDSHIP_REQUIRED, '请先在设置 → 好友中建立好友链路');
-    }
-    const existing = await this.prisma.channel.findUnique({
-      where: { id: friendship.dmChannelId },
+    // 私聊频道由 dm_key（双方 userId 排序哈希）唯一确定；成员关系即访问权。
+    const dmKey = dmKeyOf(user.id, target.id);
+    const found = await this.prisma.channel.findFirst({
+      where: { dmKey, kind: 'dm', surface: 'internal', archivedAt: null },
       select: CONVERSATION_SELECT,
     });
-    if (!existing) throw new AppError(ErrorCode.FRIENDSHIP_REQUIRED, '好友会话不存在，请重新建立链路');
-    await this.ensureMembers(existing.id, [user.id, target.id]);
-    return this.viewFor(user.id, existing);
+    if (found) {
+      await this.ensureMembers(found.id, [user.id, target.id]);
+      return this.viewFor(user.id, found);
+    }
+    let channel: ConversationRow;
+    try {
+      channel = await this.prisma.withTransaction(async (tx) => {
+        const created = await tx.channel.create({
+          data: {
+            name: target.displayName.slice(0, 60),
+            slug: dmSlugOf(dmKey, 'internal'),
+            visibility: 'private',
+            kind: 'dm',
+            surface: 'internal',
+            dmKey,
+            createdBy: user.id,
+          },
+          select: CONVERSATION_SELECT,
+        });
+        await tx.channelMember.createMany({
+          data: [
+            { channelId: created.id, userId: user.id },
+            { channelId: created.id, userId: target.id },
+          ],
+          skipDuplicates: true,
+        });
+        return created;
+      });
+    } catch (error) {
+      // 并发建同一条 DM：dm_key 唯一索引兜底，冲突后读回既有会话。
+      if (!PrismaService.isUniqueViolation(error)) throw error;
+      const raced = await this.prisma.channel.findFirst({
+        where: { dmKey, kind: 'dm', surface: 'internal' },
+        select: CONVERSATION_SELECT,
+      });
+      if (!raced) throw error;
+      channel = raced;
+    }
+    return this.viewFor(user.id, channel);
   }
 
   /** POST /conversations/group：创建者 moderator，成员含自己、去重、≤50 */
@@ -314,19 +336,9 @@ export class ConversationsService {
     return this.viewFor(user.id, updated);
   }
 
-  async blockConversation(user: AuthUser, conversationId: string): Promise<{ blocked: true }> {
-    const { channel, memberIds } = await this.resolve(user, conversationId);
-    if (channel.kind !== 'dm') {
-      throw new AppError(ErrorCode.CONVERSATION_KIND_INVALID, '仅私聊可拉黑');
-    }
-    const friendship = await this.prisma.friendship.findUnique({ where: { dmChannelId: channel.id } });
-    if (!friendship) throw new AppError(ErrorCode.CONVERSATION_NOT_FOUND);
-    await this.prisma.friendship.update({
-      where: { id: friendship.id },
-      data: { status: 'blocked', blockedBy: user.id },
-    });
-    await this.emitConversation(memberIds, WsServerEvent.CONVERSATION_UPDATED, channel);
-    return { blocked: true };
+  async blockConversation(_user: AuthUser, _conversationId: string): Promise<{ blocked: true }> {
+    // 好友体系已废弃，私聊不再有「拉黑好友链路」语义。
+    throw new AppError(ErrorCode.NOT_IMPLEMENTED, '拉黑功能暂不可用');
   }
 
   async transferOwner(
@@ -542,19 +554,6 @@ export class ConversationsService {
     if (!member) {
       // 契约 v1.2 §D1：DM/群聊仅成员可读，owner/admin 不可越权
       throw new AppError(ErrorCode.CONVERSATION_NOT_FOUND, '会话不存在或已不可见');
-    }
-    if (channel.surface === 'bridge') {
-      const friendship = await this.prisma.friendship.findFirst({
-        where: {
-          dmChannelId: channel.id,
-          status: 'accepted',
-          OR: [{ requesterId: user.id }, { addresseeId: user.id }],
-        },
-        select: { id: true },
-      });
-      if (!friendship) {
-        throw new AppError(ErrorCode.CONVERSATION_NOT_FOUND, '会话不存在或已不可见');
-      }
     }
     const members = await this.prisma.channelMember.findMany({
       where: { channelId: channel.id },

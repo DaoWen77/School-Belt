@@ -16,7 +16,6 @@ import { FilesService } from '../files/files.service';
 import { CardsService } from '../cards/cards.service';
 import { RateLimiterService } from '../common/redis/rate-limiter.service';
 import { AuditAction, AuditService } from '../common/audit/audit.service';
-import { FriendshipsService } from '../friendships/friendships.service';
 import { BeltRealtimeService } from '../belt/belt-realtime.service';
 import {
   NotificationsService,
@@ -62,7 +61,6 @@ export class MessagesService {
     private readonly files: FilesService,
     private readonly rateLimiter: RateLimiterService,
     private readonly audit: AuditService,
-    private readonly friendships: FriendshipsService,
     private readonly beltRealtime: BeltRealtimeService,
   ) {}
 
@@ -71,11 +69,8 @@ export class MessagesService {
     channelId: string,
     dto: SendMessageDto,
   ): Promise<{ message: MessageView; dup: boolean }> {
+    // DM 的发送权由 channel_members 成员关系 + 频道权限统一判定。
     const resolved = await this.channelAccess.assert(channelId, user, 'write');
-    // DM 的发送权只来自 accepted 好友链路；群聊/频道不受影响。
-    if (resolved.channel.kind === 'dm') {
-      await this.friendships.assertDmWritable(user.id, channelId);
-    }
     // 契约 §9：5 条/秒突发 + 60 条/分钟/用户（REST 与 WS 同一条路径）
     await this.rateLimiter.assertMessageSend(user.id);
     const input: SendInput = {
@@ -105,14 +100,13 @@ export class MessagesService {
       }
       // bridge DM 的另一端是环带 WS，需要把同一条消息补投到 belt 用户房间。
       if (resolved.channel.surface === 'bridge') {
-        const friendship = await this.prisma.friendship.findFirst({
-          where: { dmChannelId: channelId, status: 'accepted' },
-          select: { requesterId: true, addresseeId: true },
+        const members = await this.prisma.channelMember.findMany({
+          where: { channelId },
+          select: { userId: true },
         });
-        if (friendship) {
-          const payload = { channelId, message: message.view };
-          this.beltRealtime.emitToBeltUser(friendship.requesterId, 'belt:dm:message', payload);
-          this.beltRealtime.emitToBeltUser(friendship.addresseeId, 'belt:dm:message', payload);
+        const payload = { channelId, message: message.view };
+        for (const member of members) {
+          this.beltRealtime.emitToBeltUser(member.userId, 'belt:dm:message', payload);
         }
       }
       this.notifications.publish(message.notifications);

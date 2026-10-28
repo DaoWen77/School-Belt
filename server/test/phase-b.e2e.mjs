@@ -78,8 +78,8 @@ async function main() {
 
   const chenMe = await me(chen);
   const linMe = await me(lin);
-  check(chenMe.prefixes.includes('[极光科技]'), '系统证章存在');
-  check(chenMe.prefixes.some((prefix) => prefix.startsWith('[') && !prefix.startsWith('[极光科技]')) === false, '申请前无组织证章');
+  check(chenMe.prefixes.includes('[站长]'), '系统证章存在');
+  check(chenMe.prefixes.some((prefix) => prefix.startsWith('[') && !prefix.startsWith('[站长]')) === false, '申请前无组织证章');
 
   const ownerApply = await call('/organizations', {
     method: 'POST',
@@ -129,7 +129,7 @@ async function main() {
 
   const chenAfter = await me(chen);
   check(chenAfter.prefixes.includes(`[${orgName}]Official`), '组织 Owner 获得 [组织]Official');
-  check(chenAfter.prefixes.includes('[极光科技]'), '组织 Owner 仍保留系统证章');
+  check(chenAfter.prefixes.includes('[站长]'), '组织 Owner 仍保留系统证章');
 
   const linJoin = await call(`/organizations/${orgId}/join`, {
     method: 'POST',

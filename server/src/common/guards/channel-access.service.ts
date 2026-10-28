@@ -56,17 +56,6 @@ export class ChannelAccessService {
     ) {
       throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '频道不存在');
     }
-    if (channel.surface === 'bridge') {
-      const friendship = await this.prisma.friendship.findFirst({
-        where: {
-          dmChannelId: channel.id,
-          status: 'accepted',
-          OR: [{ requesterId: user.id }, { addresseeId: user.id }],
-        },
-        select: { id: true },
-      });
-      if (!friendship) throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '频道不存在');
-    }
     // 组织频道：全站 Owner/Admin 不是组织成员时也一视同仁，返回 404 隐藏存在性。
     if (channel.organizationId) {
       const orgMember = await this.prisma.organizationMember.findUnique({
@@ -98,6 +87,11 @@ export class ChannelAccessService {
         lastReadSeq: true,
       },
     });
+
+    // bridge DM 的访问权 = channel_members 成员关系（好友体系已废弃）。
+    if (channel.surface === 'bridge' && channel.kind === 'dm' && !member) {
+      throw new AppError(ErrorCode.CHANNEL_NOT_FOUND, '频道不存在');
+    }
 
     const channelContext: ChannelContext = {
       id: channel.id,

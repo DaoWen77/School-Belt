@@ -69,14 +69,8 @@ export type UploadCheck =
   | { ok: false; code: ErrorCode; message: string; maxBytes?: number };
 
 export function checkUpload(mime: string, sizeBytes: number): UploadCheck {
-  const kind = classifyMime(mime);
-  if (!kind) {
-    return {
-      ok: false,
-      code: ErrorCode.FILE_TYPE_NOT_ALLOWED,
-      message: `不支持的文件类型：${mime || '(空)'}`,
-    };
-  }
+  // 任意文件：未知 MIME 一律按文档处理（50MB 上限），保证 pptx/docx/zip 等办公文件不被拦截
+  const kind = classifyMime(mime) ?? 'document';
   const policy = FILE_POLICIES[kind];
   if (sizeBytes <= 0) {
     return { ok: false, code: ErrorCode.VALIDATION_FAILED, message: '文件大小必须为正数' };

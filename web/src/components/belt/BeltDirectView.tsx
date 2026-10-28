@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { askConfirm } from '@/lib/confirm';
 import { beltApi, connectBeltSocket, type BeltUser } from '@/lib/beltApi';
 import type { BeltDmConversation } from '@/lib/beltTypes';
 import type { Message } from '@/lib/types';
@@ -40,7 +41,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
 
   useEffect(() => {
     let cancelled = false;
-    beltApi<{ conversations: BeltDmConversation[] }>('/belt/conversations')
+    beltApi<{ conversations: BeltDmConversation[] }>('/belt/directs')
       .then((data) => {
         if (!cancelled) setConversations(data.conversations ?? []);
       })
@@ -63,7 +64,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
     let cancelled = false;
     setError(null);
     setMenuId(null);
-    beltApi<{ messages: Message[] }>(`/belt/conversations/${conversationId}/messages`)
+    beltApi<{ messages: Message[] }>(`/belt/directs/${conversationId}/messages`)
       .then((data) => {
         if (!cancelled) setMessages(data.messages ?? []);
       })
@@ -105,7 +106,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
     setBusy(true);
     setError(null);
     try {
-      const data = await beltApi<{ message: Message }>(`/belt/conversations/${selected.id}/messages`, {
+      const data = await beltApi<{ message: Message }>(`/belt/directs/${selected.id}/messages`, {
         method: 'POST',
         body: JSON.stringify({ body: draft.trim(), clientMsgId: randomUuid() }),
       });
@@ -122,10 +123,17 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
 
   const clearChat = async () => {
     if (!selected || busy) return;
-    if (!window.confirm('清空这段私聊记录？只对你的账号隐藏，对方仍可看到。')) return;
+    if (
+      !(await askConfirm('清空这段私聊记录？只对你的账号隐藏，对方仍可看到。', {
+        title: '清空私聊记录',
+        confirmText: '清空记录',
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     try {
-      await beltApi(`/belt/conversations/${selected.id}/messages`, { method: 'DELETE' });
+      await beltApi(`/belt/directs/${selected.id}/messages`, { method: 'DELETE' });
       setMessages([]);
       setNotice('本地链路记录已清空。');
     } catch (caught) {
@@ -135,36 +143,13 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
     }
   };
 
-  const manageFriend = async (action: 'block' | 'remove') => {
-    if (!selected || busy) return;
-    const copy = action === 'block' ? '拉黑后不再接收对方消息，也不能再发送。' : '删除好友后这段私聊链路会关闭。';
-    if (!window.confirm(copy)) return;
-    setBusy(true);
-    try {
-      if (action === 'block') {
-        await beltApi(`/belt/friendships/${selected.friendshipId}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ action: 'block' }),
-        });
-      } else {
-        await beltApi(`/belt/friendships/${selected.friendshipId}`, { method: 'DELETE' });
-      }
-      setConversations((previous) => previous.filter((row) => row.id !== selected.id));
-      setMessages([]);
-      window.dispatchEvent(new CustomEvent('belt:refresh'));
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : '操作失败');
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const recall = async (message: Message) => {
     if (!selected || busy) return;
     setBusy(true);
     setMenuId(null);
     try {
-      await beltApi(`/belt/conversations/${selected.id}/messages/${message.id}`, { method: 'DELETE' });
+      await beltApi(`/belt/directs/${selected.id}/messages/${message.id}`, { method: 'DELETE' });
       setMessages((previous) => previous.filter((item) => item.id !== message.id));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : '撤回失败');
@@ -182,7 +167,7 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
       <div className="belt-im-empty-page">
         <p className="belt-page-kicker">DIRECT LINK / 通讯链路</p>
         <h3>请从左侧选择通讯链路</h3>
-        <p>侧边栏「私聊链路」里点选好友，立即开始聊天。</p>
+        <p>侧边栏「私聊链路」里点选联系人，立即开始聊天。</p>
       </div>
     );
   }
@@ -204,9 +189,25 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
         <div className="belt-im-chat">
           <header className="belt-im-chat-head">
             <Link href="/belt/direct" className="belt-im-back" aria-label="返回">←</Link>
-            <BeltAvatar fileId={peer?.avatarFileId} name={peer?.displayName ?? '对方'} size="sm" />
+            {peer?.handle ? (
+              <Link
+                className="belt-msg-link"
+                href={`/belt/u/${encodeURIComponent(peer.handle)}`}
+                aria-label={`查看 ${peer.displayName} 的主页`}
+              >
+                <BeltAvatar fileId={peer.avatarFileId} name={peer.displayName} size="sm" />
+              </Link>
+            ) : (
+              <BeltAvatar fileId={peer?.avatarFileId} name={peer?.displayName ?? '对方'} size="sm" />
+            )}
             <div className="belt-im-chat-title">
-              <b>{peer?.displayName ?? '私聊链路'}</b>
+              {peer?.handle ? (
+                <Link className="belt-author-link" href={`/belt/u/${encodeURIComponent(peer.handle)}`}>
+                  <b>{peer.displayName}</b>
+                </Link>
+              ) : (
+                <b>{peer?.displayName ?? '私聊链路'}</b>
+              )}
               <small>@{peer?.handle ?? ''} · {selected.surface === 'bridge' ? 'BRIDGE' : 'BELT'}</small>
             </div>
             <div className="belt-im-chat-actions">
@@ -217,8 +218,6 @@ export function BeltDirectView({ user, conversationId }: { user: BeltUser; conve
                 <span className="belt-call-icon belt-call-video" /><small>VIDEO</small>
               </button>
               <button type="button" className="belt-button" disabled={busy} onClick={() => void clearChat()}>清空</button>
-              <button type="button" className="belt-button" disabled={busy} onClick={() => void manageFriend('block')}>拉黑</button>
-              <button type="button" className="belt-danger-link" disabled={busy} onClick={() => void manageFriend('remove')}>删好友</button>
             </div>
           </header>
 

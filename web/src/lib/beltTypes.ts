@@ -47,6 +47,9 @@ export interface BeltMessage {
   sender: BeltUser;
   card?: BeltMessageCard | null;
   attachments?: BeltAttachment[];
+  ding?: boolean;
+  mentions?: string[];
+  mentionHandles?: string[];
 }
 
 export type BeltBoard = 'bulletin' | 'bounty' | 'daily' | 'telegraph';
@@ -80,6 +83,10 @@ export interface BeltPost {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  /** 以下三项由 P0 后端补齐；未就绪时按 false 处理。 */
+  bookmarked?: boolean;
+  pinned?: boolean;
+  promoted?: boolean;
 }
 
 export interface BeltComment {
@@ -102,8 +109,9 @@ export interface BeltPostList {
 }
 
 export interface BeltDmConversation {
+  /** 私聊频道 id（即 /belt/directs/:id 的 :id）。 */
   id: string;
-  surface: 'belt' | 'bridge';
+  surface?: 'belt' | 'bridge';
   peer: {
     id: string;
     handle: string;
@@ -111,35 +119,27 @@ export interface BeltDmConversation {
     avatarFileId: string | null;
     prefixes: string[];
   };
-  friendshipId: string;
-  lastMessageAt: string | null;
-  lastMessagePreview: string | null;
+  lastMessage?: { id?: string; body?: string; kind?: string; createdAt?: string } | null;
+  unread?: number;
+  updatedAt?: string;
+  /** 兼容旧接口快照（后端切新契约前仍可能返回）。 */
+  lastMessageAt?: string | null;
+  lastMessagePreview?: string | null;
   unreadCount?: number;
 }
 
-export interface BeltFriendView {
+export interface BeltWalletEntry {
   id: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'blocked' | 'removed';
-  surface: 'internal' | 'belt' | 'bridge';
-  contextPostId: string | null;
-  requestNote: string | null;
-  dmChannelId: string | null;
-  requestedAt: string;
-  respondedAt: string | null;
-  peer: {
-    id: string;
-    handle: string;
-    displayName: string;
-    avatarFileId: string | null;
-    prefixes: string[];
-  };
+  amountCents: number;
+  balanceAfterCents: number;
+  kind: string;
+  memo: string | null;
+  createdAt: string;
 }
 
-export interface BeltFriends {
-  friends: BeltFriendView[];
-  incoming: BeltFriendView[];
-  outgoing: BeltFriendView[];
-  blocked: BeltFriendView[];
+export interface BeltWallet {
+  balanceCents: number;
+  recent: BeltWalletEntry[];
 }
 
 /* ── 模块一：外环身份 / 个人主页 ───────────────────────────── */
@@ -171,11 +171,15 @@ export interface BeltProfileUser {
   isSelf: boolean;
   isFollowing: boolean;
   followedBy: boolean;
+  /** 商券余额（分）；后端未就绪时缺省。 */
+  balanceCents?: number;
 }
 
 export interface BeltProfile {
   user: BeltProfileUser;
   eligibility: { isClerk: boolean; clerkApplicationStatus: string | null; moderationVisible: boolean };
+  /** 是否允许发起私信（关注后为 true）。 */
+  canDirect?: boolean;
 }
 
 export interface BeltProfilePost {
@@ -275,6 +279,132 @@ export interface BeltModerationReportTarget {
   authorLevel: number;
   authorTags: string[];
   coverFileId: string | null;
+}
+
+export type BeltBondType = 'buddy' | 'mentor' | 'partner' | 'pal';
+
+export interface BeltBondPeer {
+  id: string;
+  handle: string;
+  displayName: string;
+  avatarFileId?: string | null;
+  prefixes?: string[];
+}
+
+export interface BeltBondCard {
+  id: string;
+  type: BeltBondType;
+  typeLabel: string;
+  status: string;
+  intimacy: number;
+  peer: BeltBondPeer;
+  invitedByMe: boolean;
+  renewedToday: boolean;
+  bothRenewedToday: boolean;
+  /** 契约外的可选字段：后端若返回对方今日已续，则展示「对方已延续」。 */
+  peerRenewedToday?: boolean;
+  createdAt: string;
+  endedAt: string | null;
+  endReason: string | null;
+}
+
+export interface BeltBonds {
+  incoming: BeltBondCard[];
+  outgoing: BeltBondCard[];
+  active: BeltBondCard[];
+  ended: BeltBondCard[];
+}
+
+/* ── 委托交易（TASKS） ─────────────────────────────────── */
+export type BeltTaskStatus = 'open' | 'in_progress' | 'submitted' | 'completed' | 'cancelled';
+
+export type BeltTaskRole = 'creator' | 'taker' | 'visitor';
+
+export interface BeltTaskUser {
+  id: string;
+  handle: string;
+  displayName: string;
+  avatarFileId?: string | null;
+  prefixes?: string[];
+}
+
+/** 托管状态：后端可能给对象或字符串，展示时统一取标签。 */
+export interface BeltTaskEscrow {
+  status?: string;
+  amountCents?: number;
+}
+
+export interface BeltTask {
+  id: string;
+  title: string;
+  description: string;
+  priceCents: number;
+  feeCents: number;
+  netCents: number;
+  deadline: string | null;
+  status: BeltTaskStatus;
+  createdAt: string;
+  editedAt: string | null;
+  creator: BeltTaskUser;
+  taker: BeltTaskUser | null;
+  myRole: BeltTaskRole;
+  applicationCount: number;
+  myApplicationStatus: string | null;
+  escrow?: BeltTaskEscrow | string | null;
+  canApply: boolean;
+  canSelect: boolean;
+  canSubmit: boolean;
+  canAccept: boolean;
+  canCancel: boolean;
+  canEdit: boolean;
+}
+
+export interface BeltTaskApplication {
+  id: string;
+  message: string | null;
+  status: string;
+  createdAt: string;
+  applicant: BeltTaskUser;
+}
+
+export interface BeltTaskDetail {
+  task: BeltTask;
+  applications?: BeltTaskApplication[];
+  myApplication?: BeltTaskApplication | null;
+}
+
+/* ── IM 增强（@ / DING / 置顶） ─────────────────────────── */
+export interface BeltChannelMember {
+  id: string;
+  handle: string;
+  displayName: string;
+  avatarFileId?: string | null;
+  prefixes?: string[];
+}
+
+export interface BeltPinnedMessage {
+  id: string;
+  body: string;
+  sender: BeltUser | null;
+  createdAt: string | null;
+}
+
+export interface BeltDingQuota {
+  limit: number;
+  used: number;
+  remaining: number;
+}
+
+export interface BeltDingResult {
+  message: BeltMessage;
+  remaining: number;
+}
+
+export interface BeltSticker {
+  id: string;
+  name: string;
+  fileId: string;
+  mime: string;
 }
 
 export interface BeltModerationReport {

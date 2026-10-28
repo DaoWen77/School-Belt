@@ -15,7 +15,7 @@ export interface AuthUser {
   sessionId: string;
   /** 当前会话属于哪个面；由 sessions.surface 回查，不信任 token 里的旧值 */
   sessionSurface: SurfaceName;
-  /** 是否拥有 `[极光科技]` 标签（由 DB 派生，每次请求回查） */
+  /** 是否拥有 `[站长]` 标签（由 DB 派生，每次请求回查） */
   isInternal: boolean;
   /** 账号出生面：internal / belt */
   accountOrigin: SurfaceName;

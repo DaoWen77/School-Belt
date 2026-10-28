@@ -130,7 +130,7 @@ async function main() {
 
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   try {
-    // 1. Owner：Header 全局 [极光科技]Official
+    // 1. Owner：Header 全局 [站长]Official
     const owner = await pageWithToken(browser, founder.token, founder.refresh);
     await owner.page.goto(WEB, { waitUntil: 'networkidle' });
     await owner.page.waitForTimeout(600);

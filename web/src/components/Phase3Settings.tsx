@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api, errorOf } from '@/lib/api';
+import { askConfirm } from '@/lib/confirm';
 import type { ApiUser, Channel, UserLite } from '@/lib/types';
 
 type P3Error = { code: string; message: string };
@@ -155,7 +156,14 @@ export function Phase3Settings({ me, isAdmin }: { me: ApiUser | null; isAdmin: b
   };
 
   const removeDevice = async (device: DeviceRow) => {
-    if (!window.confirm(`删除设备「${device.name ?? device.platform ?? device.id}」？`)) return;
+    if (
+      !(await askConfirm(`删除设备「${device.name ?? device.platform ?? device.id}」？`, {
+        title: '删除设备',
+        confirmText: '删除设备',
+        danger: true,
+      }))
+    )
+      return;
     try {
       await api(`/me/devices/${device.id}`, { method: 'DELETE' });
       await loadDevices();
@@ -167,7 +175,14 @@ export function Phase3Settings({ me, isAdmin }: { me: ApiUser | null; isAdmin: b
   const toggleUser = async (user: ManagedUser) => {
     if (!isAdmin || user.id === me?.id || user.globalRole === 'owner') return;
     const next = user.status === 'suspended' ? 'active' : 'suspended';
-    if (!window.confirm(`${next === 'suspended' ? '封禁' : '解封'} @${user.handle}？`)) return;
+    if (
+      !(await askConfirm(`${next === 'suspended' ? '封禁' : '解封'} @${user.handle}？`, {
+        title: next === 'suspended' ? '封禁用户' : '解封用户',
+        confirmText: next === 'suspended' ? '封禁用户' : '解封用户',
+        danger: next === 'suspended',
+      }))
+    )
+      return;
     try {
       await api(`/users/${user.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: next }) });
       await loadUsers();
@@ -217,7 +232,14 @@ export function Phase3Settings({ me, isAdmin }: { me: ApiUser | null; isAdmin: b
   };
 
   const deleteChannel = async (channel: Channel) => {
-    if (!window.confirm(`删除频道「${channel.name}」？此操作不可撤销。`)) return;
+    if (
+      !(await askConfirm(`删除频道「${channel.name}」？此操作不可撤销。`, {
+        title: '删除频道',
+        confirmText: '彻底删除',
+        danger: true,
+      }))
+    )
+      return;
     try {
       await api(`/channels/${channel.id}`, { method: 'DELETE' });
       await loadChannels();

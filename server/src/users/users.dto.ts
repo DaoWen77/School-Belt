@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const reservedIdentityWord = /(极光科技|Official|帝江号|文明环带|系统)/i;
+const reservedIdentityWord = /(站长|Official|帝江号|文明环带|系统)/i;
 
 export const updateProfileSchema = z.object({
   displayName: z
@@ -16,7 +16,7 @@ export const updateProfileSchema = z.object({
   avatarFileId: z.string().uuid().nullable().optional(),
   /**
    * 自定义状态（v1.2 Sprint1，≤24 字符）；传 null 或空串表示清除。
-   * 它不再是“身份前缀”：禁止方括号与保留词，避免伪造 `[极光科技]Official`。
+   * 它不再是“身份前缀”：禁止方括号与保留词，避免伪造 `[站长]Official`。
    */
   statusPrefix: z
     .union([

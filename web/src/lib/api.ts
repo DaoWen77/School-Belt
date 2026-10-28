@@ -97,9 +97,19 @@ function locationApiBase(): string {
  * 3. 浏览器当前 hostname 的 :3000（HTTPS 自动 https）；
  * 4. 纯 SSR 无法获知 hostname 时返回空串，由客户端水合后重新解析。
  */
+const TUNNEL_HOST_RE = /\.ofalias\.net$/i;
+
+/** 穿透域名专用 API 源（端口映射与内网不同；构建期注入，运行时按访问 host 选择） */
+function tunnelApiOrigin(): string {
+  return (process.env.NEXT_PUBLIC_TUNNEL_API_ORIGIN ?? '').trim().replace(/\/+$/, '');
+}
+
 export function resolveApiBase(): string {
   const saved = savedBase(API_STORAGE_KEY);
   if (saved) return saved;
+  /* 公网穿透域名 → 固定公网 API 源；内网/本机 → 同 hostname:3000（不绕公网） */
+  const tunnel = tunnelApiOrigin();
+  if (tunnel && typeof window !== 'undefined' && TUNNEL_HOST_RE.test(window.location.hostname)) return tunnel;
   const configured = envApiBase();
   if (configured) return configured;
   return locationApiBase();

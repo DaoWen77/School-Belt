@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { ConfirmHost } from '../components/ConfirmDialog';
 import '../styles/tokens.css';
 import '../styles/app.css';
 import 'highlight.js/styles/github.css';
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="ef dj im-body">
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
         {children}
+        <ConfirmHost />
       </body>
     </html>
   );

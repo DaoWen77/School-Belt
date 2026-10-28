@@ -1,6 +1,6 @@
 /**
  * 身份证章：只渲染服务端计算好的 prefixes。
- * 前端不解析 displayName / statusPrefix，也不拼 `[极光科技]Official`。
+ * 前端不解析 displayName / statusPrefix，也不拼 `[站长]Official`。
  */
 export function IdentityBadges({
   values,
@@ -17,7 +17,7 @@ export function IdentityBadges({
     <span className={`identity-badges ${className}`.trim()}>
       {values.map((value) => {
         const isCustom = !value.startsWith('[');
-        const isSystem = value.startsWith('[极光科技]');
+        const isSystem = value.startsWith('[站长]');
         const isOfficial = value.endsWith('Official');
         const text = isCustom ? `[${value}]` : value;
         return (
